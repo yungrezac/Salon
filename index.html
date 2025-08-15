@@ -2,88 +2,75 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Салон Красоты</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Telegram Web App script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles */
+        /* CSS Variables for Telegram Theme Integration */
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --button-color: #c08497;
+            --button-text-color: #ffffff;
+            --hint-color: #94a3b8;
+            --secondary-bg-color: #ffffff;
+            --header-bg-color: #ffffff;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Slate-50 background */
-            color: #334155; /* Slate-700 */
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
         .main-container {
-            padding-bottom: 80px; 
+            padding-bottom: 80px;  
         }
         .btn-primary {
-            background-color: #c08497;
-            color: white;
+            background-color: var(--button-color);
+            color: var(--button-text-color);
             font-weight: 600;
             border-radius: 0.75rem;
             padding: 0.65rem 1.5rem;
             transition: background-color 0.3s;
         }
         .btn-primary:hover {
-            background-color: #a3667a;
+            opacity: 0.9;
         }
         .card {
-            background-color: white;
+            background-color: var(--secondary-bg-color);
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
             margin-bottom: 1rem;
         }
-        /* Screen visibility */
         .screen { display: none; }
         .screen.active { display: block; }
         
-        /* Time slot styling */
         .time-slot { cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; }
-        .time-slot.selected { background-color: #c08497; color: white; border-color: #c08497; }
+        .time-slot.selected { background-color: var(--button-color); color: var(--button-text-color); border-color: var(--button-color); }
         .time-slot:not(.disabled):hover { background-color: #fde6ea; border-color: #fde6ea; }
-        .time-slot.disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+        .time-slot.disabled { background-color: #f1f5f9; color: var(--hint-color); cursor: not-allowed; }
         
-        /* Navbar styling */
-        .nav-item { color: #94a3b8; transition: all 0.2s; }
-        .nav-item.active { color: #c08497; background-color: #fde6ea; }
-        .nav-item.active svg { color: #c08497; }
+        .nav-item { color: var(--hint-color); transition: all 0.2s; }
+        .nav-item.active { color: var(--button-color); background-color: #fde6ea; }
+        .nav-item.active svg { color: var(--button-color); }
 
-        /* Stories styling */
         .stories-container {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; scrollbar-width: none;
         }
-        .stories-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
-        .story-item {
-            border: 2px solid #c08497;
-        }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story-item { border: 2px solid var(--button-color); }
         
-        /* Modal styling */
-        .modal {
-            display: none; /* Hidden by default */
-            transition: opacity 0.3s ease;
-        }
-        .modal.show {
-            display: flex; /* Show when active */
-        }
-        .like-btn.liked svg {
-            fill: #ef4444; /* red-500 */
-            stroke: #ef4444;
-        }
-        /* Ensure post view takes full height for comment input positioning */
-        #post-view-screen.active {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        .modal { display: none; transition: opacity 0.3s ease; }
+        .modal.show { display: flex; }
+        .like-btn.liked svg { fill: #ef4444; stroke: #ef4444; }
+        #post-view-screen.active { height: 100vh; display: flex; flex-direction: column; }
     </style>
 </head>
 <body class="antialiased text-sm">
@@ -92,43 +79,50 @@
 
         <!-- ===== Home Screen ===== -->
         <div id="home-screen" class="screen active">
-            <header class="flex items-center p-4 pt-6 bg-white shadow-sm">
-                <div class="bg-rose-100 p-2 rounded-full">
-                    <!-- New Logo Icon -->
-                    <svg class="w-6 h-6 text-rose-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
+            <header class="flex items-center p-4 pt-6 bg-white shadow-sm" style="background-color: var(--header-bg-color);">
+                <div class="bg-rose-100 p-2 rounded-full" style="background-color: var(--button-color); opacity: 0.2;">
+                    <svg class="w-6 h-6 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
                 </div>
-                <h1 class="text-xl font-bold text-slate-800 ml-3">Beauty Haven</h1>
+                <h1 class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);">Beauty Haven</h1>
             </header>
-            <div id="stories-list" class="stories-container flex space-x-4 overflow-x-auto p-4 bg-white"></div>
-            <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1"></div>
+            <div id="stories-list" class="stories-container flex space-x-4 overflow-x-auto p-4 bg-white" style="background-color: var(--secondary-bg-color);"></div>
+            <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
         </div>
 
         <!-- ===== Post View Screen ===== -->
-        <div id="post-view-screen" class="screen">
-            <!-- Content will be injected by JS -->
-        </div>
+        <div id="post-view-screen" class="screen"></div>
 
         <!-- ===== Services Screen ===== -->
         <div id="services-screen" class="screen p-4">
             <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
             <div id="services-list" class="space-y-3"></div>
         </div>
+
+        <!-- ===== Specialist Selection Screen ===== -->
+        <div id="specialist-selection-screen" class="screen p-4">
+            <header class="mb-5"><h1 class="text-xl font-bold">Выберите мастера</h1></header>
+            <div id="specialist-selection-list" class="space-y-3"></div>
+        </div>
         
-        <!-- ===== Booking Screen (part of services flow) ===== -->
+        <!-- ===== Booking Screen ===== -->
         <div id="booking-screen" class="screen p-4">
-            <header class="flex items-center mb-5">
-                <button onclick="showScreen('services-screen')" class="mr-3 text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-                <h1 class="text-xl font-bold">Выберите дату и время</h1>
-            </header>
+            <header class="mb-5"><h1 class="text-xl font-bold">Выберите дату и время</h1></header>
             <div class="card p-4">
-                <h2 class="font-semibold mb-2 text-base" id="selected-service-title"></h2>
-                <input type="date" id="date-picker" class="w-full p-2 border rounded-lg focus:ring-rose-400 focus:border-rose-400">
+                <h2 class="font-semibold mb-1 text-base" id="selected-service-title"></h2>
+                <p class="text-sm text-slate-500 mb-3" id="selected-specialist-subtitle" style="color: var(--hint-color);"></p>
+                <input type="date" id="date-picker" class="w-full p-2 border rounded-lg focus:ring-rose-400 focus:border-rose-400" style="background-color: var(--bg-color); color: var(--text-color);">
             </div>
             <div class="card p-4">
                 <h2 class="font-semibold mb-4">Доступное время:</h2>
                 <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
             </div>
-            <button id="confirm-booking-btn" onclick="confirmBooking()" class="w-full btn-primary mt-4 text-base" disabled>Подтвердить запись</button>
+            <!-- The confirm button is now the Telegram MainButton, so we remove the HTML one -->
+        </div>
+
+        <!-- ===== Specialists Screen ===== -->
+        <div id="specialists-screen" class="screen p-4">
+            <header class="mb-5"><h1 class="text-xl font-bold">Наши мастера</h1></header>
+            <div id="specialists-list" class="space-y-4"></div>
         </div>
 
         <!-- ===== My Appointments Screen ===== -->
@@ -141,54 +135,52 @@
         <div id="profile-screen" class="screen p-4">
             <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
             <div class="card p-4 flex items-center">
-                <img src="https://placehold.co/64x64/fde6ea/c08497?text=A" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
+                <img id="profile-avatar" src="https://placehold.co/64x64/fde6ea/c08497?text=U" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
                 <div>
-                    <h2 class="font-bold text-lg">Анна</h2>
-                    <p class="text-slate-500">+7 (926) 123-45-67</p>
+                    <h2 id="profile-name" class="font-bold text-lg">Пользователь</h2>
+                    <p id="profile-phone" class="text-slate-500" style="color: var(--hint-color);">Данные из Telegram</p>
                 </div>
             </div>
             <div class="card p-4">
                 <h3 class="font-semibold mb-3">Настройки</h3>
                 <div class="space-y-2">
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Уведомления</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Привязанные карты</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Помощь</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Уведомления</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Привязанные карты</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Помощь</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
                 </div>
             </div>
-             <button class="w-full text-center py-3 text-red-500 font-semibold bg-red-50 rounded-lg hover:bg-red-100">Выйти</button>
         </div>
 
-        <!-- ===== Success Screen (modal-like) ===== -->
+        <!-- ===== Success Screen ===== -->
         <div id="success-screen" class="screen text-center p-8">
             <div class="mb-5">
-                <!-- New Success Icon -->
                 <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
             <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
-            <p class="text-slate-600 mb-6" id="success-details"></p>
+            <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
             <button onclick="showScreen('my-appointments-screen')" class="btn-primary">Посмотреть мои записи</button>
         </div>
     </div>
 
     <!-- ===== Bottom Navigation Bar ===== -->
-    <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10">
+    <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10" style="background-color: var(--secondary-bg-color);">
         <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg active">
-            <!-- New Home Icon -->
             <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             <span>Главная</span>
         </button>
         <button id="nav-services" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <!-- New Booking Icon -->
             <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             <span>Запись</span>
         </button>
+        <button id="nav-specialists" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Мастера</span>
+        </button>
         <button id="nav-appointments" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <!-- New Appointments Icon -->
             <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             <span>Мои записи</span>
         </button>
         <button id="nav-profile" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <!-- New Profile Icon -->
             <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <span>Профиль</span>
         </button>
@@ -204,104 +196,159 @@
 
 
     <script>
+        // --- GLOBAL TELEGRAM OBJECT ---
+        const tg = window.Telegram.WebApp;
+
         // --- DATA ---
-        const services = [
-            { id: 1, name: 'Маникюр с покрытием', duration: '1.5 часа', price: '2000 ₽' },
-            { id: 2, name: 'Педикюр', duration: '2 часа', price: '3000 ₽' },
-            { id: 3, name: 'Стрижка женская', duration: '1 час', price: '1800 ₽' },
+        const specialists = [
+            { id: 1, name: 'Екатерина', specialty: 'Мастер маникюра', photo: 'https://placehold.co/80x80/fecdd3/be123c?text=E' },
+            { id: 2, name: 'Анастасия', specialty: 'Парикмахер-стилист', photo: 'https://placehold.co/80x80/d1d5db/111827?text=A' },
+            { id: 3, name: 'Светлана', specialty: 'Парикмахер-колорист', photo: 'https://placehold.co/80x80/fef08a/854d0e?text=C' },
+            { id: 4, name: 'Ольга', specialty: 'Мастер педикюра', photo: 'https://placehold.co/80x80/cffafe/155e75?text=O' },
         ];
-        
+        const services = [
+            { id: 1, name: 'Маникюр с покрытием', duration: '1.5 часа', price: '2000 ₽', specialistIds: [1] },
+            { id: 2, name: 'Педикюр', duration: '2 часа', price: '3000 ₽', specialistIds: [1, 4] },
+            { id: 3, name: 'Стрижка женская', duration: '1 час', price: '1800 ₽', specialistIds: [2, 3] },
+            { id: 4, name: 'Окрашивание', duration: '3 часа', price: '5000 ₽', specialistIds: [3] },
+        ];
         const portfolio = {
             stories: [
                 { title: "Ногти", img: "https://placehold.co/150x150/d1fae5/10b981?text=Nails" },
                 { title: "Стрижки", img: "https://placehold.co/150x150/e0f2fe/0ea5e9?text=Cuts" },
                 { title: "Окрас", img: "https://placehold.co/150x150/f3e8ff/9333ea?text=Color" },
-                { title: "Брови", img: "https://placehold.co/150x150/ffedd5/f97316?text=Brows" },
-                { title: "Укладки", img: "https://placehold.co/150x150/fee2e2/ef4444?text=Style" },
             ],
             posts: [
-                { id: 1, title: "Идеальный френч", img: "https://placehold.co/600x600/fce7f3/db2777?text=French+Nails", likes: 124, liked: false, shares: 12, comments: [{id: 1, author: 'Елена', text: 'Очень красиво!'}, {id: 2, author: 'Мария', text: 'Супер работа!'}, {id: 4, author: 'Ольга', text: 'Хочу такой же маникюр.'}, {id: 5, author: 'Ирина', text: 'Вы лучшие!'}]},
-                { id: 2, title: "Сложное окрашивание", img: "https://placehold.co/600x600/f3e8ff/9333ea?text=Balayage", likes: 256, liked: false, shares: 34, comments: [{id: 3, author: 'Светлана', text: 'Хочу так же!'}]},
-                { id: 3, title: "Вечерний образ", img: "https://placehold.co/600x600/fee2e2/ef4444?text=Evening+Look", likes: 98, liked: false, shares: 5, comments: []},
+                { id: 1, title: "Идеальный френч", img: "https://placehold.co/600x600/fce7f3/db2777?text=French+Nails", likes: 124, liked: false, comments: [{id: 1, author: 'Елена', text: 'Очень красиво!'}]},
+                { id: 2, title: "Сложное окрашивание", img: "https://placehold.co/600x600/f3e8ff/9333ea?text=Balayage", likes: 256, liked: false, comments: [{id: 3, author: 'Светлана', text: 'Хочу так же!'}]},
             ]
         };
-
         const availableTimeSlots = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
         
-        let bookingState = { service: null, date: null, time: null };
+        let bookingState = { service: null, specialist: null, date: null, time: null };
         let userAppointments = [];
+        let screenHistory = ['home-screen']; // For Back Button navigation
+        let currentUser = {
+            first_name: 'Пользователь',
+            // Add other fields from tg.initDataUnsafe.user if needed
+        };
 
         // --- INIT & DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', () => {
-            try { Telegram.WebApp.ready(); } catch (error) { console.error("Telegram Web App script not found."); }
-            
+            tg.ready();
+            tg.expand(); // Expand the app to full height
+
+            applyTheme();
+            displayUserData();
+
+            // --- NAVIGATION EVENT LISTENERS ---
             document.getElementById('nav-home').onclick = () => showScreen('home-screen');
             document.getElementById('nav-services').onclick = () => showScreen('services-screen');
+            document.getElementById('nav-specialists').onclick = () => showScreen('specialists-screen');
             document.getElementById('nav-appointments').onclick = () => showScreen('my-appointments-screen');
             document.getElementById('nav-profile').onclick = () => showScreen('profile-screen');
             
+            // --- MODAL CLICK LISTENER ---
             document.getElementById('image-modal').onclick = (e) => {
                 if(e.target.id === 'image-modal') closeModal();
             };
 
+            // --- TELEGRAM BUTTONS SETUP ---
+            tg.MainButton.setText('Подтвердить запись');
+            tg.MainButton.onClick(confirmBooking);
+            tg.BackButton.onClick(goBack);
+
+            // --- INITIAL RENDER ---
             renderServices();
+            renderAllSpecialists();
             renderAppointments();
             renderPortfolio();
             setupDatePicker();
         });
 
+        // --- TELEGRAM SDK INTEGRATION ---
+        function applyTheme() {
+            const theme = tg.themeParams;
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', theme.bg_color || '#f8fafc');
+            root.style.setProperty('--text-color', theme.text_color || '#334155');
+            root.style.setProperty('--button-color', theme.button_color || '#c08497');
+            root.style.setProperty('--button-text-color', theme.button_text_color || '#ffffff');
+            root.style.setProperty('--hint-color', theme.hint_color || '#94a3b8');
+            root.style.setProperty('--secondary-bg-color', theme.secondary_bg_color || '#ffffff');
+            // Header needs a fallback as it might not be in theme params
+            root.style.setProperty('--header-bg-color', theme.header_bg_color || theme.secondary_bg_color || '#ffffff');
+        }
+
+        function displayUserData() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                currentUser = tg.initDataUnsafe.user;
+                const userInitial = (currentUser.first_name || 'U').charAt(0);
+                
+                document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
+                // You can get more user data if needed, e.g., phone number, but it's not provided by default
+                document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
+            }
+        }
+
         // --- NAVIGATION ---
-        function showScreen(screenId) {
+        function showScreen(screenId, isBack = false) {
+            // Manage history for the back button
+            if (!isBack) {
+                // Don't push duplicates if user clicks the same nav button twice
+                if (screenHistory[screenHistory.length - 1] !== screenId) {
+                    screenHistory.push(screenId);
+                }
+            }
+            
             document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             window.scrollTo(0, 0);
 
-            const navBar = document.getElementById('navbar');
-            if (screenId === 'post-view-screen') {
-                navBar.style.display = 'none';
+            // Manage Telegram UI components based on screen
+            const isHomeScreen = ['home-screen', 'services-screen', 'specialists-screen', 'my-appointments-screen', 'profile-screen'].includes(screenId);
+            const isBookingScreen = screenId === 'booking-screen';
+
+            if (isHomeScreen) {
+                tg.BackButton.hide();
             } else {
-                navBar.style.display = 'flex';
+                tg.BackButton.show();
             }
 
+            if (isBookingScreen) {
+                updateConfirmButtonState(); // This will show/hide MainButton
+            } else {
+                tg.MainButton.hide();
+            }
+
+            // Update active state for bottom navbar
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             const navMapping = {
                 'home-screen': 'nav-home', 'post-view-screen': 'nav-home',
-                'services-screen': 'nav-services', 'booking-screen': 'nav-services', 
+                'services-screen': 'nav-services', 'booking-screen': 'nav-services', 'specialist-selection-screen': 'nav-services',
+                'specialists-screen': 'nav-specialists',
                 'my-appointments-screen': 'nav-appointments', 'profile-screen': 'nav-profile'
             };
             const activeNavId = navMapping[screenId];
             if (activeNavId) document.getElementById(activeNavId).classList.add('active');
         }
 
+        function goBack() {
+            tg.HapticFeedback.impactOccurred('light');
+            if (screenHistory.length > 1) {
+                screenHistory.pop();
+                const previousScreen = screenHistory[screenHistory.length - 1];
+                showScreen(previousScreen, true); // true indicates this is a back navigation
+            }
+        }
+
         // --- RENDERING ---
         function renderPortfolio() {
-            const storiesList = document.getElementById('stories-list');
-            storiesList.innerHTML = '';
-            portfolio.stories.forEach(story => {
-                const el = document.createElement('div');
-                el.className = 'flex-shrink-0 text-center cursor-pointer';
-                el.onclick = () => openModal(story.img);
-                el.innerHTML = `<img src="${story.img}" alt="${story.title}" class="w-16 h-16 rounded-full object-cover story-item p-1"><span class="text-xs mt-1 block">${story.title}</span>`;
-                storiesList.appendChild(el);
-            });
-
             const postsContainer = document.getElementById('portfolio-posts');
             postsContainer.innerHTML = '';
             portfolio.posts.forEach(post => {
                 const el = document.createElement('div');
-                el.className = 'bg-white';
-                
-                let commentsPreviewHtml = '';
-                if (post.comments.length > 0) {
-                    const recentComments = post.comments.slice(-3);
-                    commentsPreviewHtml = recentComments.map(comment => `
-                        <div class="text-xs">
-                            <span class="font-semibold">${comment.author}</span>
-                            <span class="text-slate-600">${comment.text}</span>
-                        </div>
-                    `).join('');
-                }
-
+                el.className = 'card';
                 el.innerHTML = `
                     <div class="p-4 flex items-center">
                         <img src="https://placehold.co/40x40/c08497/ffffff?text=BH" class="w-8 h-8 rounded-full mr-3">
@@ -311,166 +358,192 @@
                     <div class="p-4">
                         <div class="flex items-center space-x-4">
                              <button onclick="toggleLike(${post.id})" class="like-btn ${post.liked ? 'liked' : ''} flex items-center space-x-1 text-slate-600">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                            </button>
-                            <button onclick="openPostView(${post.id})" class="flex items-center space-x-1 text-slate-600">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            </button>
-                             <button class="flex items-center space-x-1 text-slate-600">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                            </button>
+                                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                             </button>
+                             <button onclick="openPostView(${post.id})" class="flex items-center space-x-1 text-slate-600">
+                                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                             </button>
                         </div>
                         <p class="font-semibold mt-2">${post.likes} отметок "Нравится"</p>
                         <p class="mt-1"><span class="font-semibold">beauty_haven_salon</span> ${post.title}</p>
-                        <div class="mt-2 space-y-1">
-                            ${commentsPreviewHtml}
-                        </div>
-                        ${post.comments.length > 3 ? `<a onclick="openPostView(${post.id})" class="text-xs text-slate-500 mt-1 inline-block">Посмотреть все комментарии (${post.comments.length})</a>` : ''}
-                    </div>
-                    <div class="p-4 border-t border-slate-100 flex items-center space-x-2">
-                        <img src="https://placehold.co/32x32/fde6ea/c08497?text=A" class="w-8 h-8 rounded-full">
-                        <input id="feed-comment-input-${post.id}" type="text" placeholder="Добавить комментарий..." class="w-full bg-slate-100 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-rose-300 text-xs">
-                    </div>
-                    `;
+                        <a onclick="openPostView(${post.id})" class="text-xs text-slate-500 mt-1 inline-block" style="color: var(--hint-color);">Посмотреть комментарии (${post.comments.length})</a>
+                    </div>`;
                 postsContainer.appendChild(el);
             });
         }
 
-        function renderServices() { /* ... unchanged ... */ }
-        function renderTimeSlots(date) { /* ... unchanged ... */ }
-        function renderAppointments() { /* ... unchanged ... */ }
+        function renderServices() {
+            const container = document.getElementById('services-list');
+            container.innerHTML = services.map(service => `
+                <div class="card p-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="font-semibold text-base">${service.name}</h2>
+                        <p class="text-slate-500" style="color: var(--hint-color);">${service.duration} / ${service.price}</p>
+                    </div>
+                    <button onclick='selectService(${JSON.stringify(service)})' class="btn-primary text-sm">Выбрать</button>
+                </div>
+            `).join('');
+        }
+
+        function renderAllSpecialists() {
+            const container = document.getElementById('specialists-list');
+            container.innerHTML = specialists.map(specialist => `
+                <div class="card p-4 flex items-center">
+                    <img src="${specialist.photo}" alt="${specialist.name}" class="w-16 h-16 rounded-full mr-4">
+                    <div>
+                        <h2 class="font-bold text-lg">${specialist.name}</h2>
+                        <p class="text-slate-500" style="color: var(--hint-color);">${specialist.specialty}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSpecialistSelection(service) {
+            const container = document.getElementById('specialist-selection-list');
+            const availableSpecialists = specialists.filter(s => service.specialistIds.includes(s.id));
+            container.innerHTML = availableSpecialists.map(specialist => `
+                <div class="card p-4 flex justify-between items-center">
+                    <div class="flex items-center">
+                         <img src="${specialist.photo}" alt="${specialist.name}" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h2 class="font-semibold text-base">${specialist.name}</h2>
+                            <p class="text-slate-500" style="color: var(--hint-color);">${specialist.specialty}</p>
+                        </div>
+                    </div>
+                    <button onclick='selectSpecialistAndProceed(${JSON.stringify(specialist)}, ${JSON.stringify(service)})' class="btn-primary text-sm">Выбрать</button>
+                </div>
+            `).join('');
+        }
+
+        function renderTimeSlots(date, specialistId) {
+            const container = document.getElementById('time-slots-container');
+            container.innerHTML = '';
+            const seed = specialistId + date.hashCode();
+            const random = new Math.seedrandom(seed);
+            availableTimeSlots.forEach(time => {
+                const isBooked = userAppointments.some(appt => appt.date === date && appt.time === time && appt.specialist.id === specialistId);
+                const isAvailable = random() > 0.3;
+                const isDisabled = isBooked || !isAvailable;
+                const slot = document.createElement('div');
+                slot.textContent = time;
+                slot.className = `time-slot p-2 rounded-lg ${isDisabled ? 'disabled' : ''}`;
+                if (!isDisabled) {
+                    slot.onclick = () => selectTime(time);
+                }
+                container.appendChild(slot);
+            });
+        }
+
+        function renderAppointments() {
+            const container = document.getElementById('appointments-list');
+            if (userAppointments.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-500 mt-10" style="color: var(--hint-color);"><p>У вас пока нет записей.</p><button onclick="showScreen('services-screen')" class="btn-primary mt-4">Записаться</button></div>`;
+                return;
+            }
+            container.innerHTML = userAppointments.map((appt, index) => {
+                 const formattedDate = new Date(appt.date).toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
+                 return `
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <p class="font-bold text-base">${appt.service.name}</p>
+                                <p class="text-slate-500" style="color: var(--hint-color);">Мастер: ${appt.specialist.name}</p>
+                                <p class="font-semibold mt-2" style="color: var(--button-color);">${formattedDate} в ${appt.time}</p>
+                             </div>
+                             <button onclick="cancelAppointment(${index})" class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-md">Отменить</button>
+                        </div>
+                    </div>
+                `
+            }).join('');
+        }
 
         // --- POST VIEW LOGIC ---
         function openPostView(postId) {
             const post = portfolio.posts.find(p => p.id === postId);
             if (!post) return;
-
             const container = document.getElementById('post-view-screen');
             let commentsHtml = post.comments.map(comment => `
                 <div class="flex items-start space-x-3">
                     <img src="https://placehold.co/32x32/e0e7ff/4338ca?text=${comment.author.charAt(0)}" class="w-8 h-8 rounded-full flex-shrink-0">
                     <div>
-                        <div class="bg-slate-100 rounded-xl p-3">
+                        <div class="bg-slate-100 rounded-xl p-3" style="background-color: var(--bg-color);">
                             <p class="font-semibold text-xs">${comment.author}</p>
-                            <p class="text-sm text-slate-800">${comment.text}</p>
+                            <p class="text-sm">${comment.text}</p>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1 pl-3">1 час назад</p>
                     </div>
                 </div>
             `).join('');
-
             if (post.comments.length === 0) {
-                commentsHtml = `<p class="text-slate-400 text-center text-xs py-4">Комментариев пока нет.</p>`;
+                commentsHtml = `<p class="text-slate-400 text-center text-xs py-4" style="color: var(--hint-color);">Комментариев пока нет.</p>`;
             }
-
             container.innerHTML = `
-                <header class="flex items-center p-4 bg-white shadow-sm flex-shrink-0">
-                    <button onclick="showScreen('home-screen')" class="mr-3 text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                <header class="flex items-center p-4 bg-white shadow-sm flex-shrink-0" style="background-color: var(--header-bg-color);">
                     <h1 class="text-lg font-bold">Публикация</h1>
                 </header>
-                
                 <div class="flex-grow overflow-y-auto">
-                    <div class="bg-white">
-                        <div class="p-4 flex items-center">
-                            <img src="https://placehold.co/40x40/c08497/ffffff?text=BH" class="w-8 h-8 rounded-full mr-3">
-                            <span class="font-semibold">beauty_haven_salon</span>
-                        </div>
+                    <div class="bg-white" style="background-color: var(--secondary-bg-color);">
                         <img src="${post.img}" alt="${post.title}" class="w-full h-auto">
                         <div class="p-4">
-                            <div class="flex items-center space-x-4">
-                                <button id="like-btn-${post.id}" onclick="toggleLike(${post.id})" class="like-btn ${post.liked ? 'liked' : ''} flex items-center space-x-1 text-slate-600">
-                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                </button>
-                                <button class="flex items-center space-x-1 text-slate-600">
-                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                </button>
-                                <button class="flex items-center space-x-1 text-slate-600">
-                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                                </button>
-                            </div>
                             <p class="font-semibold mt-2" id="like-count-${post.id}">${post.likes} отметок "Нравится"</p>
-                            <p class="mt-1"><span class="font-semibold">beauty_haven_salon</span> ${post.title}</p>
                         </div>
                     </div>
-                    <div class="p-4 space-y-4" id="comments-section-${post.id}">
-                        ${commentsHtml}
-                    </div>
+                    <div class="p-4 space-y-4" id="comments-section-${post.id}">${commentsHtml}</div>
                 </div>
-
-                <div class="mt-auto p-2 bg-white border-t border-slate-200 flex items-center space-x-2 flex-shrink-0">
-                    <img src="https://placehold.co/32x32/fde6ea/c08497?text=A" class="w-8 h-8 rounded-full">
-                    <input id="comment-input-${post.id}" type="text" placeholder="Добавить комментарий..." class="w-full bg-slate-100 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-rose-300">
-                    <button onclick="addComment(${post.id})" class="text-rose-500 font-semibold">Post</button>
-                </div>
-            `;
+                <div class="mt-auto p-2 bg-white border-t border-slate-200 flex items-center space-x-2 flex-shrink-0" style="background-color: var(--secondary-bg-color);">
+                    <img src="https://placehold.co/32x32/fde6ea/c08497?text=${currentUser.first_name.charAt(0)}" class="w-8 h-8 rounded-full">
+                    <input id="comment-input-${post.id}" type="text" placeholder="Добавить комментарий..." class="w-full bg-slate-100 rounded-full py-2 px-4 focus:outline-none" style="background-color: var(--bg-color);">
+                    <button onclick="addComment(${post.id})" class="font-semibold" style="color: var(--button-color);">Post</button>
+                </div>`;
             showScreen('post-view-screen');
         }
 
         function toggleLike(postId) {
+            tg.HapticFeedback.impactOccurred('light');
             const post = portfolio.posts.find(p => p.id === postId);
             if (!post) return;
-
             post.liked = !post.liked;
             post.likes += post.liked ? 1 : -1;
-            
             renderPortfolio();
-
-            const postViewScreen = document.getElementById('post-view-screen');
-            if (postViewScreen.classList.contains('active')) {
-                const likeBtn = postViewScreen.querySelector(`#like-btn-${post.id}`);
-                const likeCount = postViewScreen.querySelector(`#like-count-${post.id}`);
-                if (likeBtn) likeBtn.classList.toggle('liked', post.liked);
-                if (likeCount) likeCount.textContent = `${post.likes} отметок "Нравится"`;
-            }
         }
         
         function addComment(postId) {
             const post = portfolio.posts.find(p => p.id === postId);
-            const postViewInput = document.getElementById(`comment-input-${postId}`);
-            const feedInput = document.getElementById(`feed-comment-input-${postId}`);
-            
-            let text = '';
-            let inputToClear = null;
-
-            if (feedInput && feedInput.value.trim()) {
-                text = feedInput.value.trim();
-                inputToClear = feedInput;
-            } else if (postViewInput && postViewInput.value.trim()) {
-                text = postViewInput.value.trim();
-                inputToClear = postViewInput;
-            }
-
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
             if (!post || !text) return;
-
-            const newComment = { id: Date.now(), author: 'Анна', text: text };
+            const newComment = { id: Date.now(), author: currentUser.first_name, text: text };
             post.comments.push(newComment);
-            if (inputToClear) inputToClear.value = '';
-            
-            renderPortfolio();
-            
-            if (document.getElementById('post-view-screen').classList.contains('active')) {
-                openPostView(postId);
-            }
+            input.value = '';
+            openPostView(postId); // Re-render the view with the new comment
         }
-
 
         // --- MODAL LOGIC ---
         function openModal(imgSrc) {
             document.getElementById('modal-img').src = imgSrc;
             document.getElementById('image-modal').classList.add('show');
         }
-
         function closeModal() {
             document.getElementById('image-modal').classList.remove('show');
         }
 
-        // --- BOOKING LOGIC (unchanged) ---
+        // --- BOOKING LOGIC (UPDATED) ---
         function selectService(service) {
+            tg.HapticFeedback.impactOccurred('light');
+            bookingState.service = service;
+            renderSpecialistSelection(service);
+            showScreen('specialist-selection-screen');
+        }
+
+        function selectSpecialistAndProceed(specialist, service) {
+            tg.HapticFeedback.impactOccurred('light');
+            bookingState.specialist = specialist;
             bookingState.service = service;
             document.getElementById('selected-service-title').textContent = service.name;
+            document.getElementById('selected-specialist-subtitle').textContent = `Мастер: ${specialist.name}`;
             showScreen('booking-screen');
             document.getElementById('date-picker').dispatchEvent(new Event('change'));
         }
+
         function setupDatePicker() {
             const datePicker = document.getElementById('date-picker');
             const today = new Date();
@@ -479,11 +552,14 @@
             datePicker.addEventListener('change', (event) => {
                 bookingState.date = event.target.value;
                 bookingState.time = null;
+                if (bookingState.specialist) {
+                    renderTimeSlots(bookingState.date, bookingState.specialist.id);
+                }
                 updateConfirmButtonState();
-                renderTimeSlots(bookingState.date);
             });
         }
         function selectTime(time) {
+            tg.HapticFeedback.selectionChanged();
             document.querySelectorAll('#time-slots-container .time-slot').forEach(slot => {
                 slot.classList.remove('selected');
                 if (slot.textContent === time) slot.classList.add('selected');
@@ -491,32 +567,47 @@
             bookingState.time = time;
             updateConfirmButtonState();
         }
+        
         function updateConfirmButtonState() {
-            const btn = document.getElementById('confirm-booking-btn');
-            const canConfirm = bookingState.service && bookingState.date && bookingState.time;
-            btn.disabled = !canConfirm;
-            btn.classList.toggle('opacity-50', !canConfirm);
-            btn.classList.toggle('cursor-not-allowed', !canConfirm);
+            const canConfirm = bookingState.service && bookingState.specialist && bookingState.date && bookingState.time;
+            if (canConfirm) {
+                tg.MainButton.setParams({ is_active: true, is_visible: true });
+            } else {
+                tg.MainButton.setParams({ is_active: false, is_visible: true });
+            }
         }
+
         function confirmBooking() {
-            if (document.getElementById('confirm-booking-btn').disabled) return;
+            if (!tg.MainButton.isActive) return;
             userAppointments.push({ ...bookingState });
-            userAppointments.sort((a,b) => new Date(a.date) - new Date(b.date));
+            userAppointments.sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
             const successDetails = document.getElementById('success-details');
             const formattedDate = new Date(bookingState.date).toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            successDetails.textContent = `Мы ждем вас ${formattedDate} в ${bookingState.time} на услугу "${bookingState.service.name}".`;
+            successDetails.textContent = `Мы ждем вас ${formattedDate} в ${bookingState.time} на услугу "${bookingState.service.name}" к мастеру ${bookingState.specialist.name}.`;
             showScreen('success-screen');
             renderAppointments();
-            bookingState = { service: null, date: null, time: null };
-            updateConfirmButtonState();
+            bookingState = { service: null, specialist: null, date: null, time: null };
             document.getElementById('date-picker').value = new Date().toISOString().split('T')[0];
-            try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+            tg.HapticFeedback.notificationOccurred('success');
         }
+
         function cancelAppointment(index) {
+            // Here you could add a confirmation dialog if needed
             userAppointments.splice(index, 1);
             renderAppointments();
-            try { Telegram.WebApp.HapticFeedback.notificationOccurred('warning'); } catch (e) {}
+            tg.HapticFeedback.notificationOccurred('warning');
         }
+
+        // --- UTILITY FUNCTIONS ---
+        String.prototype.hashCode = function() {
+            var hash = 0; if (this.length === 0) return hash;
+            for (var i = 0; i < this.length; i++) {
+                var chr = this.charCodeAt(i);
+                hash = ((hash << 5) - hash) + chr;
+                hash |= 0;
+            } return hash;
+        };
+        (function(g){var L=function(s){var _s=s;this.next=function(){_s=(214013*_s+2531011)&0x7fffffff;return _s/0x7fffffff;};};g.Math.seedrandom=function(s){return new L(s).next;};})(this);
     </script>
 </body>
 </html>
