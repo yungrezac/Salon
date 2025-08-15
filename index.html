@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Салон Красоты</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram Web App script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate-50 background */
+            color: #334155; /* Slate-700 */
+        }
+        .main-container {
+            padding-bottom: 80px; 
+        }
+        .btn-primary {
+            background-color: #c08497;
+            color: white;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.65rem 1.5rem;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #a3667a;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            margin-bottom: 1rem;
+        }
+        /* Screen visibility */
+        .screen { display: none; }
+        .screen.active { display: block; }
+        
+        /* Time slot styling */
+        .time-slot { cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .time-slot.selected { background-color: #c08497; color: white; border-color: #c08497; }
+        .time-slot:not(.disabled):hover { background-color: #fde6ea; border-color: #fde6ea; }
+        .time-slot.disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+        
+        /* Navbar styling */
+        .nav-item { color: #94a3b8; transition: all 0.2s; }
+        .nav-item.active { color: #c08497; background-color: #fde6ea; }
+        .nav-item.active svg { color: #c08497; }
+
+        /* Stories styling */
+        .stories-container {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .stories-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .story-item {
+            border: 2px solid #c08497;
+        }
+        
+        /* Modal styling */
+        .modal {
+            display: none; /* Hidden by default */
+            transition: opacity 0.3s ease;
+        }
+        .modal.show {
+            display: flex; /* Show when active */
+        }
+        .like-btn.liked svg {
+            fill: #ef4444; /* red-500 */
+            stroke: #ef4444;
+        }
+        /* Ensure post view takes full height for comment input positioning */
+        #post-view-screen.active {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body class="antialiased text-sm">
+
+    <div id="app" class="main-container min-h-screen">
+
+        <!-- ===== Home Screen ===== -->
+        <div id="home-screen" class="screen active">
+            <header class="flex items-center p-4 pt-6 bg-white shadow-sm">
+                <div class="bg-rose-100 p-2 rounded-full">
+                    <!-- New Logo Icon -->
+                    <svg class="w-6 h-6 text-rose-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
+                </div>
+                <h1 class="text-xl font-bold text-slate-800 ml-3">Beauty Haven</h1>
+            </header>
+            <div id="stories-list" class="stories-container flex space-x-4 overflow-x-auto p-4 bg-white"></div>
+            <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1"></div>
+        </div>
+
+        <!-- ===== Post View Screen ===== -->
+        <div id="post-view-screen" class="screen">
+            <!-- Content will be injected by JS -->
+        </div>
+
+        <!-- ===== Services Screen ===== -->
+        <div id="services-screen" class="screen p-4">
+            <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
+            <div id="services-list" class="space-y-3"></div>
+        </div>
+        
+        <!-- ===== Booking Screen (part of services flow) ===== -->
+        <div id="booking-screen" class="screen p-4">
+            <header class="flex items-center mb-5">
+                <button onclick="showScreen('services-screen')" class="mr-3 text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                <h1 class="text-xl font-bold">Выберите дату и время</h1>
+            </header>
+            <div class="card p-4">
+                <h2 class="font-semibold mb-2 text-base" id="selected-service-title"></h2>
+                <input type="date" id="date-picker" class="w-full p-2 border rounded-lg focus:ring-rose-400 focus:border-rose-400">
+            </div>
+            <div class="card p-4">
+                <h2 class="font-semibold mb-4">Доступное время:</h2>
+                <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
+            </div>
+            <button id="confirm-booking-btn" onclick="confirmBooking()" class="w-full btn-primary mt-4 text-base" disabled>Подтвердить запись</button>
+        </div>
+
+        <!-- ===== My Appointments Screen ===== -->
+        <div id="my-appointments-screen" class="screen p-4">
+            <header class="mb-5"><h1 class="text-xl font-bold">Мои записи</h1></header>
+            <div id="appointments-list"></div>
+        </div>
+        
+        <!-- ===== Profile Screen ===== -->
+        <div id="profile-screen" class="screen p-4">
+            <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
+            <div class="card p-4 flex items-center">
+                <img src="https://placehold.co/64x64/fde6ea/c08497?text=A" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
+                <div>
+                    <h2 class="font-bold text-lg">Анна</h2>
+                    <p class="text-slate-500">+7 (926) 123-45-67</p>
+                </div>
+            </div>
+            <div class="card p-4">
+                <h3 class="font-semibold mb-3">Настройки</h3>
+                <div class="space-y-2">
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Уведомления</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Привязанные карты</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500"><span>Помощь</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                </div>
+            </div>
+             <button class="w-full text-center py-3 text-red-500 font-semibold bg-red-50 rounded-lg hover:bg-red-100">Выйти</button>
+        </div>
+
+        <!-- ===== Success Screen (modal-like) ===== -->
+        <div id="success-screen" class="screen text-center p-8">
+            <div class="mb-5">
+                <!-- New Success Icon -->
+                <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
+            <p class="text-slate-600 mb-6" id="success-details"></p>
+            <button onclick="showScreen('my-appointments-screen')" class="btn-primary">Посмотреть мои записи</button>
+        </div>
+    </div>
+
+    <!-- ===== Bottom Navigation Bar ===== -->
+    <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10">
+        <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg active">
+            <!-- New Home Icon -->
+            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Главная</span>
+        </button>
+        <button id="nav-services" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+            <!-- New Booking Icon -->
+            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Запись</span>
+        </button>
+        <button id="nav-appointments" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+            <!-- New Appointments Icon -->
+            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Мои записи</span>
+        </button>
+        <button id="nav-profile" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+            <!-- New Profile Icon -->
+            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Профиль</span>
+        </button>
+    </nav>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="modal fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4">
+        <div class="relative">
+            <img id="modal-img" src="" class="max-w-full max-h-[80vh] rounded-lg" alt="Portfolio Image">
+            <button onclick="closeModal()" class="absolute -top-2 -right-2 bg-white rounded-full p-1 text-slate-700"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DATA ---
+        const services = [
+            { id: 1, name: 'Маникюр с покрытием', duration: '1.5 часа', price: '2000 ₽' },
+            { id: 2, name: 'Педикюр', duration: '2 часа', price: '3000 ₽' },
+            { id: 3, name: 'Стрижка женская', duration: '1 час', price: '1800 ₽' },
+        ];
+        
+        const portfolio = {
+            stories: [
+                { title: "Ногти", img: "https://placehold.co/150x150/d1fae5/10b981?text=Nails" },
+                { title: "Стрижки", img: "https://placehold.co/150x150/e0f2fe/0ea5e9?text=Cuts" },
+                { title: "Окрас", img: "https://placehold.co/150x150/f3e8ff/9333ea?text=Color" },
+                { title: "Брови", img: "https://placehold.co/150x150/ffedd5/f97316?text=Brows" },
+                { title: "Укладки", img: "https://placehold.co/150x150/fee2e2/ef4444?text=Style" },
+            ],
+            posts: [
+                { id: 1, title: "Идеальный френч", img: "https://placehold.co/600x600/fce7f3/db2777?text=French+Nails", likes: 124, liked: false, shares: 12, comments: [{id: 1, author: 'Елена', text: 'Очень красиво!'}, {id: 2, author: 'Мария', text: 'Супер работа!'}, {id: 4, author: 'Ольга', text: 'Хочу такой же маникюр.'}, {id: 5, author: 'Ирина', text: 'Вы лучшие!'}]},
+                { id: 2, title: "Сложное окрашивание", img: "https://placehold.co/600x600/f3e8ff/9333ea?text=Balayage", likes: 256, liked: false, shares: 34, comments: [{id: 3, author: 'Светлана', text: 'Хочу так же!'}]},
+                { id: 3, title: "Вечерний образ", img: "https://placehold.co/600x600/fee2e2/ef4444?text=Evening+Look", likes: 98, liked: false, shares: 5, comments: []},
+            ]
+        };
+
+        const availableTimeSlots = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        
+        let bookingState = { service: null, date: null, time: null };
+        let userAppointments = [];
+
+        // --- INIT & DOMContentLoaded ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try { Telegram.WebApp.ready(); } catch (error) { console.error("Telegram Web App script not found."); }
+            
+            document.getElementById('nav-home').onclick = () => showScreen('home-screen');
+            document.getElementById('nav-services').onclick = () => showScreen('services-screen');
+            document.getElementById('nav-appointments').onclick = () => showScreen('my-appointments-screen');
+            document.getElementById('nav-profile').onclick = () => showScreen('profile-screen');
+            
+            document.getElementById('image-modal').onclick = (e) => {
+                if(e.target.id === 'image-modal') closeModal();
+            };
+
+            renderServices();
+            renderAppointments();
+            renderPortfolio();
+            setupDatePicker();
+        });
+
+        // --- NAVIGATION ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+
+            const navBar = document.getElementById('navbar');
+            if (screenId === 'post-view-screen') {
+                navBar.style.display = 'none';
+            } else {
+                navBar.style.display = 'flex';
+            }
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const navMapping = {
+                'home-screen': 'nav-home', 'post-view-screen': 'nav-home',
+                'services-screen': 'nav-services', 'booking-screen': 'nav-services', 
+                'my-appointments-screen': 'nav-appointments', 'profile-screen': 'nav-profile'
+            };
+            const activeNavId = navMapping[screenId];
+            if (activeNavId) document.getElementById(activeNavId).classList.add('active');
+        }
+
+        // --- RENDERING ---
+        function renderPortfolio() {
+            const storiesList = document.getElementById('stories-list');
+            storiesList.innerHTML = '';
+            portfolio.stories.forEach(story => {
+                const el = document.createElement('div');
+                el.className = 'flex-shrink-0 text-center cursor-pointer';
+                el.onclick = () => openModal(story.img);
+                el.innerHTML = `<img src="${story.img}" alt="${story.title}" class="w-16 h-16 rounded-full object-cover story-item p-1"><span class="text-xs mt-1 block">${story.title}</span>`;
+                storiesList.appendChild(el);
+            });
+
+            const postsContainer = document.getElementById('portfolio-posts');
+            postsContainer.innerHTML = '';
+            portfolio.posts.forEach(post => {
+                const el = document.createElement('div');
+                el.className = 'bg-white';
+                
+                let commentsPreviewHtml = '';
+                if (post.comments.length > 0) {
+                    const recentComments = post.comments.slice(-3);
+                    commentsPreviewHtml = recentComments.map(comment => `
+                        <div class="text-xs">
+                            <span class="font-semibold">${comment.author}</span>
+                            <span class="text-slate-600">${comment.text}</span>
+                        </div>
+                    `).join('');
+                }
+
+                el.innerHTML = `
+                    <div class="p-4 flex items-center">
+                        <img src="https://placehold.co/40x40/c08497/ffffff?text=BH" class="w-8 h-8 rounded-full mr-3">
+                        <span class="font-semibold">beauty_haven_salon</span>
+                    </div>
+                    <img src="${post.img}" alt="${post.title}" class="w-full h-auto cursor-pointer" onclick="openPostView(${post.id})">
+                    <div class="p-4">
+                        <div class="flex items-center space-x-4">
+                             <button onclick="toggleLike(${post.id})" class="like-btn ${post.liked ? 'liked' : ''} flex items-center space-x-1 text-slate-600">
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </button>
+                            <button onclick="openPostView(${post.id})" class="flex items-center space-x-1 text-slate-600">
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            </button>
+                             <button class="flex items-center space-x-1 text-slate-600">
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                            </button>
+                        </div>
+                        <p class="font-semibold mt-2">${post.likes} отметок "Нравится"</p>
+                        <p class="mt-1"><span class="font-semibold">beauty_haven_salon</span> ${post.title}</p>
+                        <div class="mt-2 space-y-1">
+                            ${commentsPreviewHtml}
+                        </div>
+                        ${post.comments.length > 3 ? `<a onclick="openPostView(${post.id})" class="text-xs text-slate-500 mt-1 inline-block">Посмотреть все комментарии (${post.comments.length})</a>` : ''}
+                    </div>
+                    <div class="p-4 border-t border-slate-100 flex items-center space-x-2">
+                        <img src="https://placehold.co/32x32/fde6ea/c08497?text=A" class="w-8 h-8 rounded-full">
+                        <input id="feed-comment-input-${post.id}" type="text" placeholder="Добавить комментарий..." class="w-full bg-slate-100 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-rose-300 text-xs">
+                    </div>
+                    `;
+                postsContainer.appendChild(el);
+            });
+        }
+
+        function renderServices() { /* ... unchanged ... */ }
+        function renderTimeSlots(date) { /* ... unchanged ... */ }
+        function renderAppointments() { /* ... unchanged ... */ }
+
+        // --- POST VIEW LOGIC ---
+        function openPostView(postId) {
+            const post = portfolio.posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const container = document.getElementById('post-view-screen');
+            let commentsHtml = post.comments.map(comment => `
+                <div class="flex items-start space-x-3">
+                    <img src="https://placehold.co/32x32/e0e7ff/4338ca?text=${comment.author.charAt(0)}" class="w-8 h-8 rounded-full flex-shrink-0">
+                    <div>
+                        <div class="bg-slate-100 rounded-xl p-3">
+                            <p class="font-semibold text-xs">${comment.author}</p>
+                            <p class="text-sm text-slate-800">${comment.text}</p>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1 pl-3">1 час назад</p>
+                    </div>
+                </div>
+            `).join('');
+
+            if (post.comments.length === 0) {
+                commentsHtml = `<p class="text-slate-400 text-center text-xs py-4">Комментариев пока нет.</p>`;
+            }
+
+            container.innerHTML = `
+                <header class="flex items-center p-4 bg-white shadow-sm flex-shrink-0">
+                    <button onclick="showScreen('home-screen')" class="mr-3 text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                    <h1 class="text-lg font-bold">Публикация</h1>
+                </header>
+                
+                <div class="flex-grow overflow-y-auto">
+                    <div class="bg-white">
+                        <div class="p-4 flex items-center">
+                            <img src="https://placehold.co/40x40/c08497/ffffff?text=BH" class="w-8 h-8 rounded-full mr-3">
+                            <span class="font-semibold">beauty_haven_salon</span>
+                        </div>
+                        <img src="${post.img}" alt="${post.title}" class="w-full h-auto">
+                        <div class="p-4">
+                            <div class="flex items-center space-x-4">
+                                <button id="like-btn-${post.id}" onclick="toggleLike(${post.id})" class="like-btn ${post.liked ? 'liked' : ''} flex items-center space-x-1 text-slate-600">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                </button>
+                                <button class="flex items-center space-x-1 text-slate-600">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </button>
+                                <button class="flex items-center space-x-1 text-slate-600">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                                </button>
+                            </div>
+                            <p class="font-semibold mt-2" id="like-count-${post.id}">${post.likes} отметок "Нравится"</p>
+                            <p class="mt-1"><span class="font-semibold">beauty_haven_salon</span> ${post.title}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-4" id="comments-section-${post.id}">
+                        ${commentsHtml}
+                    </div>
+                </div>
+
+                <div class="mt-auto p-2 bg-white border-t border-slate-200 flex items-center space-x-2 flex-shrink-0">
+                    <img src="https://placehold.co/32x32/fde6ea/c08497?text=A" class="w-8 h-8 rounded-full">
+                    <input id="comment-input-${post.id}" type="text" placeholder="Добавить комментарий..." class="w-full bg-slate-100 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <button onclick="addComment(${post.id})" class="text-rose-500 font-semibold">Post</button>
+                </div>
+            `;
+            showScreen('post-view-screen');
+        }
+
+        function toggleLike(postId) {
+            const post = portfolio.posts.find(p => p.id === postId);
+            if (!post) return;
+
+            post.liked = !post.liked;
+            post.likes += post.liked ? 1 : -1;
+            
+            renderPortfolio();
+
+            const postViewScreen = document.getElementById('post-view-screen');
+            if (postViewScreen.classList.contains('active')) {
+                const likeBtn = postViewScreen.querySelector(`#like-btn-${post.id}`);
+                const likeCount = postViewScreen.querySelector(`#like-count-${post.id}`);
+                if (likeBtn) likeBtn.classList.toggle('liked', post.liked);
+                if (likeCount) likeCount.textContent = `${post.likes} отметок "Нравится"`;
+            }
+        }
+        
+        function addComment(postId) {
+            const post = portfolio.posts.find(p => p.id === postId);
+            const postViewInput = document.getElementById(`comment-input-${postId}`);
+            const feedInput = document.getElementById(`feed-comment-input-${postId}`);
+            
+            let text = '';
+            let inputToClear = null;
+
+            if (feedInput && feedInput.value.trim()) {
+                text = feedInput.value.trim();
+                inputToClear = feedInput;
+            } else if (postViewInput && postViewInput.value.trim()) {
+                text = postViewInput.value.trim();
+                inputToClear = postViewInput;
+            }
+
+            if (!post || !text) return;
+
+            const newComment = { id: Date.now(), author: 'Анна', text: text };
+            post.comments.push(newComment);
+            if (inputToClear) inputToClear.value = '';
+            
+            renderPortfolio();
+            
+            if (document.getElementById('post-view-screen').classList.contains('active')) {
+                openPostView(postId);
+            }
+        }
+
+
+        // --- MODAL LOGIC ---
+        function openModal(imgSrc) {
+            document.getElementById('modal-img').src = imgSrc;
+            document.getElementById('image-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.remove('show');
+        }
+
+        // --- BOOKING LOGIC (unchanged) ---
+        function selectService(service) {
+            bookingState.service = service;
+            document.getElementById('selected-service-title').textContent = service.name;
+            showScreen('booking-screen');
+            document.getElementById('date-picker').dispatchEvent(new Event('change'));
+        }
+        function setupDatePicker() {
+            const datePicker = document.getElementById('date-picker');
+            const today = new Date();
+            datePicker.min = today.toISOString().split('T')[0];
+            datePicker.value = today.toISOString().split('T')[0];
+            datePicker.addEventListener('change', (event) => {
+                bookingState.date = event.target.value;
+                bookingState.time = null;
+                updateConfirmButtonState();
+                renderTimeSlots(bookingState.date);
+            });
+        }
+        function selectTime(time) {
+            document.querySelectorAll('#time-slots-container .time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+                if (slot.textContent === time) slot.classList.add('selected');
+            });
+            bookingState.time = time;
+            updateConfirmButtonState();
+        }
+        function updateConfirmButtonState() {
+            const btn = document.getElementById('confirm-booking-btn');
+            const canConfirm = bookingState.service && bookingState.date && bookingState.time;
+            btn.disabled = !canConfirm;
+            btn.classList.toggle('opacity-50', !canConfirm);
+            btn.classList.toggle('cursor-not-allowed', !canConfirm);
+        }
+        function confirmBooking() {
+            if (document.getElementById('confirm-booking-btn').disabled) return;
+            userAppointments.push({ ...bookingState });
+            userAppointments.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const successDetails = document.getElementById('success-details');
+            const formattedDate = new Date(bookingState.date).toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            successDetails.textContent = `Мы ждем вас ${formattedDate} в ${bookingState.time} на услугу "${bookingState.service.name}".`;
+            showScreen('success-screen');
+            renderAppointments();
+            bookingState = { service: null, date: null, time: null };
+            updateConfirmButtonState();
+            document.getElementById('date-picker').value = new Date().toISOString().split('T')[0];
+            try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+        }
+        function cancelAppointment(index) {
+            userAppointments.splice(index, 1);
+            renderAppointments();
+            try { Telegram.WebApp.HapticFeedback.notificationOccurred('warning'); } catch (e) {}
+        }
+    </script>
+</body>
+</html>
