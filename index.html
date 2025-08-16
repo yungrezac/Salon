@@ -54,7 +54,7 @@
 
     <div id="loader"><div class="spinner"></div></div>
 
-    <div id="setup-screen" class="screen active p-6 min-h-screen flex flex-col justify-center items-center">
+    <div id="setup-screen" class="screen p-6 min-h-screen flex-col justify-center items-center">
         <div class="w-full max-w-md text-center">
             <div class="bg-rose-100 p-3 rounded-full inline-block mb-4" style="background-color: var(--button-color); opacity: 0.2;">
                 <svg class="w-8 h-8 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
@@ -87,7 +87,7 @@
 
     <div id="app-wrapper" style="display: none;">
         <div id="app" class="main-container min-h-screen">
-            <div id="home-screen" class="screen active">
+            <div id="home-screen" class="screen">
                 <header class="flex items-center p-4 pt-6 bg-white shadow-sm" style="background-color: var(--header-bg-color);">
                     <div id="salon-logo-container" class="w-10 h-10 flex items-center justify-center bg-rose-100 p-2 rounded-full" style="background-color: var(--button-color); opacity: 0.2;">
                          <svg class="w-6 h-6 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
@@ -155,7 +155,7 @@
         </div>
 
         <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10" style="background-color: var(--secondary-bg-color);">
-            <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg active">
+            <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
                 <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span>Главная</span>
             </button>
@@ -190,9 +190,6 @@
 
         const supabaseUrl = 'https://iwvglucrgnwetczrzwqk.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ';
-        // *** ИСПРАВЛЕНИЕ: Правильная инициализация клиента Supabase ***
-        // Глобальный объект `supabase` предоставляется скриптом Supabase.
-        // Мы создаем экземпляр клиента из него.
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         let specialists = [];
@@ -210,42 +207,57 @@
         const showLoader = () => loader.style.display = 'flex';
         const hideLoader = () => loader.style.display = 'none';
 
+        // *** ИЗМЕНЕНО: Главная точка входа в приложение ***
         document.addEventListener('DOMContentLoaded', async () => {
+            await initializeApp();
+        });
+
+        // *** НОВОЕ: Единая функция инициализации ***
+        async function initializeApp() {
             showLoader();
             try {
+                applyTheme();
+                displayUserData(); // Получаем данные о пользователе как можно раньше
+
                 const hash = window.location.hash.substring(1);
                 const urlParams = new URLSearchParams(hash);
                 const salonId = urlParams.get('salonId');
 
-                applyTheme();
-
                 if (salonId) {
-                    const { data, error } = await supabaseClient.from('salons').select('*').eq('id', salonId).single();
-                    if (error || !data) {
-                        console.error('Error fetching salon:', error);
-                        alert('Не удалось загрузить данные салона. Пожалуйста, проверьте ссылку.');
-                        runSetup();
-                    } else {
-                        salonConfig.id = data.id;
-                        salonConfig.name = data.name;
-                        salonConfig.logo = data.logo_url;
-                        salonConfig.initials = data.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-                        await runMainApp();
-                    }
+                    await loadSalonAndRunApp(salonId);
                 } else {
                     runSetup();
                 }
             } catch (e) {
                 console.error("Initialization failed:", e);
-                alert("Произошла ошибка при запуске приложения.");
-                runSetup();
+                alert("Произошла критическая ошибка при запуске приложения.");
             } finally {
                 hideLoader();
             }
-        });
+        }
+
+        // *** НОВОЕ: Функция для загрузки данных салона и запуска основного приложения ***
+        async function loadSalonAndRunApp(salonId) {
+            const { data, error } = await supabaseClient.from('salons').select('*').eq('id', salonId).single();
+            
+            if (error || !data) {
+                console.error('Error fetching salon:', error);
+                alert('Не удалось загрузить данные салона. Пожалуйста, проверьте ссылку.');
+                runSetup(); // Если салон не найден, показываем экран создания
+                return;
+            }
+
+            salonConfig.id = data.id;
+            salonConfig.name = data.name;
+            salonConfig.logo = data.logo_url;
+            salonConfig.initials = data.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
+            
+            await runMainApp();
+        }
+
 
         function runSetup() {
-            document.getElementById('setup-screen').style.display = 'flex';
+            document.getElementById('setup-screen').classList.add('active', 'flex');
             document.getElementById('app-wrapper').style.display = 'none';
             document.getElementById('generate-link-btn').onclick = generateLink;
             document.getElementById('copy-link-btn').onclick = copyLink;
@@ -292,8 +304,33 @@
         }
 
         async function runMainApp() {
+            // 1. Показываем обертку приложения и настраиваем интерфейс
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('app-wrapper').style.display = 'block';
+            setupBranding();
+            
+            // 2. Инициализируем Telegram SDK
+            tg.ready();
+            tg.expand();
+            
+            // 3. Сохраняем пользователя в БД
+            await upsertUser();
+            
+            // 4. Устанавливаем обработчики событий
+            setupEventListeners();
+            
+            // 5. Загружаем все остальные данные
+            await fetchData();
+
+            // 6. Отрисовываем все компоненты с полученными данными
+            renderAll();
+            
+            // 7. Показываем главный экран
+            showScreen('home-screen');
+            document.getElementById('nav-home').classList.add('active');
+        }
+
+        function setupBranding() {
             document.getElementById('salon-name-header').textContent = salonConfig.name;
             const logoContainer = document.getElementById('salon-logo-container');
             logoContainer.innerHTML = `<img src="${salonConfig.logo}" alt="Logo" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}';">`;
@@ -301,13 +338,9 @@
             logoContainer.style.padding = '0';
             logoContainer.style.backgroundColor = 'transparent';
             logoContainer.style.opacity = '1';
+        }
 
-            tg.ready();
-            tg.expand();
-            
-            displayUserData();
-            await upsertUser();
-            
+        function setupEventListeners() {
             document.getElementById('nav-home').onclick = () => showScreen('home-screen');
             document.getElementById('nav-services').onclick = () => showScreen('services-screen');
             document.getElementById('nav-specialists').onclick = () => showScreen('specialists-screen');
@@ -317,9 +350,6 @@
             tg.MainButton.setText('Подтвердить запись');
             tg.MainButton.onClick(confirmBooking);
             tg.BackButton.onClick(goBack);
-
-            await fetchData();
-            renderAll();
             setupDatePicker();
         }
 
@@ -339,32 +369,24 @@
         }
 
         async function fetchData() {
-            showLoader();
-            try {
-                const [servicesRes, specialistsRes, postsRes, storiesRes, appointmentsRes] = await Promise.all([
-                    supabaseClient.from('services').select('*').eq('salon_id', salonConfig.id),
-                    supabaseClient.from('specialists').select('*').eq('salon_id', salonConfig.id),
-                    supabaseClient.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonConfig.id),
-                    supabaseClient.from('portfolio_stories').select('*').eq('salon_id', salonConfig.id),
-                    supabaseClient.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonConfig.id)
-                ]);
+            const [servicesRes, specialistsRes, postsRes, storiesRes, appointmentsRes] = await Promise.all([
+                supabaseClient.from('services').select('*').eq('salon_id', salonConfig.id),
+                supabaseClient.from('specialists').select('*').eq('salon_id', salonConfig.id),
+                supabaseClient.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonConfig.id),
+                supabaseClient.from('portfolio_stories').select('*').eq('salon_id', salonConfig.id),
+                supabaseClient.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonConfig.id)
+            ]);
 
-                if (servicesRes.error) throw servicesRes.error;
-                services = servicesRes.data;
-                if (specialistsRes.error) throw specialistsRes.error;
-                specialists = specialistsRes.data;
-                if (postsRes.error) throw postsRes.error;
-                portfolio.posts = postsRes.data;
-                if (storiesRes.error) throw storiesRes.error;
-                portfolio.stories = storiesRes.data;
-                if (appointmentsRes.error) throw appointmentsRes.error;
-                userAppointments = appointmentsRes.data.map(a => ({ ...a, service: a.services, specialist: a.specialists }));
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                alert("Не удалось загрузить данные. Попробуйте перезагрузить страницу.");
-            } finally {
-                hideLoader();
-            }
+            if (servicesRes.error) throw servicesRes.error;
+            services = servicesRes.data;
+            if (specialistsRes.error) throw specialistsRes.error;
+            specialists = specialistsRes.data;
+            if (postsRes.error) throw postsRes.error;
+            portfolio.posts = postsRes.data;
+            if (storiesRes.error) throw storiesRes.error;
+            portfolio.stories = storiesRes.data;
+            if (appointmentsRes.error) throw appointmentsRes.error;
+            userAppointments = appointmentsRes.data.map(a => ({ ...a, service: a.services, specialist: a.specialists }));
         }
         
         function renderAll() {
