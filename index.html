@@ -190,7 +190,10 @@
 
         const supabaseUrl = 'https://iwvglucrgnwetczrzwqk.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // *** ИСПРАВЛЕНИЕ: Правильная инициализация клиента Supabase ***
+        // Глобальный объект `supabase` предоставляется скриптом Supabase.
+        // Мы создаем экземпляр клиента из него.
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         let specialists = [];
         let services = [];
@@ -217,7 +220,7 @@
                 applyTheme();
 
                 if (salonId) {
-                    const { data, error } = await supabase.from('salons').select('*').eq('id', salonId).single();
+                    const { data, error } = await supabaseClient.from('salons').select('*').eq('id', salonId).single();
                     if (error || !data) {
                         console.error('Error fetching salon:', error);
                         alert('Не удалось загрузить данные салона. Пожалуйста, проверьте ссылку.');
@@ -257,7 +260,7 @@
                 return;
             }
             showLoader();
-            const { data, error } = await supabase.from('salons').insert([{ name: nameInput, logo_url: logoInput }]).select().single();
+            const { data, error } = await supabaseClient.from('salons').insert([{ name: nameInput, logo_url: logoInput }]).select().single();
             hideLoader();
             if (error) {
                 console.error('Error creating salon:', error);
@@ -303,7 +306,7 @@
             tg.expand();
             
             displayUserData();
-            await upsertUser(); // *** НОВОЕ: Убеждаемся, что пользователь есть в БД ***
+            await upsertUser();
             
             document.getElementById('nav-home').onclick = () => showScreen('home-screen');
             document.getElementById('nav-services').onclick = () => showScreen('services-screen');
@@ -320,10 +323,9 @@
             setupDatePicker();
         }
 
-        // *** НОВАЯ ФУНКЦИЯ: Создает или обновляет пользователя в таблице users ***
         async function upsertUser() {
             if (!currentUser || !currentUser.id) return;
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('users')
                 .upsert({
                     telegram_id: currentUser.id,
@@ -339,14 +341,12 @@
         async function fetchData() {
             showLoader();
             try {
-                // *** ОБНОВЛЕНО: Запрос комментариев теперь включает имя пользователя из таблицы users ***
                 const [servicesRes, specialistsRes, postsRes, storiesRes, appointmentsRes] = await Promise.all([
-                    supabase.from('services').select('*').eq('salon_id', salonConfig.id),
-                    supabase.from('specialists').select('*').eq('salon_id', salonConfig.id),
-                    supabase.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonConfig.id),
-                    supabase.from('portfolio_stories').select('*').eq('salon_id', salonConfig.id),
-                    // *** ОБНОВЛЕНО: Запрос записей теперь фильтруется по user_telegram_id ***
-                    supabase.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonConfig.id)
+                    supabaseClient.from('services').select('*').eq('salon_id', salonConfig.id),
+                    supabaseClient.from('specialists').select('*').eq('salon_id', salonConfig.id),
+                    supabaseClient.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonConfig.id),
+                    supabaseClient.from('portfolio_stories').select('*').eq('salon_id', salonConfig.id),
+                    supabaseClient.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonConfig.id)
                 ]);
 
                 if (servicesRes.error) throw servicesRes.error;
@@ -487,7 +487,7 @@
         async function renderTimeSlots(date, specialistId) {
             const container = document.getElementById('time-slots-container');
             container.innerHTML = '';
-            const { data: bookedSlots, error } = await supabase.from('appointments').select('time').eq('date', date).eq('specialist_id', specialistId);
+            const { data: bookedSlots, error } = await supabaseClient.from('appointments').select('time').eq('date', date).eq('specialist_id', specialistId);
             if (error) { console.error("Error fetching booked slots:", error); return; }
             const bookedTimes = bookedSlots.map(s => s.time);
             availableTimeSlots.forEach(time => {
@@ -526,7 +526,6 @@
             const post = portfolio.posts.find(p => p.id === postId);
             if (!post) return;
             const container = document.getElementById('post-view-screen');
-            // *** ОБНОВЛЕНО: Имя автора берется из связанной таблицы users ***
             let commentsHtml = post.comments.map(comment => `
                 <div class="flex items-start space-x-3">
                     <img src="https://placehold.co/32x32/e0e7ff/4338ca?text=${(comment.users.first_name || 'U').charAt(0)}" class="w-8 h-8 rounded-full flex-shrink-0">
@@ -564,7 +563,7 @@
             const newLikes = post.liked ? post.likes - 1 : post.likes + 1;
             post.liked = !post.liked;
             post.likes = newLikes;
-            const { error } = await supabase.from('portfolio_posts').update({ likes: newLikes }).eq('id', postId);
+            const { error } = await supabaseClient.from('portfolio_posts').update({ likes: newLikes }).eq('id', postId);
             if (error) console.error("Error updating likes:", error);
             renderPortfolio();
         }
@@ -574,9 +573,8 @@
             const input = document.getElementById(`comment-input-${postId}`);
             const text = input.value.trim();
             if (!post || !text) return;
-            // *** ОБНОВЛЕНО: Отправляем user_telegram_id вместо author_name ***
             const newComment = { post_id: postId, user_telegram_id: currentUser.id, text: text };
-            const { data, error } = await supabase.from('comments').insert(newComment).select('*, users(first_name)').single();
+            const { data, error } = await supabaseClient.from('comments').insert(newComment).select('*, users(first_name)').single();
             if (error) { console.error("Error adding comment:", error); return; }
             post.comments.push(data);
             input.value = '';
@@ -639,7 +637,6 @@
         async function confirmBooking() {
             if (!tg.MainButton.isActive) return;
             showLoader();
-            // *** ОБНОВЛЕНО: Отправляем user_telegram_id вместо user_id и user_name ***
             const appointmentData = {
                 salon_id: salonConfig.id,
                 user_telegram_id: currentUser.id,
@@ -648,7 +645,7 @@
                 date: bookingState.date,
                 time: bookingState.time
             };
-            const { data, error } = await supabase.from('appointments').insert(appointmentData).select('*, services(*), specialists(*)').single();
+            const { data, error } = await supabaseClient.from('appointments').insert(appointmentData).select('*, services(*), specialists(*)').single();
             hideLoader();
             if (error) {
                 console.error("Error confirming booking:", error);
@@ -670,7 +667,7 @@
 
         async function cancelAppointment(appointmentId) {
             showLoader();
-            const { error } = await supabase.from('appointments').delete().eq('id', appointmentId);
+            const { error } = await supabaseClient.from('appointments').delete().eq('id', appointmentId);
             hideLoader();
             if (error) {
                 console.error("Error canceling appointment:", error);
