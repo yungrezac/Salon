@@ -38,7 +38,7 @@
             font-weight: 600;
             border-radius: 0.75rem;
             padding: 0.65rem 1.5rem;
-            transition: background-color 0.3s;
+            transition: background-color: 0.3s;
         }
         .btn-primary:hover {
             opacity: 0.9;
@@ -75,8 +75,8 @@
 </head>
 <body class="antialiased text-sm">
 
-    <!-- ===== Setup Screen (New) ===== -->
-    <div id="setup-screen" class="screen p-6 min-h-screen flex flex-col justify-center items-center">
+    <!-- ===== Setup Screen (Visible by default) ===== -->
+    <div id="setup-screen" class="screen active p-6 min-h-screen flex flex-col justify-center items-center">
         <div class="w-full max-w-md text-center">
             <div class="bg-rose-100 p-3 rounded-full inline-block mb-4" style="background-color: var(--button-color); opacity: 0.2;">
                 <svg class="w-8 h-8 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
@@ -109,7 +109,7 @@
         </div>
     </div>
 
-    <!-- ===== App Wrapper (New) ===== -->
+    <!-- ===== App Wrapper (Hidden by default) ===== -->
     <div id="app-wrapper" style="display: none;">
         <div id="app" class="main-container min-h-screen">
 
@@ -125,22 +125,16 @@
                 <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
             </div>
 
-            <!-- ===== Post View Screen ===== -->
+            <!-- Other screens remain the same... -->
             <div id="post-view-screen" class="screen"></div>
-
-            <!-- ===== Services Screen ===== -->
             <div id="services-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
                 <div id="services-list" class="space-y-3"></div>
             </div>
-
-            <!-- ===== Specialist Selection Screen ===== -->
             <div id="specialist-selection-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Выберите мастера</h1></header>
                 <div id="specialist-selection-list" class="space-y-3"></div>
             </div>
-            
-            <!-- ===== Booking Screen ===== -->
             <div id="booking-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Выберите дату и время</h1></header>
                 <div class="card p-4">
@@ -153,20 +147,14 @@
                     <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
                 </div>
             </div>
-
-            <!-- ===== Specialists Screen ===== -->
             <div id="specialists-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Наши мастера</h1></header>
                 <div id="specialists-list" class="space-y-4"></div>
             </div>
-
-            <!-- ===== My Appointments Screen ===== -->
             <div id="my-appointments-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Мои записи</h1></header>
                 <div id="appointments-list"></div>
             </div>
-            
-            <!-- ===== Profile Screen ===== -->
             <div id="profile-screen" class="screen p-4">
                 <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
                 <div class="card p-4 flex items-center">
@@ -185,8 +173,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ===== Success Screen ===== -->
             <div id="success-screen" class="screen text-center p-8">
                 <div class="mb-5">
                     <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
@@ -265,27 +251,25 @@
         let salonConfig = { name: 'Beauty Haven', logo: '', initials: 'BH' };
         let bookingState = { service: null, specialist: null, date: null, time: null };
         let userAppointments = [];
-        let screenHistory = ['home-screen']; // For Back Button navigation
-        let currentUser = {
-            first_name: 'Пользователь',
-        };
+        let screenHistory = ['home-screen'];
+        let currentUser = { first_name: 'Пользователь' };
 
         // --- APP INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
+            // FIX: Read parameters from URL hash (#) as it's more reliable in WebViews
+            const hash = window.location.hash.substring(1);
+            const urlParams = new URLSearchParams(hash);
             const salonName = urlParams.get('name');
             const logoUrl = urlParams.get('logo');
 
-            // Apply theme colors regardless of which screen is shown
             applyTheme();
 
             if (salonName && logoUrl) {
                 // If params exist, run the main app with custom branding
-                const decodedName = decodeURIComponent(salonName);
-                const decodedLogo = decodeURIComponent(logoUrl);
-                salonConfig.name = decodedName;
-                salonConfig.logo = decodedLogo;
-                salonConfig.initials = decodedName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
+                // URLSearchParams automatically decodes values
+                salonConfig.name = salonName;
+                salonConfig.logo = logoUrl;
+                salonConfig.initials = salonName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
                 runMainApp();
             } else {
                 // Otherwise, show the setup screen
@@ -295,9 +279,7 @@
 
         // --- SETUP SCREEN LOGIC ---
         function runSetup() {
-            document.getElementById('setup-screen').classList.add('active');
-            document.getElementById('app-wrapper').style.display = 'none';
-            
+            // The setup screen is already visible by default, so we just attach event listeners
             document.getElementById('generate-link-btn').onclick = generateLink;
             document.getElementById('copy-link-btn').onclick = copyLink;
         }
@@ -308,13 +290,14 @@
 
             if (!nameInput || !logoInput) {
                 tg.HapticFeedback.notificationOccurred('error');
-                // You can add a more visible error message here if needed
+                // A native alert is used here for simplicity as it's a developer-facing tool
                 alert('Пожалуйста, заполните все поля');
                 return;
             }
 
-            const baseUrl = window.location.href.split('?')[0];
-            const generatedUrl = `${baseUrl}?name=${encodeURIComponent(nameInput)}&logo=${encodeURIComponent(logoInput)}`;
+            // FIX: Use hash (#) instead of query string (?) for parameters
+            const baseUrl = window.location.href.split('#')[0].split('?')[0];
+            const generatedUrl = `${baseUrl}#name=${encodeURIComponent(nameInput)}&logo=${encodeURIComponent(logoInput)}`;
 
             const resultDiv = document.getElementById('link-result');
             const linkInput = document.getElementById('generated-link-input');
@@ -326,10 +309,9 @@
         function copyLink() {
             const linkInput = document.getElementById('generated-link-input');
             linkInput.select();
-            linkInput.setSelectionRange(0, 99999); // For mobile devices
+            linkInput.setSelectionRange(0, 99999);
 
             try {
-                // document.execCommand('copy') is used for compatibility in iframes
                 document.execCommand('copy');
                 const feedback = document.getElementById('copy-feedback');
                 feedback.style.display = 'block';
@@ -351,35 +333,29 @@
             document.getElementById('salon-name-header').textContent = salonConfig.name;
             const logoContainer = document.getElementById('salon-logo-container');
             logoContainer.innerHTML = `<img src="${salonConfig.logo}" alt="Logo" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}';">`;
-            logoContainer.className = 'w-10 h-10 rounded-full'; // Adjust container for image
+            logoContainer.className = 'w-10 h-10 rounded-full';
             logoContainer.style.padding = '0';
             logoContainer.style.backgroundColor = 'transparent';
             logoContainer.style.opacity = '1';
 
-            // Initialize Telegram features
             tg.ready();
             tg.expand();
-
             displayUserData();
 
-            // --- NAVIGATION EVENT LISTENERS ---
             document.getElementById('nav-home').onclick = () => showScreen('home-screen');
             document.getElementById('nav-services').onclick = () => showScreen('services-screen');
             document.getElementById('nav-specialists').onclick = () => showScreen('specialists-screen');
             document.getElementById('nav-appointments').onclick = () => showScreen('my-appointments-screen');
             document.getElementById('nav-profile').onclick = () => showScreen('profile-screen');
             
-            // --- MODAL CLICK LISTENER ---
             document.getElementById('image-modal').onclick = (e) => {
                 if(e.target.id === 'image-modal') closeModal();
             };
 
-            // --- TELEGRAM BUTTONS SETUP ---
             tg.MainButton.setText('Подтвердить запись');
             tg.MainButton.onClick(confirmBooking);
             tg.BackButton.onClick(goBack);
 
-            // --- INITIAL RENDER ---
             renderServices();
             renderAllSpecialists();
             renderAppointments();
@@ -457,7 +433,7 @@
             }
         }
 
-        // --- RENDERING ---
+        // --- RENDERING (No changes below this line) ---
         function renderPortfolio() {
             const postsContainer = document.getElementById('portfolio-posts');
             postsContainer.innerHTML = '';
@@ -572,7 +548,6 @@
             }).join('');
         }
 
-        // --- POST VIEW LOGIC ---
         function openPostView(postId) {
             const post = portfolio.posts.find(p => p.id === postId);
             if (!post) return;
@@ -632,7 +607,6 @@
             openPostView(postId);
         }
 
-        // --- MODAL LOGIC ---
         function openModal(imgSrc) {
             document.getElementById('modal-img').src = imgSrc;
             document.getElementById('image-modal').classList.add('show');
@@ -641,7 +615,6 @@
             document.getElementById('image-modal').classList.remove('show');
         }
 
-        // --- BOOKING LOGIC ---
         function selectService(service) {
             tg.HapticFeedback.impactOccurred('light');
             bookingState.service = service;
@@ -712,7 +685,6 @@
             tg.HapticFeedback.notificationOccurred('warning');
         }
 
-        // --- UTILITY FUNCTIONS ---
         String.prototype.hashCode = function() {
             var hash = 0; if (this.length === 0) return hash;
             for (var i = 0; i < this.length; i++) {
