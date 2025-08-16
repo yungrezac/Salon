@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Стили для простоты и читаемости */
+        body { background-color: #f3f4f6; }
+        .input { @apply w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500; }
+        .btn { @apply px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700; }
+        .card { @apply bg-white p-6 rounded-lg shadow-md mb-6; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="loader" style="display: none;" class="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+        <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Экран входа по паролю -->
+    <div id="login-screen" class="max-w-md mx-auto">
+        <div class="card">
+            <h1 class="text-2xl font-bold mb-4">Вход в панель управления</h1>
+            <p class="mb-4 text-gray-600">Введите пароль от вашего салона.</p>
+            <input type="password" id="password-input" class="input" placeholder="••••••••">
+            <button id="login-btn" class="btn w-full mt-4">Войти</button>
+            <p id="login-error" class="text-red-500 mt-2 text-sm text-center"></p>
+        </div>
+    </div>
+
+    <!-- Основная админ-панель (скрыта по умолчанию) -->
+    <div id="admin-panel" style="display: none;">
+        <h1 class="text-3xl font-bold mb-6">Панель управления салоном "<span id="salon-name-header"></span>"</h1>
+
+        <!-- Настройки внешнего вида -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">Настройки внешнего вида</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Цвет кнопок</label>
+                    <input type="color" id="theme-button-color" class="w-full h-10">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Цвет текста на кнопках</label>
+                    <input type="color" id="theme-button-text-color" class="w-full h-10">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Основной фон</label>
+                    <input type="color" id="theme-bg-color" class="w-full h-10">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Основной текст</label>
+                    <input type="color" id="theme-text-color" class="w-full h-10">
+                </div>
+            </div>
+            <button id="save-theme-btn" class="btn mt-4">Сохранить тему</button>
+        </div>
+
+        <!-- Управление услугами -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">Управление услугами</h2>
+            <div id="services-list" class="space-y-2 mb-4">
+                <!-- Сюда будут загружаться услуги -->
+            </div>
+            <h3 class="font-semibold mb-2">Добавить новую услугу</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input id="new-service-name" placeholder="Название" class="input">
+                <input id="new-service-price" placeholder="Цена (только число)" type="number" class="input">
+                <input id="new-service-duration" placeholder="Длительность (напр., 1.5 часа)" class="input">
+            </div>
+            <button id="add-service-btn" class="btn mt-4">Добавить услугу</button>
+        </div>
+
+        <!-- Управление мастерами (аналогично услугам) -->
+        <!-- ... -->
+
+    </div>
+
+    <script>
+        // --- Настройка Supabase ---
+        const supabaseUrl = 'https://iwvglucrgnwetczrzwqk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let salonId = null;
+        let salonData = null;
+
+        const loader = document.getElementById('loader');
+        const showLoader = () => loader.style.display = 'flex';
+        const hideLoader = () => loader.style.display = 'none';
+
+        // --- Инициализация ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.substring(1);
+            const urlParams = new URLSearchParams(hash);
+            salonId = urlParams.get('salonId');
+
+            if (!salonId) {
+                document.body.innerHTML = '<h1 class="text-center text-2xl font-bold mt-10">Ошибка: ID салона не найден в ссылке.</h1>';
+                return;
+            }
+            
+            document.getElementById('login-btn').onclick = handleLogin;
+        });
+
+        // --- Логика входа ---
+        async function handleLogin() {
+            showLoader();
+            const passwordInput = document.getElementById('password-input').value;
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = '';
+
+            const { data, error } = await supabaseClient
+                .from('salons')
+                .select('admin_password')
+                .eq('id', salonId)
+                .single();
+
+            if (error || !data) {
+                loginError.textContent = 'Не удалось проверить пароль. Салон не найден.';
+                hideLoader();
+                return;
+            }
+
+            if (data.admin_password === passwordInput) {
+                // Пароль верный
+                await showAdminPanel();
+            } else {
+                loginError.textContent = 'Неверный пароль.';
+            }
+            hideLoader();
+        }
+        
+        // --- Основная логика админ-панели ---
+        async function showAdminPanel() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            
+            showLoader();
+            await loadAdminData();
+            renderAdminPanel();
+            hideLoader();
+
+            // Назначаем обработчики событий
+            document.getElementById('save-theme-btn').onclick = saveTheme;
+            document.getElementById('add-service-btn').onclick = addService;
+        }
+
+        async function loadAdminData() {
+            const { data, error } = await supabaseClient
+                .from('salons')
+                .select(`*, themes(*), services(*)`)
+                .eq('id', salonId)
+                .single();
+            
+            if (error) {
+                alert('Не удалось загрузить данные админ-панели.');
+                return;
+            }
+            salonData = data;
+        }
+
+        function renderAdminPanel() {
+            // Отображаем название салона
+            document.getElementById('salon-name-header').textContent = salonData.name;
+            
+            // Заполняем поля темы
+            const theme = salonData.themes[0] || {};
+            document.getElementById('theme-button-color').value = theme.button_color || '#c08497';
+            document.getElementById('theme-button-text-color').value = theme.button_text_color || '#ffffff';
+            document.getElementById('theme-bg-color').value = theme.bg_color || '#f8fafc';
+            document.getElementById('theme-text-color').value = theme.text_color || '#334155';
+
+            // Отображаем список услуг
+            renderServices();
+        }
+        
+        function renderServices() {
+            const container = document.getElementById('services-list');
+            container.innerHTML = salonData.services.map(service => `
+                <div class="flex justify-between items-center p-2 border rounded-md">
+                    <span>${service.name} - ${service.price} ₽</span>
+                    <button onclick="deleteService(${service.id})" class="text-red-500 hover:text-red-700">Удалить</button>
+                </div>
+            `).join('');
+        }
+        
+        // --- Функции сохранения и обновления ---
+        async function saveTheme() {
+            showLoader();
+            const themeData = {
+                salon_id: salonId,
+                button_color: document.getElementById('theme-button-color').value,
+                button_text_color: document.getElementById('theme-button-text-color').value,
+                bg_color: document.getElementById('theme-bg-color').value,
+                text_color: document.getElementById('theme-text-color').value,
+            };
+            
+            const { error } = await supabaseClient.from('themes').upsert(themeData, { onConflict: 'salon_id' });
+            hideLoader();
+
+            if (error) {
+                alert('Ошибка сохранения темы: ' + error.message);
+            } else {
+                alert('Тема успешно сохранена!');
+            }
+        }
+
+        async function addService() {
+            showLoader();
+            const name = document.getElementById('new-service-name').value;
+            const price = document.getElementById('new-service-price').value;
+            const duration = document.getElementById('new-service-duration').value;
+
+            if (!name || !price || !duration) {
+                alert('Заполните все поля для новой услуги.');
+                hideLoader();
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('services')
+                .insert([{ salon_id: salonId, name, price, duration }])
+                .select()
+                .single();
+
+            if (error) {
+                alert('Ошибка добавления услуги: ' + error.message);
+            } else {
+                salonData.services.push(data);
+                renderServices();
+                // Очистка полей
+                document.getElementById('new-service-name').value = '';
+                document.getElementById('new-service-price').value = '';
+                document.getElementById('new-service-duration').value = '';
+            }
+            hideLoader();
+        }
+
+        async function deleteService(serviceId) {
+            if (!confirm('Вы уверены, что хотите удалить эту услугу?')) return;
+            showLoader();
+            const { error } = await supabaseClient.from('services').delete().eq('id', serviceId);
+            if (error) {
+                alert('Ошибка удаления: ' + error.message);
+            } else {
+                salonData.services = salonData.services.filter(s => s.id !== serviceId);
+                renderServices();
+            }
+            hideLoader();
+        }
+
+    </script>
+</body>
+</html>
