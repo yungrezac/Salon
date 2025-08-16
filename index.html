@@ -75,116 +75,152 @@
 </head>
 <body class="antialiased text-sm">
 
-    <div id="app" class="main-container min-h-screen">
+    <!-- ===== Setup Screen (New) ===== -->
+    <div id="setup-screen" class="screen p-6 min-h-screen flex flex-col justify-center items-center">
+        <div class="w-full max-w-md text-center">
+            <div class="bg-rose-100 p-3 rounded-full inline-block mb-4" style="background-color: var(--button-color); opacity: 0.2;">
+                <svg class="w-8 h-8 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2" style="color: var(--text-color);">Создайте свой салон</h1>
+            <p class="text-slate-500 mb-8" style="color: var(--hint-color);">Введите название и логотип, чтобы получить уникальную ссылку на ваше приложение.</p>
 
-        <!-- ===== Home Screen ===== -->
-        <div id="home-screen" class="screen active">
-            <header class="flex items-center p-4 pt-6 bg-white shadow-sm" style="background-color: var(--header-bg-color);">
-                <div class="bg-rose-100 p-2 rounded-full" style="background-color: var(--button-color); opacity: 0.2;">
-                    <svg class="w-6 h-6 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
+            <div class="card p-6 text-left !mb-6">
+                <div class="mb-4">
+                    <label for="salon-name-input" class="block font-semibold mb-2">Название салона</label>
+                    <input type="text" id="salon-name-input" placeholder="Например, Beauty Haven" class="w-full p-3 border rounded-lg focus:ring-rose-400 focus:border-rose-400" style="background-color: var(--secondary-bg-color); color: var(--text-color);">
                 </div>
-                <h1 class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);">Beauty Haven</h1>
-            </header>
-            <div id="stories-list" class="stories-container flex space-x-4 overflow-x-auto p-4 bg-white" style="background-color: var(--secondary-bg-color);"></div>
-            <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
-        </div>
-
-        <!-- ===== Post View Screen ===== -->
-        <div id="post-view-screen" class="screen"></div>
-
-        <!-- ===== Services Screen ===== -->
-        <div id="services-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
-            <div id="services-list" class="space-y-3"></div>
-        </div>
-
-        <!-- ===== Specialist Selection Screen ===== -->
-        <div id="specialist-selection-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Выберите мастера</h1></header>
-            <div id="specialist-selection-list" class="space-y-3"></div>
-        </div>
-        
-        <!-- ===== Booking Screen ===== -->
-        <div id="booking-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Выберите дату и время</h1></header>
-            <div class="card p-4">
-                <h2 class="font-semibold mb-1 text-base" id="selected-service-title"></h2>
-                <p class="text-sm text-slate-500 mb-3" id="selected-specialist-subtitle" style="color: var(--hint-color);"></p>
-                <input type="date" id="date-picker" class="w-full p-2 border rounded-lg focus:ring-rose-400 focus:border-rose-400" style="background-color: var(--bg-color); color: var(--text-color);">
-            </div>
-            <div class="card p-4">
-                <h2 class="font-semibold mb-4">Доступное время:</h2>
-                <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
-            </div>
-            <!-- The confirm button is now the Telegram MainButton, so we remove the HTML one -->
-        </div>
-
-        <!-- ===== Specialists Screen ===== -->
-        <div id="specialists-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Наши мастера</h1></header>
-            <div id="specialists-list" class="space-y-4"></div>
-        </div>
-
-        <!-- ===== My Appointments Screen ===== -->
-        <div id="my-appointments-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Мои записи</h1></header>
-            <div id="appointments-list"></div>
-        </div>
-        
-        <!-- ===== Profile Screen ===== -->
-        <div id="profile-screen" class="screen p-4">
-            <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
-            <div class="card p-4 flex items-center">
-                <img id="profile-avatar" src="https://placehold.co/64x64/fde6ea/c08497?text=U" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
-                <div>
-                    <h2 id="profile-name" class="font-bold text-lg">Пользователь</h2>
-                    <p id="profile-phone" class="text-slate-500" style="color: var(--hint-color);">Данные из Telegram</p>
+                <div class="mb-6">
+                    <label for="logo-url-input" class="block font-semibold mb-2">URL логотипа</label>
+                    <input type="url" id="logo-url-input" placeholder="https://example.com/logo.png" class="w-full p-3 border rounded-lg focus:ring-rose-400 focus:border-rose-400" style="background-color: var(--secondary-bg-color); color: var(--text-color);">
                 </div>
+                <button id="generate-link-btn" class="btn-primary w-full py-3">Создать ссылку</button>
             </div>
-            <div class="card p-4">
-                <h3 class="font-semibold mb-3">Настройки</h3>
-                <div class="space-y-2">
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Уведомления</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Привязанные карты</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
-                    <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Помощь</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
-                </div>
+            
+            <div id="link-result" class="text-left" style="display: none;">
+                 <div class="card p-4">
+                    <label class="block font-semibold mb-2 text-sm">Ваша уникальная ссылка:</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="generated-link-input" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-slate-600 text-xs" style="background-color: var(--bg-color); color: var(--text-color);">
+                        <button id="copy-link-btn" class="btn-primary text-sm px-4">Копировать</button>
+                    </div>
+                    <p id="copy-feedback" class="text-green-600 text-xs mt-2 text-center" style="display: none;">Скопировано!</p>
+                 </div>
             </div>
-        </div>
-
-        <!-- ===== Success Screen ===== -->
-        <div id="success-screen" class="screen text-center p-8">
-            <div class="mb-5">
-                <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            </div>
-            <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
-            <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
-            <button onclick="showScreen('my-appointments-screen')" class="btn-primary">Посмотреть мои записи</button>
         </div>
     </div>
 
-    <!-- ===== Bottom Navigation Bar ===== -->
-    <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10" style="background-color: var(--secondary-bg-color);">
-        <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg active">
-            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span>Главная</span>
-        </button>
-        <button id="nav-services" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            <span>Запись</span>
-        </button>
-        <button id="nav-specialists" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>Мастера</span>
-        </button>
-        <button id="nav-appointments" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Мои записи</span>
-        </button>
-        <button id="nav-profile" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
-            <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>Профиль</span>
-        </button>
-    </nav>
+    <!-- ===== App Wrapper (New) ===== -->
+    <div id="app-wrapper" style="display: none;">
+        <div id="app" class="main-container min-h-screen">
+
+            <!-- ===== Home Screen ===== -->
+            <div id="home-screen" class="screen active">
+                <header class="flex items-center p-4 pt-6 bg-white shadow-sm" style="background-color: var(--header-bg-color);">
+                    <div id="salon-logo-container" class="w-10 h-10 flex items-center justify-center bg-rose-100 p-2 rounded-full" style="background-color: var(--button-color); opacity: 0.2;">
+                         <svg class="w-6 h-6 text-rose-500" style="color: var(--button-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M12 12.5V18a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.2c0-.8-.4-1.5-.9-2-.4-.4-1-.7-1.6-.9-.7-.2-1.3-.5-1.9-1-.6-.4-1.2-1-1.6-1.6a2.5 2.5 0 0 0-4 0c-.5.7-1 1.2-1.6 1.6-.6.4-1.2.7-1.9 1-.6.2-1.2.5-1.6.9-.5.5-.9 1.2-.9 2V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.5"/></svg>
+                    </div>
+                    <h1 id="salon-name-header" class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);">Beauty Haven</h1>
+                </header>
+                <div id="stories-list" class="stories-container flex space-x-4 overflow-x-auto p-4 bg-white" style="background-color: var(--secondary-bg-color);"></div>
+                <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
+            </div>
+
+            <!-- ===== Post View Screen ===== -->
+            <div id="post-view-screen" class="screen"></div>
+
+            <!-- ===== Services Screen ===== -->
+            <div id="services-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
+                <div id="services-list" class="space-y-3"></div>
+            </div>
+
+            <!-- ===== Specialist Selection Screen ===== -->
+            <div id="specialist-selection-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Выберите мастера</h1></header>
+                <div id="specialist-selection-list" class="space-y-3"></div>
+            </div>
+            
+            <!-- ===== Booking Screen ===== -->
+            <div id="booking-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Выберите дату и время</h1></header>
+                <div class="card p-4">
+                    <h2 class="font-semibold mb-1 text-base" id="selected-service-title"></h2>
+                    <p class="text-sm text-slate-500 mb-3" id="selected-specialist-subtitle" style="color: var(--hint-color);"></p>
+                    <input type="date" id="date-picker" class="w-full p-2 border rounded-lg focus:ring-rose-400 focus:border-rose-400" style="background-color: var(--bg-color); color: var(--text-color);">
+                </div>
+                <div class="card p-4">
+                    <h2 class="font-semibold mb-4">Доступное время:</h2>
+                    <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
+                </div>
+            </div>
+
+            <!-- ===== Specialists Screen ===== -->
+            <div id="specialists-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Наши мастера</h1></header>
+                <div id="specialists-list" class="space-y-4"></div>
+            </div>
+
+            <!-- ===== My Appointments Screen ===== -->
+            <div id="my-appointments-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Мои записи</h1></header>
+                <div id="appointments-list"></div>
+            </div>
+            
+            <!-- ===== Profile Screen ===== -->
+            <div id="profile-screen" class="screen p-4">
+                <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
+                <div class="card p-4 flex items-center">
+                    <img id="profile-avatar" src="https://placehold.co/64x64/fde6ea/c08497?text=U" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
+                    <div>
+                        <h2 id="profile-name" class="font-bold text-lg">Пользователь</h2>
+                        <p id="profile-phone" class="text-slate-500" style="color: var(--hint-color);">Данные из Telegram</p>
+                    </div>
+                </div>
+                <div class="card p-4">
+                    <h3 class="font-semibold mb-3">Настройки</h3>
+                    <div class="space-y-2">
+                        <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Уведомления</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                        <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Привязанные карты</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                        <a href="#" class="flex justify-between items-center text-slate-600 hover:text-rose-500" style="color: var(--text-color);"><span>Помощь</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Success Screen ===== -->
+            <div id="success-screen" class="screen text-center p-8">
+                <div class="mb-5">
+                    <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
+                <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
+                <button onclick="showScreen('my-appointments-screen')" class="btn-primary">Посмотреть мои записи</button>
+            </div>
+        </div>
+
+        <!-- ===== Bottom Navigation Bar ===== -->
+        <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10" style="background-color: var(--secondary-bg-color);">
+            <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg active">
+                <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Главная</span>
+            </button>
+            <button id="nav-services" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+                <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Запись</span>
+            </button>
+            <button id="nav-specialists" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+                <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Мастера</span>
+            </button>
+            <button id="nav-appointments" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+                <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Мои записи</span>
+            </button>
+            <button id="nav-profile" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg">
+                <svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Профиль</span>
+            </button>
+        </nav>
+    </div>
 
     <!-- Image Modal -->
     <div id="image-modal" class="modal fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4">
@@ -225,20 +261,105 @@
         };
         const availableTimeSlots = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
         
+        // --- APP STATE ---
+        let salonConfig = { name: 'Beauty Haven', logo: '', initials: 'BH' };
         let bookingState = { service: null, specialist: null, date: null, time: null };
         let userAppointments = [];
         let screenHistory = ['home-screen']; // For Back Button navigation
         let currentUser = {
             first_name: 'Пользователь',
-            // Add other fields from tg.initDataUnsafe.user if needed
         };
 
-        // --- INIT & DOMContentLoaded ---
+        // --- APP INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            tg.ready();
-            tg.expand(); // Expand the app to full height
+            const urlParams = new URLSearchParams(window.location.search);
+            const salonName = urlParams.get('name');
+            const logoUrl = urlParams.get('logo');
 
+            // Apply theme colors regardless of which screen is shown
             applyTheme();
+
+            if (salonName && logoUrl) {
+                // If params exist, run the main app with custom branding
+                const decodedName = decodeURIComponent(salonName);
+                const decodedLogo = decodeURIComponent(logoUrl);
+                salonConfig.name = decodedName;
+                salonConfig.logo = decodedLogo;
+                salonConfig.initials = decodedName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
+                runMainApp();
+            } else {
+                // Otherwise, show the setup screen
+                runSetup();
+            }
+        });
+
+        // --- SETUP SCREEN LOGIC ---
+        function runSetup() {
+            document.getElementById('setup-screen').classList.add('active');
+            document.getElementById('app-wrapper').style.display = 'none';
+            
+            document.getElementById('generate-link-btn').onclick = generateLink;
+            document.getElementById('copy-link-btn').onclick = copyLink;
+        }
+
+        function generateLink() {
+            const nameInput = document.getElementById('salon-name-input').value.trim();
+            const logoInput = document.getElementById('logo-url-input').value.trim();
+
+            if (!nameInput || !logoInput) {
+                tg.HapticFeedback.notificationOccurred('error');
+                // You can add a more visible error message here if needed
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            const baseUrl = window.location.href.split('?')[0];
+            const generatedUrl = `${baseUrl}?name=${encodeURIComponent(nameInput)}&logo=${encodeURIComponent(logoInput)}`;
+
+            const resultDiv = document.getElementById('link-result');
+            const linkInput = document.getElementById('generated-link-input');
+            linkInput.value = generatedUrl;
+            resultDiv.style.display = 'block';
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function copyLink() {
+            const linkInput = document.getElementById('generated-link-input');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                // document.execCommand('copy') is used for compatibility in iframes
+                document.execCommand('copy');
+                const feedback = document.getElementById('copy-feedback');
+                feedback.style.display = 'block';
+                tg.HapticFeedback.impactOccurred('light');
+                setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                alert('Не удалось скопировать ссылку. Пожалуйста, скопируйте вручную.');
+            }
+        }
+
+        // --- MAIN APP LOGIC ---
+        function runMainApp() {
+            // Hide setup, show main app
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'block';
+
+            // Apply custom branding
+            document.getElementById('salon-name-header').textContent = salonConfig.name;
+            const logoContainer = document.getElementById('salon-logo-container');
+            logoContainer.innerHTML = `<img src="${salonConfig.logo}" alt="Logo" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}';">`;
+            logoContainer.className = 'w-10 h-10 rounded-full'; // Adjust container for image
+            logoContainer.style.padding = '0';
+            logoContainer.style.backgroundColor = 'transparent';
+            logoContainer.style.opacity = '1';
+
+            // Initialize Telegram features
+            tg.ready();
+            tg.expand();
+
             displayUserData();
 
             // --- NAVIGATION EVENT LISTENERS ---
@@ -264,7 +385,7 @@
             renderAppointments();
             renderPortfolio();
             setupDatePicker();
-        });
+        }
 
         // --- TELEGRAM SDK INTEGRATION ---
         function applyTheme() {
@@ -276,7 +397,6 @@
             root.style.setProperty('--button-text-color', theme.button_text_color || '#ffffff');
             root.style.setProperty('--hint-color', theme.hint_color || '#94a3b8');
             root.style.setProperty('--secondary-bg-color', theme.secondary_bg_color || '#ffffff');
-            // Header needs a fallback as it might not be in theme params
             root.style.setProperty('--header-bg-color', theme.header_bg_color || theme.secondary_bg_color || '#ffffff');
         }
 
@@ -286,16 +406,13 @@
                 const userInitial = (currentUser.first_name || 'U').charAt(0);
                 
                 document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
-                // You can get more user data if needed, e.g., phone number, but it's not provided by default
                 document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
             }
         }
 
         // --- NAVIGATION ---
         function showScreen(screenId, isBack = false) {
-            // Manage history for the back button
             if (!isBack) {
-                // Don't push duplicates if user clicks the same nav button twice
                 if (screenHistory[screenHistory.length - 1] !== screenId) {
                     screenHistory.push(screenId);
                 }
@@ -305,7 +422,6 @@
             document.getElementById(screenId).classList.add('active');
             window.scrollTo(0, 0);
 
-            // Manage Telegram UI components based on screen
             const isHomeScreen = ['home-screen', 'services-screen', 'specialists-screen', 'my-appointments-screen', 'profile-screen'].includes(screenId);
             const isBookingScreen = screenId === 'booking-screen';
 
@@ -316,12 +432,11 @@
             }
 
             if (isBookingScreen) {
-                updateConfirmButtonState(); // This will show/hide MainButton
+                updateConfirmButtonState();
             } else {
                 tg.MainButton.hide();
             }
 
-            // Update active state for bottom navbar
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             const navMapping = {
                 'home-screen': 'nav-home', 'post-view-screen': 'nav-home',
@@ -338,7 +453,7 @@
             if (screenHistory.length > 1) {
                 screenHistory.pop();
                 const previousScreen = screenHistory[screenHistory.length - 1];
-                showScreen(previousScreen, true); // true indicates this is a back navigation
+                showScreen(previousScreen, true);
             }
         }
 
@@ -351,8 +466,8 @@
                 el.className = 'card';
                 el.innerHTML = `
                     <div class="p-4 flex items-center">
-                        <img src="https://placehold.co/40x40/c08497/ffffff?text=BH" class="w-8 h-8 rounded-full mr-3">
-                        <span class="font-semibold">beauty_haven_salon</span>
+                        <img src="https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}" class="w-8 h-8 rounded-full mr-3">
+                        <span class="font-semibold">${salonConfig.name.toLowerCase().replace(/\s/g, '_')}</span>
                     </div>
                     <img src="${post.img}" alt="${post.title}" class="w-full h-auto cursor-pointer" onclick="openPostView(${post.id})">
                     <div class="p-4">
@@ -365,7 +480,7 @@
                              </button>
                         </div>
                         <p class="font-semibold mt-2">${post.likes} отметок "Нравится"</p>
-                        <p class="mt-1"><span class="font-semibold">beauty_haven_salon</span> ${post.title}</p>
+                        <p class="mt-1"><span class="font-semibold">${salonConfig.name.toLowerCase().replace(/\s/g, '_')}</span> ${post.title}</p>
                         <a onclick="openPostView(${post.id})" class="text-xs text-slate-500 mt-1 inline-block" style="color: var(--hint-color);">Посмотреть комментарии (${post.comments.length})</a>
                     </div>`;
                 postsContainer.appendChild(el);
@@ -443,17 +558,17 @@
             container.innerHTML = userAppointments.map((appt, index) => {
                  const formattedDate = new Date(appt.date).toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
                  return `
-                    <div class="card p-4">
-                        <div class="flex justify-between items-start">
+                     <div class="card p-4">
+                         <div class="flex justify-between items-start">
                              <div>
-                                <p class="font-bold text-base">${appt.service.name}</p>
-                                <p class="text-slate-500" style="color: var(--hint-color);">Мастер: ${appt.specialist.name}</p>
-                                <p class="font-semibold mt-2" style="color: var(--button-color);">${formattedDate} в ${appt.time}</p>
+                                 <p class="font-bold text-base">${appt.service.name}</p>
+                                 <p class="text-slate-500" style="color: var(--hint-color);">Мастер: ${appt.specialist.name}</p>
+                                 <p class="font-semibold mt-2" style="color: var(--button-color);">${formattedDate} в ${appt.time}</p>
                              </div>
                              <button onclick="cancelAppointment(${index})" class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-md">Отменить</button>
-                        </div>
-                    </div>
-                `
+                         </div>
+                     </div>
+                 `
             }).join('');
         }
 
@@ -514,7 +629,7 @@
             const newComment = { id: Date.now(), author: currentUser.first_name, text: text };
             post.comments.push(newComment);
             input.value = '';
-            openPostView(postId); // Re-render the view with the new comment
+            openPostView(postId);
         }
 
         // --- MODAL LOGIC ---
@@ -526,7 +641,7 @@
             document.getElementById('image-modal').classList.remove('show');
         }
 
-        // --- BOOKING LOGIC (UPDATED) ---
+        // --- BOOKING LOGIC ---
         function selectService(service) {
             tg.HapticFeedback.impactOccurred('light');
             bookingState.service = service;
@@ -592,7 +707,6 @@
         }
 
         function cancelAppointment(index) {
-            // Here you could add a confirmation dialog if needed
             userAppointments.splice(index, 1);
             renderAppointments();
             tg.HapticFeedback.notificationOccurred('warning');
