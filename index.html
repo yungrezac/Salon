@@ -24,6 +24,7 @@
             --primary-text-color: #ffffff;
             --danger-color: #ef4444;
             --success-color: #22c55e;
+            --star-color: #facc15;
         }
         body { 
             font-family: 'Inter', sans-serif; 
@@ -48,8 +49,8 @@
         .btn-danger { background-color: var(--danger-color); color: #fff; }
 
         .card { background-color: var(--secondary-bg-color); border-radius: 1rem; box-shadow: 0 4px 12px -1px rgb(0 0 0 / 0.06), 0 2px 8px -2px rgb(0 0 0 / 0.04); border: 1px solid var(--border-color); }
-        .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.75rem; transition: all 0.2s; background-color: #f8fafc; }
-        .form-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px #fde6ea; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.75rem; transition: all 0.2s; background-color: #f8fafc; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px #fde6ea; }
         .form-error { color: var(--danger-color); font-size: 0.8rem; margin-top: 4px; display: none; }
         
         /* Time Slots */
@@ -67,6 +68,14 @@
         .admin-nav-item { border-color: transparent; color: #64748b; }
         .admin-nav-item.active { border-color: var(--primary-color); color: var(--primary-color); }
 
+        /* Star Rating */
+        .star-rating { display: inline-flex; direction: rtl; }
+        .star-rating input[type="radio"] { display: none; }
+        .star-rating label { font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: color 0.2s; }
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label { color: var(--star-color); }
+
         /* =================================
            UTILITIES & OVERLAYS
         ================================= */
@@ -83,7 +92,7 @@
 
         #modal-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; display: none; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; backdrop-filter: blur(4px); }
         #modal-container.active { display: flex; }
-        .modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; animation: zoomIn 0.2s ease; }
+        .modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; animation: zoomIn 0.2s ease; }
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* Skeleton Loader */
@@ -144,7 +153,11 @@
                 <h1 id="salon-name-header" class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);"></h1>
             </header>
             
-            <div id="home-screen" class="screen"><div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div></div>
+            <div id="home-screen" class="screen p-4 space-y-4">
+                <div id="special-offers-container"></div>
+                <h2 class="text-xl font-bold">Портфолио</h2>
+                <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
+            </div>
             <div id="post-view-screen" class="screen"></div>
             <div id="services-screen" class="screen p-4"><h1 class="text-xl font-bold mb-5">Выберите услугу</h1><div id="services-list" class="space-y-3"></div></div>
             <div id="specialist-selection-screen" class="screen p-4"><h1 class="text-xl font-bold mb-5">Выберите мастера</h1><div id="specialists-list" class="space-y-3"></div></div>
@@ -160,6 +173,10 @@
                     <input type="date" id="date-picker" class="form-input w-full p-2 mb-4">
                     <h2 class="font-semibold mb-3">Доступное время:</h2>
                     <div id="time-slots-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3 text-center text-xs"></div>
+                    <div class="mt-4">
+                        <label for="booking-comment" class="block font-semibold mb-2 text-sm">Комментарий к записи (необязательно)</label>
+                        <textarea id="booking-comment" class="form-textarea" rows="2" placeholder="Например, аллергия на латекс"></textarea>
+                    </div>
                 </div>
             </div>
             
@@ -179,7 +196,10 @@
                     <div class="mb-5"><svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                     <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
                     <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
-                    <button data-screen="my-appointments-screen" class="btn btn-primary nav-action-btn">Посмотреть мои записи</button>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button data-screen="my-appointments-screen" class="btn btn-primary nav-action-btn">Посмотреть мои записи</button>
+                        <button id="add-to-calendar-btn" class="btn btn-secondary">Добавить в календарь</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -213,22 +233,30 @@
             
             <div class="mb-6 border-b border-slate-200">
                 <nav class="-mb-px flex space-x-6" id="admin-nav" style="overflow-x: auto;">
+                    <button data-panel="dashboard" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Дашборд</button>
                     <button data-panel="appointments" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Записи</button>
+                    <button data-panel="schedule" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Расписание</button>
                     <button data-panel="services" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Услуги</button>
                     <button data-panel="specialists" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Мастера</button>
+                    <button data-panel="clients" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Клиенты</button>
                     <button data-panel="portfolio" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Портфолио</button>
-                    <button data-panel="comments" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Комментарии</button>
+                    <button data-panel="reviews" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Отзывы</button>
+                    <button data-panel="offers" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Акции</button>
                     <button data-panel="theme" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Тема</button>
                     <button data-panel="settings" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Настройки</button>
                 </nav>
             </div>
             
             <div id="admin-panels-container">
+                <div id="admin-panel-dashboard" class="admin-panel-content"></div>
                 <div id="admin-panel-appointments" class="admin-panel-content"></div>
+                <div id="admin-panel-schedule" class="admin-panel-content"></div>
                 <div id="admin-panel-services" class="admin-panel-content"></div>
                 <div id="admin-panel-specialists" class="admin-panel-content"></div>
+                <div id="admin-panel-clients" class="admin-panel-content"></div>
                 <div id="admin-panel-portfolio" class="admin-panel-content"></div>
-                <div id="admin-panel-comments" class="admin-panel-content"></div>
+                <div id="admin-panel-reviews" class="admin-panel-content"></div>
+                <div id="admin-panel-offers" class="admin-panel-content"></div>
                 <div id="admin-panel-theme" class="admin-panel-content"></div>
                 <div id="admin-panel-settings" class="admin-panel-content"></div>
             </div>
@@ -239,7 +267,7 @@
 <script>
 // ==================================================================
 // ==================================================================
-//               BEAUTY SALON MINI APP SCRIPT (REFACTORED)
+//         BEAUTY SALON MINI APP SCRIPT (ENHANCED VERSION)
 // ==================================================================
 // ==================================================================
 
@@ -266,10 +294,13 @@ const App = {
         portfolio: [],
         userAppointments: [],
         allAppointments: [],
-        allComments: [],
+        allReviews: [],
+        allOffers: [],
+        allClients: [],
+        blockedSlots: [],
         bookingState: {},
         screenHistory: ['home-screen'],
-        currentAdminPanel: 'appointments',
+        currentAdminPanel: 'dashboard',
         editingItemId: null,
     },
 
@@ -280,20 +311,20 @@ const App = {
     // App Initializer
     // ------------------------------------------------------------------
     init() {
-        console.log("App Initializing...");
+        console.log("App Initializing (Enhanced Version)...");
         this.supabase = supabase.createClient(this.config.supabaseUrl, this.config.supabaseKey);
         
         // Cache all relevant DOM elements on startup
         const ids = [
             'loader', 'toast-container', 'modal-container', 'constructor-wrapper', 'setup-screen', 'setup-form', 'generate-link-btn', 
             'link-result', 'generated-client-link', 'generated-admin-link', 'client-app-wrapper', 'client-header', 'salon-logo-header', 
-            'salon-name-header', 'home-screen', 'portfolio-posts', 'post-view-screen', 'services-screen', 'services-list', 
+            'salon-name-header', 'home-screen', 'special-offers-container', 'portfolio-posts', 'post-view-screen', 'services-screen', 'services-list', 
             'specialist-selection-screen', 'specialists-list', 'booking-screen', 'selected-service-title', 'selected-specialist-subtitle', 
-            'date-picker', 'time-slots-container', 'my-appointments-screen', 'appointments-list', 'profile-screen', 'profile-avatar', 
-            'profile-name', 'success-screen', 'success-details', 'admin-mode-wrapper', 'admin-login-screen', 'admin-login-form', 
+            'date-picker', 'time-slots-container', 'booking-comment', 'my-appointments-screen', 'appointments-list', 'profile-screen', 'profile-avatar', 
+            'profile-name', 'success-screen', 'success-details', 'add-to-calendar-btn', 'admin-mode-wrapper', 'admin-login-screen', 'admin-login-form', 
             'password-input', 'login-btn', 'login-error', 'admin-panel', 'admin-salon-name', 'logout-btn', 'admin-nav', 
-            'admin-panels-container', 'admin-panel-appointments', 'admin-panel-services', 'admin-panel-specialists', 
-            'admin-panel-portfolio', 'admin-panel-comments', 'admin-panel-theme', 'admin-panel-settings'
+            'admin-panels-container', 'admin-panel-dashboard', 'admin-panel-appointments', 'admin-panel-schedule', 'admin-panel-services', 'admin-panel-specialists', 
+            'admin-panel-clients', 'admin-panel-portfolio', 'admin-panel-reviews', 'admin-panel-offers', 'admin-panel-theme', 'admin-panel-settings'
         ];
         ids.forEach(id => this.elements[id] = document.getElementById(id));
         
@@ -340,8 +371,8 @@ const App = {
             const localToday = new Date(today.getTime() - (offset * 60 * 1000));
             return localToday.toISOString().split('T')[0];
         },
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        formatDate(dateString, options = { day: 'numeric', month: 'long', year: 'numeric' }) {
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
         },
         parseDuration(durationStr) {
             let totalMinutes = 0;
@@ -388,6 +419,7 @@ const App = {
             return isValid;
         },
         escapeHTML(str) {
+            if (!str) return '';
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
     },
@@ -403,23 +435,28 @@ const App = {
             return data;
         },
         getSalonData: (id) => App.supabase.from('salons').select(`*, themes(*)`).eq('id', id).single(),
-        upsertUser: (user) => App.supabase.from('users').upsert({ telegram_id: user.id, first_name: user.first_name, username: user.username }, { onConflict: 'telegram_id' }),
+        upsertUser: (user) => App.supabase.from('users').upsert({ telegram_id: user.id, first_name: user.first_name, last_name: user.last_name, username: user.username }, { onConflict: 'telegram_id' }).select().single(),
         getClientData: (salonId, userId) => Promise.all([
             App.supabase.from('services').select('*').eq('salon_id', salonId),
-            App.supabase.from('specialists').select('*').eq('salon_id', salonId),
+            App.supabase.from('specialists').select('*, reviews(rating)').eq('salon_id', salonId),
             App.supabase.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonId).order('created_at', { ascending: false }),
-            App.supabase.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', userId).eq('salon_id', salonId).order('date').order('time')
+            App.supabase.from('appointments').select('*, services(*), specialists(*), reviews(*)').eq('user_telegram_id', userId).eq('salon_id', salonId).order('date').order('time'),
+            App.supabase.from('special_offers').select('*').eq('salon_id', salonId).gt('active_until', new Date().toISOString())
         ]),
         getAppointmentsForDate: (salonId, specialistId, date) => App.supabase.from('appointments').select('time, services(duration)').eq('salon_id', salonId).eq('date', date).eq('specialist_id', specialistId),
+        getBlockedSlotsForDate: (salonId, specialistId, date) => App.supabase.from('blocked_slots').select('*').eq('salon_id', salonId).eq('date', date).eq('specialist_id', specialistId),
         createAppointment: (appt) => App.supabase.from('appointments').insert([appt]),
         cancelAppointment: (id) => App.supabase.from('appointments').delete().eq('id', id),
         postComment: (comment) => App.supabase.from('comments').insert(comment).select().single(),
+        postReview: (review) => App.supabase.from('reviews').insert(review).select().single(),
         
         // Admin API
         getAdminData: (salonId) => Promise.all([
-             App.supabase.from('salons').select(`*, services(*), specialists(*), portfolio_posts(*), themes(*)`).eq('id', salonId).single(),
+             App.supabase.from('salons').select(`*, services(*), specialists(*), portfolio_posts(*), themes(*), special_offers(*)`).eq('id', salonId).single(),
              App.supabase.from('appointments').select('*, services(name), specialists(name), users(first_name, username)').eq('salon_id', salonId).order('date', { ascending: true }).order('time', { ascending: true }),
-             App.supabase.from('comments').select('*, users(first_name, username), portfolio_posts(title)').eq('portfolio_posts.salon_id', salonId).order('created_at', { ascending: false })
+             App.supabase.from('reviews').select('*, users(first_name, username), specialists(name), services(name)').eq('salon_id', salonId).order('created_at', { ascending: false }),
+             App.supabase.from('users').select('*').in('telegram_id', App.supabase.from('appointments').select('user_telegram_id').eq('salon_id', salonId).then(r => r.data.map(d => d.user_telegram_id))),
+             App.supabase.from('blocked_slots').select('*, specialists(name)').eq('salon_id', salonId)
         ]),
         upsertItem: (table, item) => App.supabase.from(table).upsert(item),
         deleteItem: (table, id) => App.supabase.from(table).delete().eq('id', id),
@@ -493,8 +530,15 @@ const App = {
         
         // Setup current user
         const user = this.tg.initDataUnsafe?.user;
-        this.store.currentUser = user || { id: 123456789, first_name: 'Тест', username: 'testuser' }; // Fallback for testing
-        await this.api.upsertUser(this.store.currentUser);
+        if (!user) {
+            this.ui.showToast('Не удалось определить пользователя Telegram.', 'error');
+            // Fallback for testing in browser
+            this.store.currentUser = { id: Date.now(), first_name: 'Тест', username: 'testuser' };
+        } else {
+            const { data: userData, error: userError } = await this.api.upsertUser(user);
+            if (userError) throw userError;
+            this.store.currentUser = userData;
+        }
 
         // Fetch salon config
         const { data, error } = await this.api.getSalonData(this.store.salonId);
@@ -537,24 +581,43 @@ const App = {
                 App.ui.renderTimeSlots();
             });
 
+            // "Add to Calendar" button
+            App.elements['add-to-calendar-btn'].addEventListener('click', App.client.handleAddToCalendar);
+
             // Dynamic content listeners (Event Delegation)
-            App.elements['services-list'].addEventListener('click', App.client.handleServiceSelect);
-            App.elements['specialists-list'].addEventListener('click', App.client.handleSpecialistSelect);
-            App.elements['time-slots-container'].addEventListener('click', App.client.handleTimeSelect);
-            App.elements['appointments-list'].addEventListener('click', App.client.handleAppointmentCancel);
-            App.elements['portfolio-posts'].addEventListener('click', App.client.handlePostClick);
+            App.elements['client-app-wrapper'].addEventListener('click', e => {
+                const serviceBtn = e.target.closest('[data-service-id]');
+                if(serviceBtn) App.client.handleServiceSelect(serviceBtn);
+
+                const specialistBtn = e.target.closest('[data-specialist-id]');
+                if(specialistBtn) App.client.handleSpecialistSelect(specialistBtn);
+
+                const timeSlot = e.target.closest('.time-slot');
+                if(timeSlot) App.client.handleTimeSelect(timeSlot);
+
+                const cancelBtn = e.target.closest('[data-cancel-appointment-id]');
+                if(cancelBtn) App.client.handleAppointmentCancel(cancelBtn);
+
+                const reviewBtn = e.target.closest('[data-review-appointment-id]');
+                if(reviewBtn) App.client.handleReviewAppointment(reviewBtn);
+
+                const postCard = e.target.closest('[data-post-id]');
+                if(postCard) App.client.handlePostClick(postCard);
+            });
+
             App.elements['post-view-screen'].addEventListener('submit', App.client.handlePostComment);
         },
 
         async loadData() {
             App.ui.renderAllSkeletons();
             try {
-                const [servicesRes, specialistsRes, postsRes, appointmentsRes] = await App.api.getClientData(App.store.salonId, App.store.currentUser.id);
+                const [servicesRes, specialistsRes, postsRes, appointmentsRes, offersRes] = await App.api.getClientData(App.store.salonId, App.store.currentUser.id);
 
                 App.store.services = servicesRes.data || [];
                 App.store.specialists = specialistsRes.data || [];
                 App.store.portfolio = postsRes.data || [];
                 App.store.userAppointments = (appointmentsRes.data || []).map(a => ({ ...a, service: a.services, specialist: a.specialists }));
+                App.store.allOffers = offersRes.data || [];
             } catch (error) {
                 console.error("Failed to load client data:", error);
                 App.ui.showToast("Не удалось загрузить данные.", 'error');
@@ -564,14 +627,13 @@ const App = {
         renderAll() {
             App.elements['salon-name-header'].textContent = App.store.salonConfig.name;
             App.elements['salon-logo-header'].src = App.store.salonConfig.logo_url;
+            App.ui.renderSpecialOffers();
             App.ui.renderServices();
             App.ui.renderAppointments();
             App.ui.renderPortfolio();
         },
 
-        handleServiceSelect(e) {
-            const button = e.target.closest('[data-service-id]');
-            if (!button) return;
+        handleServiceSelect(button) {
             const service = App.store.services.find(s => s.id == button.dataset.serviceId);
             if (service) {
                 App.store.bookingState = { service };
@@ -580,9 +642,7 @@ const App = {
             }
         },
         
-        handleSpecialistSelect(e) {
-            const button = e.target.closest('[data-specialist-id]');
-            if (!button) return;
+        handleSpecialistSelect(button) {
             const specialist = App.store.specialists.find(s => s.id == button.dataset.specialistId);
             if (specialist) {
                 App.store.bookingState.specialist = specialist;
@@ -599,9 +659,8 @@ const App = {
             }
         },
         
-        handleTimeSelect(e) {
-            const slot = e.target.closest('.time-slot');
-            if (!slot || slot.classList.contains('disabled')) return;
+        handleTimeSelect(slot) {
+            if (slot.classList.contains('disabled')) return;
             document.querySelectorAll('#time-slots-container .time-slot').forEach(s => s.classList.remove('selected'));
             slot.classList.add('selected');
             App.store.bookingState.time = slot.dataset.time;
@@ -620,6 +679,7 @@ const App = {
             if (!App.tg.MainButton.isActive) return;
             App.ui.showLoader();
             const { service, specialist, date, time } = App.store.bookingState;
+            const comment = App.elements['booking-comment'].value.trim();
             try {
                 const { error } = await App.api.createAppointment({
                     salon_id: App.store.salonId,
@@ -627,7 +687,8 @@ const App = {
                     service_id: service.id,
                     specialist_id: specialist.id,
                     date: date,
-                    time: time
+                    time: time,
+                    comment: comment
                 });
                 if (error) throw error;
                 
@@ -635,6 +696,7 @@ const App = {
                 App.ui.showScreen('success-screen');
                 await App.client.loadData(); // Reload all data
                 App.ui.renderAppointments();
+                App.elements['booking-comment'].value = ''; // Clear comment
             } catch (error) {
                 console.error("Booking failed:", error);
                 App.ui.showToast('Ошибка записи: ' + error.message, 'error');
@@ -643,10 +705,8 @@ const App = {
             }
         },
         
-        handleAppointmentCancel(e) {
-            const button = e.target.closest('[data-appointment-id]');
-            if (!button) return;
-            const appointmentId = button.dataset.appointmentId;
+        handleAppointmentCancel(button) {
+            const appointmentId = button.dataset.cancelAppointmentId;
              App.ui.showModal({
                  title: 'Отменить запись?',
                  content: 'Вы уверены, что хотите отменить эту запись? Это действие необратимо.',
@@ -665,7 +725,6 @@ const App = {
                          } catch (error) {
                              console.error("Cancellation failed:", error);
                              App.ui.showToast('Ошибка отмены: ' + error.message, 'error');
-                             // If fails, reload data to be safe
                              await App.client.loadData();
                              App.ui.renderAppointments();
                          } finally {
@@ -676,9 +735,7 @@ const App = {
              });
         },
         
-        handlePostClick(e) {
-            const card = e.target.closest('[data-post-id]');
-            if (!card) return;
+        handlePostClick(card) {
             const post = App.store.portfolio.find(p => p.id == card.dataset.postId);
             if (post) App.ui.renderPostDetail(post);
         },
@@ -714,6 +771,77 @@ const App = {
              } finally {
                  App.ui.hideLoader();
              }
+        },
+
+        handleReviewAppointment(button) {
+            const appointmentId = button.dataset.reviewAppointmentId;
+            const appointment = App.store.userAppointments.find(a => a.id == appointmentId);
+            if (!appointment) return;
+
+            App.ui.showModal({
+                title: 'Оставить отзыв',
+                content: `
+                    <p class="mb-2">Оцените ваш визит к мастеру <strong>${appointment.specialist.name}</strong></p>
+                    <div class="star-rating mb-4">
+                        <input type="radio" id="5-stars" name="rating" value="5" /><label for="5-stars">★</label>
+                        <input type="radio" id="4-stars" name="rating" value="4" /><label for="4-stars">★</label>
+                        <input type="radio" id="3-stars" name="rating" value="3" /><label for="3-stars">★</label>
+                        <input type="radio" id="2-stars" name="rating" value="2" /><label for="2-stars">★</label>
+                        <input type="radio" id="1-star" name="rating" value="1" /><label for="1-star">★</label>
+                    </div>
+                    <textarea id="review-text" class="form-textarea" rows="3" placeholder="Ваш комментарий (необязательно)"></textarea>
+                `,
+                buttons: [
+                    { text: 'Отмена', role: 'secondary', action: App.ui.hideModal },
+                    { text: 'Отправить', role: 'primary', action: async () => {
+                        const rating = document.querySelector('.star-rating input:checked')?.value;
+                        const text = document.getElementById('review-text').value.trim();
+                        if (!rating) {
+                            App.ui.showToast('Пожалуйста, поставьте оценку.', 'error');
+                            return;
+                        }
+                        
+                        App.ui.hideModal();
+                        App.ui.showLoader();
+                        try {
+                            const { error } = await App.api.postReview({
+                                salon_id: App.store.salonId,
+                                user_telegram_id: App.store.currentUser.id,
+                                specialist_id: appointment.specialist.id,
+                                service_id: appointment.service.id,
+                                appointment_id: appointment.id,
+                                rating: parseInt(rating),
+                                text: text
+                            });
+                            if (error) throw error;
+                            App.ui.showToast('Спасибо за ваш отзыв!', 'success');
+                            await App.client.loadData();
+                            App.ui.renderAppointments();
+                        } catch (err) {
+                            App.ui.showToast('Ошибка: ' + err.message, 'error');
+                        } finally {
+                            App.ui.hideLoader();
+                        }
+                    }}
+                ]
+            });
+        },
+        
+        handleAddToCalendar() {
+            const { service, specialist, date, time } = App.store.bookingState;
+            const startTime = new Date(`${date}T${time}`);
+            const serviceDuration = App.utils.parseDuration(service.duration);
+            const endTime = new Date(startTime.getTime() + serviceDuration * 60000);
+
+            const toICSFormat = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+            const googleLink = new URL('https://www.google.com/calendar/render');
+            googleLink.searchParams.append('action', 'TEMPLATE');
+            googleLink.searchParams.append('text', `Запись на ${service.name}`);
+            googleLink.searchParams.append('dates', `${toICSFormat(startTime)}/${toICSFormat(endTime)}`);
+            googleLink.searchParams.append('details', `Услуга: ${service.name}\nМастер: ${specialist.name}\nСалон: ${App.store.salonConfig.name}`);
+            
+            App.tg.openLink(googleLink.href);
         }
     },
 
@@ -799,8 +927,8 @@ const App = {
             const modalHTML = `
                 <div class="modal-content">
                     <h2 class="text-lg font-bold mb-2">${title}</h2>
-                    <p class="text-slate-600 mb-6">${content}</p>
-                    <div class="flex gap-3 justify-center">
+                    <div class="text-slate-600 mb-6">${content}</div>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         ${buttons.map((btn, index) => {
                             const roleClass = btn.role === 'danger' ? 'btn-danger' : (btn.role === 'secondary' ? 'btn-secondary' : 'btn-primary');
                             return `<button id="modal-btn-${index}" class="btn w-full ${roleClass}">${btn.text}</button>`;
@@ -821,6 +949,13 @@ const App = {
             skeletonCard: `<div class="card p-4 flex justify-between items-center"><div class="flex-grow pr-4"><div class="h-5 skeleton rounded w-3/4 mb-2"></div><div class="h-4 skeleton rounded w-1/2"></div></div><div class="h-10 w-24 skeleton rounded-lg"></div></div>`,
             skeletonPost: `<div class="card"><div class="p-4 flex items-center"><div class="w-8 h-8 rounded-full skeleton mr-3"></div><div class="h-4 skeleton rounded w-1/3"></div></div><div class="w-full h-64 skeleton"></div><div class="p-4 space-y-2"><div class="h-4 skeleton rounded w-full"></div><div class="h-4 skeleton rounded w-3/4"></div></div></div>`,
             emptyState: (message, buttonText, actionScreen) => `<div class="text-center text-slate-500 py-16 px-4 flex flex-col items-center"><div class="mb-4 text-4xl">🤷‍♀️</div><p class="mb-4">${message}</p>${buttonText ? `<button data-screen="${actionScreen}" class="btn btn-primary nav-action-btn">${buttonText}</button>` : ''}</div>`,
+            starRatingDisplay: (rating) => {
+                let stars = '';
+                for(let i = 1; i <= 5; i++) {
+                    stars += `<svg class="w-4 h-4 ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>`;
+                }
+                return `<div class="flex items-center">${stars}</div>`;
+            }
         },
         
         renderAllSkeletons() {
@@ -828,6 +963,24 @@ const App = {
             App.elements['services-list'].innerHTML = App.ui.components.skeletonCard.repeat(4);
             App.elements['specialists-list'].innerHTML = App.ui.components.skeletonCard.repeat(3);
             App.elements['appointments-list'].innerHTML = App.ui.components.skeletonCard.repeat(3);
+        },
+
+        renderSpecialOffers() {
+            const container = App.elements['special-offers-container'];
+            const { allOffers } = App.store;
+            if (allOffers.length === 0) {
+                container.innerHTML = ''; return;
+            }
+            container.innerHTML = `
+                <h2 class="text-xl font-bold mb-2">Акции</h2>
+                <div class="space-y-3">
+                ${allOffers.map(o => `
+                    <div class="card p-4 bg-gradient-to-r from-pink-100 to-rose-100">
+                        <h3 class="font-bold text-rose-800">${o.title}</h3>
+                        <p class="text-sm text-rose-700">${o.description}</p>
+                    </div>
+                `).join('')}
+                </div>`;
         },
 
         renderServices() {
@@ -853,18 +1006,25 @@ const App = {
             if (specialists.length === 0) {
                 list.innerHTML = this.components.emptyState('Мастера пока не добавлены.'); return;
             }
-            list.innerHTML = specialists.map(s => `
+            list.innerHTML = specialists.map(s => {
+                const ratings = s.reviews.map(r => r.rating);
+                const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : 'Нет оценок';
+                return `
                 <div class="card p-4 flex justify-between items-center">
                     <div class="flex items-center">
                         <img src="${s.photo_url}" class="w-12 h-12 rounded-full object-cover mr-4">
                         <div>
                             <h2 class="font-semibold">${s.name}</h2>
-                            <p class="text-sm text-slate-500" style="color: var(--hint-color);">${s.specialty}</p>
+                            <p class="text-sm text-slate-500 mb-1" style="color: var(--hint-color);">${s.specialty}</p>
+                            <div class="flex items-center gap-1 text-xs">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                <span>${avgRating}</span>
+                            </div>
                         </div>
                     </div>
                     <button data-specialist-id="${s.id}" class="btn btn-primary text-sm">Выбрать</button>
                 </div>
-            `).join('');
+            `}).join('');
         },
 
         renderPortfolio() {
@@ -921,19 +1081,35 @@ const App = {
             App.tg.MainButton.setParams({ is_active: false });
 
             const { date, specialist, service } = App.store.bookingState;
-            const { work_start, work_end, lunch_start, lunch_end } = App.store.salonConfig;
+            const { work_start_time, work_end_time, lunch_start_time, lunch_end_time, work_days } = specialist;
             
             const serviceDuration = App.utils.parseDuration(service.duration);
-            const workStartMins = App.utils.timeToMinutes(work_start || '10:00');
-            const workEndMins = App.utils.timeToMinutes(work_end || '19:00');
-            const lunchStartMins = App.utils.timeToMinutes(lunch_start || '13:00');
-            const lunchEndMins = App.utils.timeToMinutes(lunch_end || '14:00');
+            const workStartMins = App.utils.timeToMinutes(work_start_time || '10:00');
+            const workEndMins = App.utils.timeToMinutes(work_end_time || '19:00');
+            const lunchStartMins = App.utils.timeToMinutes(lunch_start_time || '13:00');
+            const lunchEndMins = App.utils.timeToMinutes(lunch_end_time || '14:00');
+            
+            const selectedDay = new Date(date).getDay(); // Sunday - 0, Monday - 1
+            const specialistWorkDays = work_days || [1,2,3,4,5]; // Mon-Fri default
+            
+            if (!specialistWorkDays.includes(selectedDay)) {
+                container.innerHTML = '<div class="col-span-full text-center text-slate-500 py-4">Мастер не работает в этот день.</div>';
+                return;
+            }
 
-            const { data } = await App.api.getAppointmentsForDate(App.store.salonId, specialist.id, date);
-            const busySlots = (data || []).map(d => ({
+            const [appointmentsRes, blockedSlotsRes] = await Promise.all([
+                App.api.getAppointmentsForDate(App.store.salonId, specialist.id, date),
+                App.api.getBlockedSlotsForDate(App.store.salonId, specialist.id, date)
+            ]);
+
+            const busySlots = (appointmentsRes.data || []).map(d => ({
                 start: App.utils.timeToMinutes(d.time),
                 end: App.utils.timeToMinutes(d.time) + App.utils.parseDuration(d.services.duration)
             }));
+            
+            (blockedSlotsRes.data || []).forEach(b => {
+                busySlots.push({ start: App.utils.timeToMinutes(b.start_time), end: App.utils.timeToMinutes(b.end_time) });
+            });
 
             let slots = '';
             for (let t = workStartMins; t <= workEndMins - serviceDuration; t += 15) {
@@ -952,8 +1128,8 @@ const App = {
                 }
                 
                 const now = new Date();
-                const selectedDate = new Date(date + 'T00:00:00');
-                if (selectedDate.toDateString() === now.toDateString() && slotStart <= (now.getHours() * 60 + now.getMinutes())) {
+                const selectedDateObj = new Date(date + 'T00:00:00');
+                if (selectedDateObj.toDateString() === now.toDateString() && slotStart <= (now.getHours() * 60 + now.getMinutes())) {
                     isAvailable = false;
                 }
 
@@ -976,12 +1152,14 @@ const App = {
             const upcoming = userAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now).sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
             const past = userAppointments.filter(a => new Date(a.date + 'T' + a.time) < now).sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
 
-            const renderList = (title, list, showCancel) => {
+            const renderList = (title, list, isUpcoming) => {
                 if(list.length === 0) return '';
                 return `
                     <h2 class="font-bold text-lg mb-3">${title}</h2>
                     <div class="space-y-3 mb-6">
-                    ${list.map(a => `
+                    ${list.map(a => {
+                        const hasReview = a.reviews && a.reviews.length > 0;
+                        return `
                         <div class="card p-4">
                             <div class="flex justify-between items-start">
                                 <div>
@@ -989,9 +1167,10 @@ const App = {
                                     <p class="text-sm text-slate-500" style="color: var(--hint-color);">Мастер: ${a.specialist?.name || 'Удаленный мастер'}</p>
                                     <p class="text-sm font-semibold mt-1">${App.utils.formatDate(a.date)} в ${a.time}</p>
                                 </div>
-                                ${showCancel ? `<button data-appointment-id="${a.id}" class="text-xs text-red-500 font-semibold p-1">Отменить</button>` : ''}
+                                ${isUpcoming ? `<button data-cancel-appointment-id="${a.id}" class="text-xs text-red-500 font-semibold p-1">Отменить</button>` : 
+                                (hasReview ? this.components.starRatingDisplay(a.reviews[0].rating) : `<button data-review-appointment-id="${a.id}" class="btn btn-secondary text-xs py-1 px-2">Оставить отзыв</button>`)}
                             </div>
-                        </div>`).join('')}
+                        </div>`}).join('')}
                     </div>`;
             };
             container.innerHTML = renderList('Предстоящие', upcoming, true) + renderList('Прошедшие', past, false);
@@ -999,6 +1178,7 @@ const App = {
         
         renderProfile() {
             const { currentUser } = App.store;
+            if (!currentUser) return;
             const userInitial = (currentUser.first_name || 'U').charAt(0).toUpperCase();
             App.elements['profile-name'].textContent = currentUser.first_name || 'Пользователь';
             App.elements['profile-avatar'].src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
@@ -1007,7 +1187,7 @@ const App = {
     
     // ==================================================================
     // ==================================================================
-    //                          ADMIN APP LOGIC
+    //                         ADMIN APP LOGIC
     // ==================================================================
     // ==================================================================
     
@@ -1084,6 +1264,8 @@ const App = {
                 if(form.id === 'admin-service-form') App.admin.actions.saveService(form);
                 if(form.id === 'admin-specialist-form') App.admin.actions.saveSpecialist(form);
                 if(form.id === 'admin-post-form') App.admin.actions.savePortfolioPost(form);
+                if(form.id === 'admin-offer-form') App.admin.actions.saveOffer(form);
+                if(form.id === 'admin-schedule-block-form') App.admin.actions.saveBlockedSlot(form);
             });
             App.elements['admin-panels-container'].addEventListener('click', e => {
                 const btn = e.target.closest('button');
@@ -1111,11 +1293,15 @@ const App = {
             panel.style.display = 'block';
             
             switch(App.store.currentAdminPanel) {
+                case 'dashboard': this.render.dashboard(panel); break;
                 case 'appointments': this.render.appointments(panel); break;
+                case 'schedule': this.render.schedule(panel); break;
                 case 'services': this.render.services(panel); break;
                 case 'specialists': this.render.specialists(panel); break;
+                case 'clients': this.render.clients(panel); break;
                 case 'portfolio': this.render.portfolio(panel); break;
-                case 'comments': this.render.comments(panel); break;
+                case 'reviews': this.render.reviews(panel); break;
+                case 'offers': this.render.offers(panel); break;
                 case 'theme': this.render.theme(panel); break;
                 case 'settings': this.render.settings(panel); break;
             }
@@ -1123,12 +1309,14 @@ const App = {
 
         async loadData() {
             try {
-                const [salonRes, appointmentsRes, commentsRes] = await App.api.getAdminData(App.store.salonId);
+                const [salonRes, appointmentsRes, reviewsRes, clientsRes, blockedSlotsRes] = await App.api.getAdminData(App.store.salonId);
                 
                 if (salonRes.error) throw salonRes.error;
                 App.store.salonConfig = salonRes.data;
                 App.store.allAppointments = appointmentsRes.data || [];
-                App.store.allComments = commentsRes.data || [];
+                App.store.allReviews = reviewsRes.data || [];
+                App.store.allClients = clientsRes.data || [];
+                App.store.blockedSlots = blockedSlotsRes.data || [];
 
                 App.elements['admin-salon-name'].textContent = App.store.salonConfig.name;
             } catch (error) {
@@ -1138,6 +1326,39 @@ const App = {
         
         // Admin render methods
         render: {
+            dashboard(container) {
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                const appointmentsToday = App.store.allAppointments.filter(a => a.date === todayStr).length;
+                const totalRevenue = App.store.allAppointments
+                    .filter(a => new Date(a.date) < now)
+                    .reduce((sum, a) => sum + (a.services?.price || 0), 0);
+                const totalClients = App.store.allClients.length;
+                const avgRating = App.store.allReviews.length > 0 
+                    ? (App.store.allReviews.reduce((sum, r) => sum + r.rating, 0) / App.store.allReviews.length).toFixed(1)
+                    : 'N/A';
+
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="card p-4 text-center">
+                            <h3 class="text-2xl font-bold">${appointmentsToday}</h3>
+                            <p class="text-sm text-slate-500">Записей сегодня</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <h3 class="text-2xl font-bold">${totalRevenue} ₽</h3>
+                            <p class="text-sm text-slate-500">Выручка (всего)</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <h3 class="text-2xl font-bold">${totalClients}</h3>
+                            <p class="text-sm text-slate-500">Всего клиентов</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <h3 class="text-2xl font-bold">${avgRating} ★</h3>
+                            <p class="text-sm text-slate-500">Средний рейтинг</p>
+                        </div>
+                    </div>
+                `;
+            },
             appointments(container) {
                 const now = new Date();
                 const upcoming = App.store.allAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now);
@@ -1164,6 +1385,47 @@ const App = {
                     </div>`).join('');
             },
             
+            schedule(container) {
+                const specialists = App.store.salonConfig.specialists || [];
+                container.innerHTML = `
+                    <div class="card p-4 sm:p-6 mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Заблокированные слоты</h2>
+                        <div class="space-y-2">
+                            ${App.store.blockedSlots.map(b => `
+                                <div id="item-blocked_slots-${b.id}" class="flex justify-between items-center p-2 border rounded-md">
+                                    <span>${b.specialists.name}: ${App.utils.formatDate(b.date)} c ${b.start_time} по ${b.end_time}</span>
+                                    <button data-action="delete" data-table="blocked_slots" data-id="${b.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                                </div>
+                            `).join('') || '<p class="text-sm text-slate-500">Нет заблокированных слотов.</p>'}
+                        </div>
+                    </div>
+                    <form id="admin-schedule-block-form" class="card p-4 sm:p-6">
+                        <h3 class="font-semibold mb-2 text-lg">Заблокировать время</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Мастер</label>
+                                <select name="specialist_id" class="form-select" required>
+                                    ${specialists.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Дата</label>
+                                <input name="date" type="date" class="form-input" required min="${App.utils.getTodayDateString()}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Начало</label>
+                                <input name="start_time" type="time" class="form-input" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Конец</label>
+                                <input name="end_time" type="time" class="form-input" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4">Заблокировать</button>
+                    </form>
+                `;
+            },
+            
             services(container) {
                 const services = App.store.salonConfig.services || [];
                 const isEditing = !!App.store.editingItemId;
@@ -1187,9 +1449,9 @@ const App = {
                         <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать услугу' : 'Добавить услугу'}</h3>
                         <input type="hidden" name="id" value="${item.id || ''}">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input name="name" placeholder="Название" class="form-input" required value="${item.name || ''}">
+                            <input name="name" placeholder="Название" class="form-input" required value="${App.utils.escapeHTML(item.name || '')}">
                             <input name="price" placeholder="Цена (число)" type="number" class="form-input" required value="${item.price || ''}">
-                            <input name="duration" placeholder="Длительность (напр. 1 час 30 мин)" class="form-input" required value="${item.duration || ''}">
+                            <input name="duration" placeholder="Длительность (напр. 1 час 30 мин)" class="form-input" required value="${App.utils.escapeHTML(item.duration || '')}">
                         </div>
                         <div class="flex items-center gap-4 mt-4">
                             <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
@@ -1201,7 +1463,8 @@ const App = {
             specialists(container){
                 const specialists = App.store.salonConfig.specialists || [];
                 const isEditing = !!App.store.editingItemId;
-                const item = isEditing ? specialists.find(s => s.id === App.store.editingItemId) : {};
+                const item = isEditing ? specialists.find(s => s.id === App.store.editingItemId) : { work_days: [1,2,3,4,5] };
+                const days = [{val:1, name:'Пн'}, {val:2, name:'Вт'}, {val:3, name:'Ср'}, {val:4, name:'Чт'}, {val:5, name:'Пт'}, {val:6, name:'Сб'}, {val:0, name:'Вс'}];
 
                 container.innerHTML = `
                     <div class="card p-4 sm:p-6 mb-6">
@@ -1221,18 +1484,50 @@ const App = {
                         </div>
                     </div>
                     <form id="admin-specialist-form" class="card p-4 sm:p-6">
-                        <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать мастера' : 'Добавить мастера'}</h3>
+                        <h3 class="font-semibold mb-4 text-lg">${isEditing ? 'Редактировать мастера' : 'Добавить мастера'}</h3>
                         <input type="hidden" name="id" value="${item.id || ''}">
-                        <div class="space-y-4">
-                            <input name="name" placeholder="Имя" class="form-input" required value="${item.name || ''}">
-                            <input name="specialty" placeholder="Специальность" class="form-input" required value="${item.specialty || ''}">
-                            <input name="photo_url" placeholder="URL фото" type="url" class="form-input" required value="${item.photo_url || ''}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input name="name" placeholder="Имя" class="form-input" required value="${App.utils.escapeHTML(item.name || '')}">
+                            <input name="specialty" placeholder="Специальность" class="form-input" required value="${App.utils.escapeHTML(item.specialty || '')}">
+                            <input name="photo_url" placeholder="URL фото" type="url" class="form-input col-span-full" required value="${item.photo_url || ''}">
+                            <div><label class="block text-sm font-medium mb-1">Начало работы</label><input type="time" name="work_start_time" class="form-input" value="${item.work_start_time || '10:00'}"></div>
+                            <div><label class="block text-sm font-medium mb-1">Конец работы</label><input type="time" name="work_end_time" class="form-input" value="${item.work_end_time || '19:00'}"></div>
+                            <div><label class="block text-sm font-medium mb-1">Начало обеда</label><input type="time" name="lunch_start_time" class="form-input" value="${item.lunch_start_time || '13:00'}"></div>
+                            <div><label class="block text-sm font-medium mb-1">Конец обеда</label><input type="time" name="lunch_end_time" class="form-input" value="${item.lunch_end_time || '14:00'}"></div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium mb-2">Рабочие дни</label>
+                            <div class="flex flex-wrap gap-2">
+                                ${days.map(d => `
+                                    <label class="flex items-center gap-2 p-2 border rounded-md cursor-pointer">
+                                        <input type="checkbox" name="work_days" value="${d.val}" class="form-checkbox rounded" ${item.work_days.includes(d.val) ? 'checked' : ''}>
+                                        ${d.name}
+                                    </label>
+                                `).join('')}
+                            </div>
                         </div>
                         <div class="flex items-center gap-4 mt-4">
                             <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
                             ${isEditing ? '<button type="button" data-action="cancel-edit" class="btn btn-secondary">Отмена</button>' : ''}
                         </div>
                     </form>`;
+            },
+
+            clients(container) {
+                const clients = App.store.allClients || [];
+                container.innerHTML = `
+                    <div class="card p-4 sm:p-6">
+                        <h2 class="text-xl font-semibold mb-4">Клиенты</h2>
+                        <div class="space-y-2">
+                        ${clients.map(c => `
+                            <div class="p-3 border rounded-md bg-slate-50">
+                                <p class="font-semibold">${c.first_name} ${c.last_name || ''}</p>
+                                <p class="text-sm text-slate-600">@${c.username || 'N/A'}</p>
+                            </div>
+                        `).join('') || App.ui.components.emptyState('Нет клиентов.')}
+                        </div>
+                    </div>
+                `;
             },
             
             portfolio(container){
@@ -1259,9 +1554,9 @@ const App = {
                         <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать пост' : 'Добавить пост'}</h3>
                         <input type="hidden" name="id" value="${item.id || ''}">
                         <div class="space-y-4">
-                            <input name="title" placeholder="Заголовок" class="form-input" required value="${item.title || ''}">
+                            <input name="title" placeholder="Заголовок" class="form-input" required value="${App.utils.escapeHTML(item.title || '')}">
                             <input name="img_url" placeholder="URL изображения" type="url" class="form-input" required value="${item.img_url || ''}">
-                            <textarea name="description" placeholder="Описание (необязательно)" class="form-input h-24">${item.description || ''}</textarea>
+                            <textarea name="description" placeholder="Описание (необязательно)" class="form-textarea h-24">${App.utils.escapeHTML(item.description || '')}</textarea>
                         </div>
                         <div class="flex items-center gap-4 mt-4">
                             <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
@@ -1270,28 +1565,64 @@ const App = {
                     </form>`;
             },
             
-            comments(container) {
-                const comments = App.store.allComments || [];
+            reviews(container) {
+                const reviews = App.store.allReviews || [];
                 container.innerHTML = `
                     <div class="card p-4 sm:p-6">
-                        <h2 class="text-xl font-semibold mb-4">Комментарии</h2>
+                        <h2 class="text-xl font-semibold mb-4">Отзывы</h2>
                         <div class="space-y-3">
-                        ${comments.map(c => `
-                            <div id="item-comments-${c.id}" class="p-3 border rounded-md bg-slate-50 flex justify-between items-start">
+                        ${reviews.map(r => `
+                            <div id="item-reviews-${r.id}" class="p-3 border rounded-md bg-slate-50 flex justify-between items-start">
                                 <div>
-                                    <p class="text-xs text-slate-500">
-                                        <strong>${c.users?.first_name || 'N/A'}</strong> к посту
-                                        <em class="font-medium">"${c.portfolio_posts?.title || 'удален'}"</em>
-                                    </p>
-                                    <p>"${c.text}"</p>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        ${App.ui.components.starRatingDisplay(r.rating)}
+                                        <span class="font-semibold">${r.users?.first_name || 'N/A'}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Мастер: ${r.specialists?.name || 'N/A'}</p>
+                                    <p class="mt-2 italic">"${r.text || 'Без комментария'}"</p>
                                 </div>
-                                <button data-action="delete" data-table="comments" data-id="${c.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2 flex-shrink-0">&times;</button>
+                                <button data-action="delete" data-table="reviews" data-id="${r.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2 flex-shrink-0">&times;</button>
                             </div>
-                        `).join('') || App.ui.components.emptyState('Нет комментариев.')}
+                        `).join('') || App.ui.components.emptyState('Нет отзывов.')}
                         </div>
                     </div>`;
             },
 
+            offers(container) {
+                const offers = App.store.salonConfig.special_offers || [];
+                const isEditing = !!App.store.editingItemId;
+                const item = isEditing ? offers.find(o => o.id === App.store.editingItemId) : {};
+
+                container.innerHTML = `
+                    <div class="card p-4 sm:p-6 mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Акции</h2>
+                        <div class="space-y-2">
+                        ${offers.map(o => `
+                            <div id="item-special_offers-${o.id}" class="flex justify-between items-center p-2 border rounded-md">
+                                <span>${o.title} (до ${App.utils.formatDate(o.active_until)})</span>
+                                <div class="flex items-center gap-2">
+                                    <button data-action="edit" data-table="special_offers" data-id="${o.id}" class="text-slate-500 hover:text-slate-800 text-lg px-2">✏️</button>
+                                    <button data-action="delete" data-table="special_offers" data-id="${o.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                                </div>
+                            </div>`).join('') || App.ui.components.emptyState('Нет акций.')}
+                        </div>
+                    </div>
+                    <form id="admin-offer-form" class="card p-4 sm:p-6">
+                        <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать акцию' : 'Добавить акцию'}</h3>
+                        <input type="hidden" name="id" value="${item.id || ''}">
+                        <div class="space-y-4">
+                            <input name="title" placeholder="Заголовок акции" class="form-input" required value="${App.utils.escapeHTML(item.title || '')}">
+                            <textarea name="description" placeholder="Описание акции" class="form-textarea h-20" required>${App.utils.escapeHTML(item.description || '')}</textarea>
+                            <input name="active_until" type="date" class="form-input" required value="${(item.active_until || '').split('T')[0]}" min="${App.utils.getTodayDateString()}">
+                        </div>
+                        <div class="flex items-center gap-4 mt-4">
+                            <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
+                            ${isEditing ? '<button type="button" data-action="cancel-edit" class="btn btn-secondary">Отмена</button>' : ''}
+                        </div>
+                    </form>
+                `;
+            },
+            
             theme(container) {
                 const theme = App.store.salonConfig.themes[0] || {};
                 container.innerHTML = `
@@ -1311,12 +1642,13 @@ const App = {
                 const config = App.store.salonConfig;
                 container.innerHTML = `
                      <div class="card p-4 sm:p-6">
-                         <h2 class="text-xl font-semibold mb-4">Настройки рабочего времени</h2>
+                         <h2 class="text-xl font-semibold mb-4">Общие настройки салона</h2>
+                         <p class="text-sm text-slate-500 mb-4">Эти настройки будут использоваться по умолчанию для новых мастеров.</p>
                          <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium mb-1">Начало дня</label><input type="time" id="settings-work-start" value="${config.work_start || '10:00'}" class="form-input"></div>
-                            <div><label class="block text-sm font-medium mb-1">Конец дня</label><input type="time" id="settings-work-end" value="${config.work_end || '19:00'}" class="form-input"></div>
-                            <div><label class="block text-sm font-medium mb-1">Начало обеда</label><input type="time" id="settings-lunch-start" value="${config.lunch_start || '13:00'}" class="form-input"></div>
-                            <div><label class="block text-sm font-medium mb-1">Конец обеда</label><input type="time" id="settings-lunch-end" value="${config.lunch_end || '14:00'}" class="form-input"></div>
+                             <div><label class="block text-sm font-medium mb-1">Начало дня</label><input type="time" id="settings-work-start" value="${config.work_start || '10:00'}" class="form-input"></div>
+                             <div><label class="block text-sm font-medium mb-1">Конец дня</label><input type="time" id="settings-work-end" value="${config.work_end || '19:00'}" class="form-input"></div>
+                             <div><label class="block text-sm font-medium mb-1">Начало обеда</label><input type="time" id="settings-lunch-start" value="${config.lunch_start || '13:00'}" class="form-input"></div>
+                             <div><label class="block text-sm font-medium mb-1">Конец обеда</label><input type="time" id="settings-lunch-end" value="${config.lunch_end || '14:00'}" class="form-input"></div>
                          </div>
                          <button data-action="save-settings" class="btn btn-primary mt-4">Сохранить настройки</button>
                      </div>`;
@@ -1337,6 +1669,12 @@ const App = {
                 if(item.id === '') delete item.id; // Supabase needs id removed for inserts
                 item.salon_id = App.store.salonId;
                 
+                // Handle checkboxes for specialist work days
+                if (table === 'specialists') {
+                    const workDays = Array.from(formData.querySelectorAll('input[name="work_days"]:checked')).map(cb => parseInt(cb.value));
+                    item.work_days = workDays;
+                }
+                
                 const { error } = await App.api.upsertItem(table, item);
                 if (error) App.ui.showToast('Ошибка: ' + error.message, 'error');
                 else {
@@ -1349,6 +1687,8 @@ const App = {
             saveService: (form) => App.admin.actions._saveItem('services', form),
             saveSpecialist: (form) => App.admin.actions._saveItem('specialists', form),
             savePortfolioPost: (form) => App.admin.actions._saveItem('portfolio_posts', form),
+            saveOffer: (form) => App.admin.actions._saveItem('special_offers', form),
+            saveBlockedSlot: (form) => App.admin.actions._saveItem('blocked_slots', form),
 
             deleteItem(tableName, itemId) {
                 App.ui.showModal({
@@ -1367,8 +1707,7 @@ const App = {
                                 if (itemEl) itemEl.style.opacity = '1';
                             } else {
                                 App.ui.showToast('Удалено успешно!', 'success');
-                                if (itemEl) itemEl.remove();
-                                await App.admin.loadData(); // Just reload data, no full render
+                                await App.admin.actions._refreshAndRender();
                             }
                         }}
                     ]
