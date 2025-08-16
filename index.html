@@ -32,6 +32,13 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .admin-input { @apply w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500; }
         .admin-card { @apply bg-white p-6 rounded-lg shadow-md mb-6; }
+        .time-slot { cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .time-slot.selected { background-color: var(--button-color); color: var(--button-text-color); border-color: var(--button-color); }
+        .time-slot:not(.disabled):hover { background-color: #fde6ea; border-color: #fde6ea; }
+        .time-slot.disabled { background-color: #f1f5f9; color: var(--hint-color); cursor: not-allowed; }
+        .nav-item { color: var(--hint-color); transition: all 0.2s; }
+        .nav-item.active { color: var(--button-color); background-color: #fde6ea; }
+        .nav-item.active svg { color: var(--button-color); }
     </style>
 </head>
 <body class="antialiased text-sm">
@@ -84,14 +91,79 @@
 
         <!-- Обертка для клиентского приложения -->
         <div id="app-wrapper" style="display: none;">
-            <!-- Здесь все экраны клиентского приложения (home, services, profile и т.д.) -->
-            <!-- ... -->
+            <div id="app" class="main-container min-h-screen">
+                <!-- Главный экран -->
+                <div id="home-screen" class="screen">
+                    <header class="flex items-center p-4 pt-6 bg-white shadow-sm" style="background-color: var(--header-bg-color);">
+                        <div id="salon-logo-container" class="w-10 h-10 rounded-full"></div>
+                        <h1 id="salon-name-header" class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);"></h1>
+                    </header>
+                    <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
+                </div>
+                <!-- Экран услуг -->
+                <div id="services-screen" class="screen p-4">
+                    <header class="mb-5"><h1 class="text-xl font-bold">Выберите услугу</h1></header>
+                    <div id="services-list" class="space-y-3"></div>
+                </div>
+                <!-- Экран выбора мастера -->
+                <div id="specialist-selection-screen" class="screen p-4">
+                    <header class="mb-5"><h1 class="text-xl font-bold">Выберите мастера</h1></header>
+                    <div id="specialist-selection-list" class="space-y-3"></div>
+                </div>
+                <!-- Экран записи -->
+                <div id="booking-screen" class="screen p-4">
+                    <header class="mb-5"><h1 class="text-xl font-bold">Выберите дату и время</h1></header>
+                    <div class="card p-4">
+                        <h2 class="font-semibold mb-1 text-base" id="selected-service-title"></h2>
+                        <p class="text-sm text-slate-500 mb-3" id="selected-specialist-subtitle" style="color: var(--hint-color);"></p>
+                        <input type="date" id="date-picker" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="card p-4">
+                        <h2 class="font-semibold mb-4">Доступное время:</h2>
+                        <div id="time-slots-container" class="grid grid-cols-3 gap-3 text-center text-xs"></div>
+                    </div>
+                </div>
+                <!-- Экран "Мои записи" -->
+                <div id="my-appointments-screen" class="screen p-4">
+                    <header class="mb-5"><h1 class="text-xl font-bold">Мои записи</h1></header>
+                    <div id="appointments-list"></div>
+                </div>
+                <!-- Экран профиля -->
+                <div id="profile-screen" class="screen p-4">
+                    <header class="mb-5"><h1 class="text-xl font-bold">Профиль</h1></header>
+                    <div class="card p-4 flex items-center">
+                        <img id="profile-avatar" src="" alt="Avatar" class="w-16 h-16 rounded-full mr-4">
+                        <div>
+                            <h2 id="profile-name" class="font-bold text-lg"></h2>
+                            <p class="text-slate-500" style="color: var(--hint-color);">Данные из Telegram</p>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Экран успеха -->
+                <div id="success-screen" class="screen text-center p-8 flex flex-col justify-center items-center min-h-[80vh]">
+                    <div>
+                        <div class="mb-5">
+                            <svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
+                        <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
+                        <button onclick="showScreen('my-appointments-screen')" class="btn-primary">Посмотреть мои записи</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Навигационная панель -->
+            <nav id="navbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around p-2 z-10" style="background-color: var(--secondary-bg-color);">
+                <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg"><svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg><span>Главная</span></button>
+                <button id="nav-services" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg"><svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5M6.75 21v-5.625a3.375 3.375 0 013.375-3.375h3.75a3.375 3.375 0 013.375 3.375V21" /></svg><span>Запись</span></button>
+                <button id="nav-appointments" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg"><svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span>Мои записи</span></button>
+                <button id="nav-profile" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg"><svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span>Профиль</span></button>
+            </nav>
         </div>
     </div>
 
     <!-- ========= АДМИН-ПАНЕЛЬ ========= -->
     <div id="admin-mode-wrapper" style="display: none;" class="p-4 md:p-8">
-        <!-- Экран входа по паролю -->
+        <!-- Экран входа -->
         <div id="login-screen" class="max-w-md mx-auto">
             <div class="admin-card">
                 <h1 class="text-2xl font-bold mb-4">Вход в панель управления</h1>
@@ -101,13 +173,11 @@
                 <p id="login-error" class="text-red-500 mt-2 text-sm text-center"></p>
             </div>
         </div>
-
-        <!-- Основная админ-панель (скрыта по умолчанию) -->
+        <!-- Основная панель -->
         <div id="admin-panel" style="display: none;">
-            <h1 class="text-3xl font-bold mb-6">Панель управления салоном "<span id="admin-salon-name"></span>"</h1>
-            <!-- Настройки внешнего вида -->
+            <h1 class="text-3xl font-bold mb-6">Панель "<span id="admin-salon-name"></span>"</h1>
             <div class="admin-card">
-                <h2 class="text-xl font-semibold mb-4">Настройки внешнего вида</h2>
+                <h2 class="text-xl font-semibold mb-4">Внешний вид</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div><label class="block text-sm font-medium">Кнопки</label><input type="color" id="theme-button-color" class="w-full h-10"></div>
                     <div><label class="block text-sm font-medium">Текст на кнопках</label><input type="color" id="theme-button-text-color" class="w-full h-10"></div>
@@ -116,7 +186,6 @@
                 </div>
                 <button id="save-theme-btn" class="admin-btn mt-4 bg-indigo-600 hover:bg-indigo-700">Сохранить тему</button>
             </div>
-            <!-- Управление услугами -->
             <div class="admin-card">
                 <h2 class="text-xl font-semibold mb-4">Услуги</h2>
                 <div id="admin-services-list" class="space-y-2 mb-4"></div>
@@ -128,8 +197,6 @@
                 </div>
                 <button id="add-service-btn" class="admin-btn mt-4 bg-indigo-600 hover:bg-indigo-700">Добавить</button>
             </div>
-            <!-- Управление мастерами -->
-            <!-- ... -->
         </div>
     </div>
 
@@ -143,9 +210,8 @@
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         let salonId = null;
-        let salonConfig = {};
-        let currentUser = {};
-        let services = [], specialists = [], portfolio = { posts: [] };
+        let salonConfig = {}, currentUser = {}, services = [], specialists = [], portfolio = { posts: [] }, userAppointments = [], screenHistory = ['home-screen'], bookingState = {};
+        const availableTimeSlots = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
         const loader = document.getElementById('loader');
         const showLoader = () => loader.style.display = 'flex';
@@ -206,7 +272,7 @@
         // ==================================================================
         
         async function initializeClientApp() {
-            applyTheme({}); // Сброс на дефолтную тему
+            applyTheme({});
             displayUserData();
             
             if (salonId) {
@@ -226,27 +292,12 @@
             const name = document.getElementById('salon-name-input').value.trim();
             const logo = document.getElementById('logo-url-input').value.trim();
             const password = document.getElementById('salon-admin-password').value.trim();
-
-            if (!name || !logo || !password) {
-                alert('Пожалуйста, заполните все поля.');
-                return;
-            }
+            if (!name || !logo || !password) { alert('Пожалуйста, заполните все поля.'); return; }
             
             showLoader();
-            // 1. Создаем салон
-            const { data: salonData, error: salonError } = await supabaseClient
-                .from('salons')
-                .insert([{ name, logo_url: logo, admin_password: password }])
-                .select()
-                .single();
+            const { data: salonData, error: salonError } = await supabaseClient.from('salons').insert([{ name, logo_url: logo, admin_password: password }]).select().single();
+            if (salonError) { hideLoader(); alert('Ошибка создания салона: ' + salonError.message); return; }
 
-            if (salonError) {
-                hideLoader();
-                alert('Ошибка создания салона: ' + salonError.message);
-                return;
-            }
-
-            // 2. Создаем для него тему по умолчанию
             await supabaseClient.from('themes').insert([{ salon_id: salonData.id }]);
             hideLoader();
 
@@ -279,14 +330,21 @@
         }
 
         async function runMainClientApp() {
-            // Здесь должна быть вся логика клиентского приложения
-            // Для краткости, я оставлю только каркас.
-            // Вставьте сюда HTML-код экранов из предыдущей версии внутрь #app-wrapper
-            // и JS-функции для их работы (fetchData, renderAll, и т.д.)
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('app-wrapper').style.display = 'block';
-            // ... остальная логика клиента
-            alert(`Клиентское приложение для "${salonConfig.name}" запущено!`);
+            
+            tg.ready();
+            tg.expand();
+            
+            await upsertUser();
+            
+            setupClientEventListeners();
+            
+            await fetchClientData();
+            renderAllClient();
+            
+            showScreen('home-screen');
+            document.getElementById('nav-home').classList.add('active');
         }
 
         function displayUserData() {
@@ -295,7 +353,155 @@
             } else {
                 currentUser = { id: 123456789, first_name: 'Тест' };
             }
+            const userInitial = (currentUser.first_name || 'U').charAt(0);
+            document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
+            document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
         }
+        
+        async function upsertUser() {
+            if (!currentUser || !currentUser.id) return;
+            await supabaseClient.from('users').upsert({ telegram_id: currentUser.id, first_name: currentUser.first_name }, { onConflict: 'telegram_id' });
+        }
+
+        function setupClientEventListeners() {
+            document.getElementById('nav-home').onclick = () => showScreen('home-screen');
+            document.getElementById('nav-services').onclick = () => showScreen('services-screen');
+            document.getElementById('nav-appointments').onclick = () => showScreen('my-appointments-screen');
+            document.getElementById('nav-profile').onclick = () => showScreen('profile-screen');
+            tg.MainButton.setText('Подтвердить запись');
+            tg.MainButton.onClick(confirmBooking);
+            tg.BackButton.onClick(goBack);
+            setupDatePicker();
+        }
+
+        async function fetchClientData() {
+            const [servicesRes, specialistsRes, postsRes, appointmentsRes] = await Promise.all([
+                supabaseClient.from('services').select('*').eq('salon_id', salonId),
+                supabaseClient.from('specialists').select('*').eq('salon_id', salonId),
+                supabaseClient.from('portfolio_posts').select('*').eq('salon_id', salonId),
+                supabaseClient.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonId)
+            ]);
+            services = servicesRes.data || [];
+            specialists = specialistsRes.data || [];
+            portfolio.posts = postsRes.data || [];
+            userAppointments = (appointmentsRes.data || []).map(a => ({ ...a, service: a.services, specialist: a.specialists }));
+        }
+
+        function renderAllClient() {
+            document.getElementById('salon-name-header').textContent = salonConfig.name;
+            document.getElementById('salon-logo-container').innerHTML = `<img src="${salonConfig.logo}" alt="Logo" class="w-10 h-10 rounded-full object-cover">`;
+            renderServices();
+            renderAppointments();
+            renderPortfolio();
+        }
+
+        function showScreen(screenId, isBack = false) {
+            if (!isBack) screenHistory.push(screenId);
+            document.querySelectorAll('#app-wrapper .screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const isBaseScreen = ['home-screen', 'services-screen', 'my-appointments-screen', 'profile-screen'].includes(screenId);
+            tg.BackButton.setVisible(!isBaseScreen);
+            tg.MainButton.setVisible(screenId === 'booking-screen');
+            if (screenId === 'booking-screen') updateConfirmButtonState();
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const navMap = {'home-screen': 'nav-home', 'services-screen': 'nav-services', 'my-appointments-screen': 'nav-appointments', 'profile-screen': 'nav-profile'};
+            if(navMap[screenId]) document.getElementById(navMap[screenId]).classList.add('active');
+        }
+
+        function goBack() {
+            if (screenHistory.length > 1) {
+                screenHistory.pop();
+                showScreen(screenHistory[screenHistory.length - 1], true);
+            }
+        }
+
+        function renderServices() {
+            document.getElementById('services-list').innerHTML = services.map(s => `<div class="card p-4 flex justify-between items-center"><div><h2 class="font-semibold">${s.name}</h2><p class="text-sm text-slate-500">${s.duration} / ${s.price} ₽</p></div><button onclick='selectService(${JSON.stringify(s)})' class="btn-primary text-sm">Выбрать</button></div>`).join('');
+        }
+
+        function selectService(service) {
+            bookingState.service = service;
+            // Здесь должна быть логика выбора мастера, если она нужна
+            // Для простоты пока пропустим
+            bookingState.specialist = specialists.length > 0 ? specialists[0] : {id: null, name: 'Любой мастер'}; // Заглушка
+            document.getElementById('selected-service-title').textContent = service.name;
+            document.getElementById('selected-specialist-subtitle').textContent = `Мастер: ${bookingState.specialist.name}`;
+            showScreen('booking-screen');
+        }
+        
+        function setupDatePicker() {
+            const datePicker = document.getElementById('date-picker');
+            const today = new Date().toISOString().split('T')[0];
+            datePicker.min = today;
+            datePicker.value = today;
+            datePicker.addEventListener('change', e => {
+                bookingState.date = e.target.value;
+                bookingState.time = null;
+                renderTimeSlots();
+            });
+            bookingState.date = today;
+            renderTimeSlots();
+        }
+
+        async function renderTimeSlots() {
+            const container = document.getElementById('time-slots-container');
+            container.innerHTML = ''; // Очистка
+            // Здесь должна быть логика проверки занятых слотов
+            availableTimeSlots.forEach(time => {
+                const slot = document.createElement('div');
+                slot.textContent = time;
+                slot.className = 'time-slot p-2 rounded-lg';
+                slot.onclick = () => selectTime(time);
+                container.appendChild(slot);
+            });
+        }
+        
+        function selectTime(time) {
+            document.querySelectorAll('#time-slots-container .time-slot').forEach(s => s.classList.remove('selected'));
+            event.target.classList.add('selected');
+            bookingState.time = time;
+            updateConfirmButtonState();
+        }
+
+        function updateConfirmButtonState() {
+            const canConfirm = bookingState.service && bookingState.date && bookingState.time;
+            tg.MainButton.setParams({ is_active: !!canConfirm });
+        }
+
+        async function confirmBooking() {
+            if (!tg.MainButton.isActive) return;
+            showLoader();
+            const { error } = await supabaseClient.from('appointments').insert([{
+                salon_id: salonId,
+                user_telegram_id: currentUser.id,
+                service_id: bookingState.service.id,
+                specialist_id: bookingState.specialist.id, // Используем ID мастера
+                date: bookingState.date,
+                time: bookingState.time
+            }]);
+            hideLoader();
+            if (error) {
+                alert('Ошибка записи: ' + error.message);
+            } else {
+                document.getElementById('success-details').textContent = `Ждем вас ${bookingState.date} в ${bookingState.time} на услугу "${bookingState.service.name}".`;
+                showScreen('success-screen');
+                fetchClientData().then(renderAppointments); // Обновляем список записей
+            }
+        }
+        
+        function renderAppointments() {
+            const container = document.getElementById('appointments-list');
+            if(userAppointments.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-500 mt-10"><p>У вас пока нет записей.</p></div>`;
+                return;
+            }
+            container.innerHTML = userAppointments.map(a => `<div class="card p-4">...</div>`).join(''); // Упрощенный рендер
+        }
+
+        function renderPortfolio() { /* ... */ }
+
 
         // ==================================================================
         // ЧАСТЬ 2: АДМИН-ПАНЕЛЬ
@@ -303,7 +509,7 @@
 
         async function initializeAdminPanel() {
             if (!salonId) {
-                document.body.innerHTML = '<h1 class="text-center text-2xl font-bold mt-10">Ошибка: ID салона не найден в ссылке для входа в админ-панель.</h1>';
+                document.body.innerHTML = '<h1 class="text-center text-2xl font-bold mt-10">Ошибка: ID салона не найден в ссылке.</h1>';
                 return;
             }
             document.getElementById('login-btn').onclick = handleLogin;
@@ -314,42 +520,30 @@
             const passwordInput = document.getElementById('password-input').value;
             const loginError = document.getElementById('login-error');
             loginError.textContent = '';
-
             const { data, error } = await supabaseClient.from('salons').select('admin_password').eq('id', salonId).single();
-
+            hideLoader();
             if (error || !data) {
                 loginError.textContent = 'Не удалось проверить пароль. Салон не найден.';
-                hideLoader();
                 return;
             }
-
-            if (data.admin_password === passwordInput) {
-                await showAdminPanel();
-            } else {
-                loginError.textContent = 'Неверный пароль.';
-            }
-            hideLoader();
+            if (data.admin_password === passwordInput) await showAdminPanel();
+            else loginError.textContent = 'Неверный пароль.';
         }
 
         async function showAdminPanel() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
-            
             showLoader();
             await loadAdminData();
             renderAdminPanel();
             hideLoader();
-
             document.getElementById('save-theme-btn').onclick = saveTheme;
             document.getElementById('add-service-btn').onclick = addService;
         }
 
         async function loadAdminData() {
             const { data, error } = await supabaseClient.from('salons').select(`*, themes(*), services(*)`).eq('id', salonId).single();
-            if (error) {
-                alert('Не удалось загрузить данные админ-панели.');
-                return;
-            }
+            if (error) { alert('Не удалось загрузить данные админ-панели.'); return; }
             salonConfig = data;
         }
 
@@ -369,8 +563,7 @@
                 <div class="flex justify-between items-center p-2 border rounded-md">
                     <span>${service.name} - ${service.price} ₽</span>
                     <button onclick="deleteService(${service.id})" class="text-red-500 hover:text-red-700 font-bold">X</button>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
         async function saveTheme() {
@@ -392,10 +585,7 @@
             const name = document.getElementById('new-service-name').value;
             const price = document.getElementById('new-service-price').value;
             const duration = document.getElementById('new-service-duration').value;
-            if (!name || !price || !duration) {
-                alert('Заполните все поля для новой услуги.');
-                return;
-            }
+            if (!name || !price || !duration) { alert('Заполните все поля для новой услуги.'); return; }
             showLoader();
             const { data, error } = await supabaseClient.from('services').insert([{ salon_id: salonId, name, price, duration, specialist_ids: [] }]).select().single();
             if (error) {
