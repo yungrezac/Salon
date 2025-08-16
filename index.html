@@ -207,9 +207,7 @@
         const showLoader = () => loader.style.display = 'flex';
         const hideLoader = () => loader.style.display = 'none';
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeApp();
-        });
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
         async function initializeApp() {
             showLoader();
@@ -217,39 +215,34 @@
                 applyTheme();
                 displayUserData();
 
+                // Даем веб-приложению мгновение на обработку URL
+                await new Promise(resolve => setTimeout(resolve, 50));
+
                 const hash = window.location.hash.substring(1);
                 const urlParams = new URLSearchParams(hash);
                 const salonId = urlParams.get('salonId');
 
-                if (salonId) {
+                if (salonId && salonId.length > 10) { // Простая проверка, что ID не пустой
                     await loadSalonAndRunApp(salonId);
                 } else {
+                    console.log("No valid salonId found in URL, running setup.");
                     runSetup();
                 }
             } catch (e) {
                 console.error("Initialization failed:", e);
                 alert("Произошла критическая ошибка при запуске приложения.");
+                runSetup(); // Откатываемся к настройке в случае любой ошибки
             } finally {
                 hideLoader();
             }
         }
 
         async function loadSalonAndRunApp(salonId) {
-            // *** ИСПРАВЛЕНИЕ: Добавлена проверка формата ID ***
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            if (!uuidRegex.test(salonId)) {
-                 console.error('Invalid Salon ID format:', salonId);
-                 alert('Некорректный формат ID салона в ссылке.');
-                 runSetup();
-                 return;
-            }
-
             const { data, error } = await supabaseClient.from('salons').select('*').eq('id', salonId).single();
             
-            // *** ИСПРАВЛЕНИЕ: Улучшенная обработка ошибок ***
             if (error || !data) {
                 console.error('Supabase error fetching salon:', error);
-                alert(`Не удалось загрузить данные салона. ID: ${salonId}. Ошибка: ${error ? error.message : 'Салон не найден'}`);
+                alert(`Не удалось найти салон по ID из ссылки. Убедитесь, что ссылка верна.\n\nДетали: ${error ? error.message : 'Салон не найден'}`);
                 runSetup();
                 return;
             }
