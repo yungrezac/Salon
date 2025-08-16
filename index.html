@@ -20,13 +20,15 @@
             --button-color: #c08497;
             --button-text-color: #ffffff;
             --header-bg-color: #ffffff;
+            --danger-color: #ef4444;
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); -webkit-tap-highlight-color: transparent; }
         .main-container { padding-bottom: 80px; }
         .btn-primary { background-color: var(--button-color); color: var(--button-text-color); }
         .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.65rem 1.5rem; transition: all 0.2s; text-align: center; }
         .btn:hover { opacity: 0.9; transform: scale(1.02); }
-        .card { background-color: var(--secondary-bg-color); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        .card { background-color: var(--secondary-bg-color); border-radius: 1rem; box-shadow: 0 4px_6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
         .screen { display: none; animation: fadeIn 0.3s ease-out; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -41,7 +43,7 @@
         .time-slot { cursor: pointer; border: 1px solid var(--border-color); transition: all 0.2s; }
         .time-slot.selected { background-color: var(--button-color); color: var(--button-text-color); border-color: var(--button-color); transform: scale(1.05); }
         .time-slot:not(.disabled):hover { background-color: #fde6ea; border-color: #fde6ea; }
-        .time-slot.disabled { background-color: #f1f5f9; color: var(--hint-color); cursor: not-allowed; }
+        .time-slot.disabled { background-color: #f1f5f9; color: var(--hint-color); cursor: not-allowed; opacity: 0.7; }
         
         .nav-item { color: var(--hint-color); transition: all 0.2s; }
         .nav-item.active { color: var(--button-color); background-color: #fde6ea; }
@@ -52,6 +54,14 @@
         @keyframes toast-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
 
+        .form-error { color: var(--danger-color); font-size: 0.75rem; margin-top: 4px; display: none; }
+
+        /* Modal */
+        #modal-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; display: none; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
+        #modal-container.active { display: flex; }
+        .modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; animation: zoomIn 0.2s ease; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         /* Skeleton Loader */
         .skeleton { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
@@ -61,31 +71,44 @@
 
     <div id="loader"><div class="spinner"></div></div>
     <div id="toast-container"></div>
+    <div id="modal-container"></div>
 
     <div id="constructor-wrapper">
         <div id="setup-screen" class="screen p-6 min-h-screen flex-col justify-center items-center">
              <div class="w-full max-w-md text-center">
-                <h1 class="text-2xl font-bold mb-2">Создайте свой салон</h1>
-                <p class="text-slate-500 mb-8">Заполните данные, чтобы получить ссылки на приложение и панель управления.</p>
-                <div class="card p-6 text-left !mb-6">
-                    <div class="mb-4"><label class="block font-semibold mb-2">Название салона</label><input type="text" id="salon-name-input" placeholder="Например, Beauty Haven" class="w-full p-3 border rounded-lg"></div>
-                    <div class="mb-4"><label class="block font-semibold mb-2">URL логотипа</label><input type="url" id="logo-url-input" placeholder="https://example.com/logo.png" class="w-full p-3 border rounded-lg"></div>
-                    <div class="mb-6"><label class="block font-semibold mb-2">Пароль для админ-панели</label><input type="password" id="salon-admin-password" placeholder="••••••••" class="w-full p-3 border rounded-lg"></div>
-                    <button id="generate-link-btn" class="btn btn-primary w-full py-3">Создать салон</button>
-                </div>
-                <div id="link-result" class="text-left" style="display: none;">
-                    <div class="card p-4 space-y-4">
-                        <div>
-                            <label class="block font-semibold mb-2 text-sm">Ссылка для ваших клиентов:</label>
-                            <div class="flex space-x-2"><input type="text" id="generated-client-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-client-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-2 text-sm text-red-600">Ваша секретная ссылка для админ-панели:</label>
-                            <div class="flex space-x-2"><input type="text" id="generated-admin-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-admin-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                 <h1 class="text-2xl font-bold mb-2">Создайте свой салон</h1>
+                 <p class="text-slate-500 mb-8">Заполните данные, чтобы получить ссылки на приложение и панель управления.</p>
+                 <form id="setup-form" class="card p-6 text-left !mb-6">
+                     <div class="mb-4">
+                         <label class="block font-semibold mb-2">Название салона</label>
+                         <input type="text" id="salon-name-input" placeholder="Например, Beauty Haven" class="w-full p-3 border rounded-lg" required>
+                         <span class="form-error" id="salon-name-input-error"></span>
+                     </div>
+                     <div class="mb-4">
+                         <label class="block font-semibold mb-2">URL логотипа</label>
+                         <input type="url" id="logo-url-input" placeholder="https://example.com/logo.png" class="w-full p-3 border rounded-lg" required>
+                         <span class="form-error" id="logo-url-input-error"></span>
+                     </div>
+                     <div class="mb-6">
+                         <label class="block font-semibold mb-2">Пароль для админ-панели</label>
+                         <input type="password" id="salon-admin-password" placeholder="••••••••" class="w-full p-3 border rounded-lg" required minlength="6">
+                         <span class="form-error" id="salon-admin-password-error"></span>
+                     </div>
+                     <button id="generate-link-btn" type="submit" class="btn btn-primary w-full py-3">Создать салон</button>
+                 </form>
+                 <div id="link-result" class="text-left" style="display: none;">
+                     <div class="card p-4 space-y-4">
+                         <div>
+                             <label class="block font-semibold mb-2 text-sm">✅ Готово! Ссылка для ваших клиентов:</label>
+                             <div class="flex space-x-2"><input type="text" id="generated-client-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-client-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
+                         </div>
+                         <div>
+                             <label class="block font-semibold mb-2 text-sm text-red-600">⚠️ Ваша секретная ссылка для админ-панели:</label>
+                             <div class="flex space-x-2"><input type="text" id="generated-admin-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-admin-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
         </div>
     </div>
     
@@ -184,11 +207,12 @@
                     <button data-panel="specialists" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Мастера</button>
                     <button data-panel="portfolio" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Портфолио</button>
                     <button data-panel="theme" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Тема</button>
+                    <button data-panel="settings" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Настройки</button>
                 </nav>
             </div>
             <style>
                 .admin-nav-item { border-color: transparent; color: #64748b; }
-                .admin-nav-item.active { border-color: #c08497; color: #c08497; }
+                .admin-nav-item.active { border-color: var(--button-color); color: var(--button-color); }
             </style>
             
             <div id="admin-panels-container">
@@ -197,6 +221,7 @@
                 <div id="admin-panel-specialists" class="admin-panel-content"></div>
                 <div id="admin-panel-portfolio" class="admin-panel-content"></div>
                 <div id="admin-panel-theme" class="admin-panel-content"></div>
+                <div id="admin-panel-settings" class="admin-panel-content"></div>
             </div>
         </div>
     </div>
@@ -218,11 +243,10 @@ const App = {
     supabase: null,
     
     config: {
-        // IMPORTANT: For a real application, enable Row Level Security (RLS) in your Supabase project.
+        // IMPORTANT: Enable Row Level Security (RLS) in your Supabase project.
         // This 'anon' key is public and safe to expose as long as RLS is properly configured.
         supabaseUrl: 'https://iwvglucrgnwetczrzwqk.supabase.co',
         supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ',
-        workingHours: { start: 10, end: 19, slotDuration: 60 }, // in minutes
     },
 
     state: {
@@ -242,7 +266,7 @@ const App = {
     elements: {
         loader: null,
         toastContainer: null,
-        // Add more cached elements here as needed
+        modalContainer: null,
     },
 
     // ------------------------------------------------------------------
@@ -253,6 +277,7 @@ const App = {
         this.supabase = supabase.createClient(this.config.supabaseUrl, this.config.supabaseKey);
         this.elements.loader = document.getElementById('loader');
         this.elements.toastContainer = document.getElementById('toast-container');
+        this.elements.modalContainer = document.getElementById('modal-container');
         
         this.tg.ready();
         this.tg.expand();
@@ -279,7 +304,7 @@ const App = {
             }
         } catch (e) {
             console.error("Router failed:", e);
-            alert("Произошла критическая ошибка при запуске приложения.");
+            this.utils.showToast("Произошла критическая ошибка.");
         } finally {
             this.utils.hideLoader();
         }
@@ -287,7 +312,7 @@ const App = {
 
     utils: {
         showLoader() { App.elements.loader.style.display = 'flex'; },
-        hideLoader() { 
+        hideLoader() {
             App.elements.loader.style.opacity = 0;
             setTimeout(() => App.elements.loader.style.display = 'none', 300);
         },
@@ -299,10 +324,55 @@ const App = {
             setTimeout(() => toast.remove(), 3000);
         },
         getTodayDateString() {
-            return new Date().toISOString().split('T')[0];
+            const today = new Date();
+            const offset = today.getTimezoneOffset();
+            const localToday = new Date(today.getTime() - (offset * 60 * 1000));
+            return localToday.toISOString().split('T')[0];
         },
         formatDate(dateString) {
             return new Date(dateString).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        },
+        parseDuration(durationStr) { // Parses "1 час 30 мин" into 90
+            let totalMinutes = 0;
+            if (!durationStr || typeof durationStr !== 'string') return 60;
+            const hourMatch = durationStr.match(/(\d+)\s*час/);
+            const minMatch = durationStr.match(/(\d+)\s*мин/);
+            if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
+            if (minMatch) totalMinutes += parseInt(minMatch[1]);
+            return totalMinutes || 60; // Default to 60 if parsing fails
+        },
+        minutesToTime(minutes) {
+             const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+             const m = (minutes % 60).toString().padStart(2, '0');
+             return `${h}:${m}`;
+        },
+        timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        },
+        validateForm(formId, fields) {
+            let isValid = true;
+            for (const field of fields) {
+                const input = document.getElementById(field.id);
+                const errorEl = document.getElementById(`${field.id}-error`);
+                let message = '';
+                if (field.required && !input.value.trim()) {
+                    message = 'Это поле обязательно для заполнения';
+                } else if (field.type === 'url' && !/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i.test(input.value)) {
+                    message = 'Введите корректный URL';
+                } else if (field.minLength && input.value.length < field.minLength) {
+                    message = `Минимальная длина: ${field.minLength} символов`;
+                }
+                
+                if (message) {
+                    errorEl.textContent = message;
+                    errorEl.style.display = 'block';
+                    isValid = false;
+                } else {
+                    errorEl.style.display = 'none';
+                }
+            }
+            return isValid;
         }
     },
 
@@ -319,19 +389,27 @@ const App = {
     initConstructor() {
         document.getElementById('constructor-wrapper').style.display = 'block';
         document.getElementById('setup-screen').classList.add('active', 'flex');
-        document.getElementById('generate-link-btn').onclick = () => this.handleGenerateLink();
+        document.getElementById('setup-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleGenerateLink();
+        });
     },
 
     async handleGenerateLink() {
+        const isValid = this.utils.validateForm('setup-form', [
+            { id: 'salon-name-input', required: true },
+            { id: 'logo-url-input', required: true, type: 'url' },
+            { id: 'salon-admin-password', required: true, minLength: 6 },
+        ]);
+        if (!isValid) return;
+
         const name = document.getElementById('salon-name-input').value.trim();
         const logo = document.getElementById('logo-url-input').value.trim();
         const password = document.getElementById('salon-admin-password').value.trim();
-        if (!name || !logo || !password) {
-            this.utils.showToast('Пожалуйста, заполните все поля.');
-            return;
-        }
+        const generateBtn = document.getElementById('generate-link-btn');
 
         this.utils.showLoader();
+        generateBtn.disabled = true;
         try {
             const { data: salonData, error } = await this.supabase
                 .from('salons')
@@ -342,9 +420,11 @@ const App = {
             
             await this.supabase.from('themes').insert([{ salon_id: salonData.id }]);
 
-            const baseUrl = `https://t.me/${this.tg.initDataUnsafe.user.username}/<YOUR_APP_NAME>`; // Replace <YOUR_APP_NAME>
+            const appName = this.tg.initDataUnsafe.web_app.url.split('t.me/')[1].split('/')[0];
+            const baseUrl = `https://t.me/${appName}`; 
             document.getElementById('generated-client-link').value = `${baseUrl}?startapp=salonId=${salonData.id}`;
             document.getElementById('generated-admin-link').value = `${baseUrl}?startapp=salonId=${salonData.id}-mode=admin`;
+            document.getElementById('setup-form').style.display = 'none';
             document.getElementById('link-result').style.display = 'block';
 
         } catch (error) {
@@ -352,6 +432,7 @@ const App = {
             this.utils.showToast('Ошибка создания салона: ' + error.message);
         } finally {
             this.utils.hideLoader();
+            generateBtn.disabled = false;
         }
     },
     
@@ -383,16 +464,16 @@ const App = {
     client: {
         displayUserData() {
             const user = App.tg.initDataUnsafe?.user;
-            App.state.currentUser = user ? user : { id: 123456789, first_name: 'Тест', username: 'testuser' };
-            const userInitial = (App.state.currentUser.first_name || 'U').charAt(0);
+            App.state.currentUser = user || { id: 123456789, first_name: 'Тест', username: 'testuser' };
+            const userInitial = (App.state.currentUser.first_name || 'U').charAt(0).toUpperCase();
             document.getElementById('profile-name').textContent = App.state.currentUser.first_name || 'Пользователь';
             document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
         },
 
         async upsertUser() {
-            const { id, first_name } = App.state.currentUser;
+            const { id, first_name, username } = App.state.currentUser;
             if (!id) return;
-            await App.supabase.from('users').upsert({ telegram_id: id, first_name }, { onConflict: 'telegram_id' });
+            await App.supabase.from('users').upsert({ telegram_id: id, first_name, username }, { onConflict: 'telegram_id' });
         },
 
         setupEventListeners() {
@@ -445,7 +526,7 @@ const App = {
             App.state.bookingState.specialist = specialist;
             const service = App.state.bookingState.service;
             document.getElementById('selected-service-title').textContent = service.name;
-            document.getElementById('selected-specialist-subtitle').textContent = `Мастер: ${specialist.name}`;
+            document.getElementById('selected-specialist-subtitle').textContent = `Мастер: ${specialist.name}・${service.duration}`;
 
             const datePicker = document.getElementById('date-picker');
             datePicker.value = App.utils.getTodayDateString();
@@ -466,7 +547,9 @@ const App = {
         updateConfirmButtonState() {
             const { service, specialist, date, time } = App.state.bookingState;
             const isActive = !!(service && specialist && date && time);
-            App.tg.MainButton.setParams({ is_visible: true, is_active: isActive });
+            if (App.tg.MainButton.isVisible) {
+                App.tg.MainButton.setParams({ is_active: isActive });
+            }
         },
 
         async handleBookingConfirm() {
@@ -497,21 +580,30 @@ const App = {
             }
         },
 
-        async handleAppointmentCancel(appointmentId) {
-            if (!confirm('Вы уверены, что хотите отменить эту запись?')) return;
-            App.utils.showLoader();
-            try {
-                const { error } = await App.supabase.from('appointments').delete().eq('id', appointmentId);
-                if (error) throw error;
-                App.utils.showToast('Запись успешно отменена');
-                await App.client.loadData();
-                App.ui.renderAppointments();
-            } catch (error) {
-                console.error("Cancellation failed:", error);
-                App.utils.showToast('Ошибка отмены: ' + error.message);
-            } finally {
-                App.utils.hideLoader();
-            }
+        handleAppointmentCancel(appointmentId) {
+             App.ui.showModal({
+                title: 'Отменить запись?',
+                content: 'Вы уверены, что хотите отменить эту запись? Это действие необратимо.',
+                buttons: [
+                    { text: 'Оставить', role: 'secondary', action: App.ui.hideModal },
+                    { text: 'Отменить', role: 'danger', action: async () => {
+                        App.ui.hideModal();
+                        App.utils.showLoader();
+                        try {
+                            const { error } = await App.supabase.from('appointments').delete().eq('id', appointmentId);
+                            if (error) throw error;
+                            App.utils.showToast('Запись успешно отменена');
+                            await App.client.loadData();
+                            App.ui.renderAppointments();
+                        } catch (error) {
+                            console.error("Cancellation failed:", error);
+                            App.utils.showToast('Ошибка отмены: ' + error.message);
+                        } finally {
+                            App.utils.hideLoader();
+                        }
+                    }}
+                ]
+            });
         },
         
         async handlePostComment(postId) {
@@ -528,7 +620,6 @@ const App = {
                 });
                 if (error) throw error;
                 input.value = '';
-                // Reload post data to show the new comment
                 const { data: postData, error: postError } = await App.supabase.from('portfolio_posts')
                     .select('*, comments(*, users(first_name))')
                     .eq('id', postId)
@@ -558,18 +649,20 @@ const App = {
         },
 
         showScreen(screenId, isBack = false) {
-            if (!isBack) App.state.screenHistory.push(screenId);
+            if (!isBack && App.state.screenHistory[App.state.screenHistory.length - 1] !== screenId) {
+                App.state.screenHistory.push(screenId);
+            }
             document.querySelectorAll('#client-app-wrapper .screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
 
             const isBaseScreen = ['home-screen', 'services-screen', 'my-appointments-screen', 'profile-screen'].includes(screenId);
-            App.tg.BackButton.setVisible(!isBaseScreen && App.state.screenHistory.length > 1);
+            App.tg.BackButton.setVisible(App.state.screenHistory.length > 1);
             App.tg.MainButton.setVisible(screenId === 'booking-screen');
             document.getElementById('client-header').style.display = isBaseScreen ? 'flex' : 'none';
 
             if (screenId === 'booking-screen') App.client.updateConfirmButtonState();
             
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.screen === screenId));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.screen === screenId || (isBaseScreen && item.dataset.screen === 'services-screen' && screenId.includes('booking'))));
             window.scrollTo(0, 0);
         },
 
@@ -578,6 +671,29 @@ const App = {
                 App.state.screenHistory.pop();
                 App.ui.showScreen(App.state.screenHistory[App.state.screenHistory.length - 1], true);
             }
+        },
+
+        showModal({ title, content, buttons }) {
+            const modalHTML = `
+                <div class="modal-content">
+                    <h2 class="text-lg font-bold mb-2">${title}</h2>
+                    <p class="text-slate-600 mb-6">${content}</p>
+                    <div class="flex gap-3 justify-center">
+                        ${buttons.map((btn, index) => {
+                            const roleClass = btn.role === 'danger' ? 'bg-red-500 text-white' : (btn.role === 'secondary' ? 'bg-slate-200 text-slate-800' : 'btn-primary');
+                            return `<button id="modal-btn-${index}" class="btn w-full ${roleClass}">${btn.text}</button>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            App.elements.modalContainer.innerHTML = modalHTML;
+            buttons.forEach((btn, index) => {
+                document.getElementById(`modal-btn-${index}`).onclick = btn.action;
+            });
+            App.elements.modalContainer.classList.add('active');
+        },
+
+        hideModal() {
+            App.elements.modalContainer.classList.remove('active');
         },
 
         renderSkeletons() {
@@ -590,13 +706,13 @@ const App = {
         },
 
         renderEmptyState(container, message, buttonText, action) {
-            container.innerHTML = `<div class="text-center text-slate-500 mt-10"><p>${message}</p>${buttonText ? `<button onclick="${action}" class="btn btn-primary mt-4">${buttonText}</button>` : ''}</div>`;
+            container.innerHTML = `<div class="text-center text-slate-500 py-10 px-4"><p class="mb-4">${message}</p>${buttonText ? `<button onclick="${action}" class="btn btn-primary">${buttonText}</button>` : ''}</div>`;
         },
 
         renderServices() {
             const list = document.getElementById('services-list');
             if (App.state.services.length === 0) {
-                this.renderEmptyState(list, 'Услуги пока не добавлены.');
+                this.renderEmptyState(list, 'В этом салоне пока нет доступных услуг.');
                 return;
             }
             list.innerHTML = App.state.services.map(s => `
@@ -638,7 +754,7 @@ const App = {
                 return;
             }
             container.innerHTML = App.state.portfolio.map(post => `
-                <div class="card" onclick='App.ui.renderPostDetail(${JSON.stringify(post)})'>
+                <div class="card cursor-pointer" onclick='App.ui.renderPostDetail(${JSON.stringify(post)})'>
                     <div class="p-4 flex items-center">
                         <img src="${App.state.salonConfig.logo_url}" class="w-8 h-8 rounded-full mr-3 object-cover">
                         <span class="font-semibold">${App.state.salonConfig.name}</span>
@@ -683,20 +799,67 @@ const App = {
 
         async renderTimeSlots() {
             const container = document.getElementById('time-slots-container');
-            container.innerHTML = '<div class="col-span-3 text-center text-slate-500">Загрузка слотов...</div>';
-            
-            const { date, specialist } = App.state.bookingState;
-            const { data } = await App.supabase.from('appointments').select('time').eq('salon_id', App.state.salonId).eq('date', date).eq('specialist_id', specialist.id);
-            const bookedTimes = (data || []).map(d => d.time);
+            container.innerHTML = `<div class="col-span-3 flex justify-center py-4"><div class="spinner !w-6 !h-6"></div></div>`;
+            App.tg.MainButton.setParams({ is_active: false });
 
-            const { start, end, slotDuration } = App.config.workingHours;
+            const { date, specialist, service } = App.state.bookingState;
+            const { work_start, work_end, lunch_start, lunch_end } = App.state.salonConfig;
+            
+            const serviceDuration = App.utils.parseDuration(service.duration);
+            const workStartMins = App.utils.timeToMinutes(work_start || '10:00');
+            const workEndMins = App.utils.timeToMinutes(work_end || '19:00');
+            const lunchStartMins = App.utils.timeToMinutes(lunch_start || '13:00');
+            const lunchEndMins = App.utils.timeToMinutes(lunch_end || '14:00');
+
+            const { data } = await App.supabase.from('appointments').select('time, services(duration)').eq('salon_id', App.state.salonId).eq('date', date).eq('specialist_id', specialist.id);
+            const busySlots = (data || []).map(d => {
+                const start = App.utils.timeToMinutes(d.time);
+                const duration = App.utils.parseDuration(d.services.duration);
+                return { start, end: start + duration };
+            });
+
             let slots = '';
-            for (let hour = start; hour < end; hour++) {
-                const time = `${String(hour).padStart(2, '0')}:00`;
-                const isBooked = bookedTimes.includes(time);
-                slots += `<div onclick="App.client.handleTimeSelect(this, '${time}')" class="time-slot p-2 rounded-lg ${isBooked ? 'disabled' : ''}">${time}</div>`;
+            // We can iterate with a 15-minute step for more flexibility
+            for (let t = workStartMins; t <= workEndMins - serviceDuration; t += 15) {
+                const slotStart = t;
+                const slotEnd = t + serviceDuration;
+                
+                // Check for conflicts
+                let isAvailable = true;
+
+                // 1. Is slot within working hours? (Already handled by loop condition)
+                
+                // 2. Does slot conflict with lunch break?
+                if (Math.max(slotStart, lunchStartMins) < Math.min(slotEnd, lunchEndMins)) {
+                    isAvailable = false;
+                }
+
+                // 3. Does slot conflict with existing appointments?
+                if (isAvailable) {
+                    for (const busy of busySlots) {
+                        if (Math.max(slotStart, busy.start) < Math.min(slotEnd, busy.end)) {
+                            isAvailable = false;
+                            break;
+                        }
+                    }
+                }
+                
+                // 4. If it's today, is the slot in the past?
+                const now = new Date();
+                const selectedDate = new Date(date);
+                if (selectedDate.toDateString() === now.toDateString()) {
+                    const currentMins = now.getHours() * 60 + now.getMinutes();
+                    if (slotStart <= currentMins) {
+                        isAvailable = false;
+                    }
+                }
+
+                if (isAvailable) {
+                    const time = App.utils.minutesToTime(slotStart);
+                    slots += `<div onclick="App.client.handleTimeSelect(this, '${time}')" class="time-slot p-2 rounded-lg">${time}</div>`;
+                }
             }
-            container.innerHTML = slots || '<div class="col-span-3 text-center text-slate-500">Нет доступных слотов на эту дату.</div>';
+            container.innerHTML = slots || '<div class="col-span-3 text-center text-slate-500 py-4">Нет доступных слотов на эту дату.</div>';
         },
 
         renderAppointments() {
@@ -707,8 +870,8 @@ const App = {
             }
 
             const now = new Date();
-            const upcoming = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now);
-            const past = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) < now);
+            const upcoming = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now).sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+            const past = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) < now).sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
 
             const renderList = (title, list, showCancel) => {
                 if(list.length === 0) return '';
@@ -803,8 +966,8 @@ const App = {
         
         renderCurrentPanel() {
              document.querySelectorAll('.admin-nav-item').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.panel === App.state.currentAdminPanel);
-            });
+                 btn.classList.toggle('active', btn.dataset.panel === App.state.currentAdminPanel);
+             });
              document.querySelectorAll('.admin-panel-content').forEach(p => p.style.display = 'none');
             
             const panelId = `admin-panel-${App.state.currentAdminPanel}`;
@@ -817,6 +980,7 @@ const App = {
                 case 'specialists': this.render.specialists(panel); break;
                 case 'portfolio': this.render.portfolio(panel); break;
                 case 'theme': this.render.theme(panel); break;
+                case 'settings': this.render.settings(panel); break;
             }
         },
 
@@ -856,8 +1020,8 @@ const App = {
                             ${appts.map(a => `
                                 <div class="p-3 border rounded-md">
                                     <p class="font-semibold">${a.time} - ${a.services.name}</p>
-                                    <p class="text-sm text-slate-600">Клиент: ${a.users.first_name}</p>
-                                    <p class="text-sm text-slate-600">Мастер: ${a.specialists.name}</p>
+                                    <p class="text-sm text-slate-600">Клиент: ${a.users?.first_name || 'N/A'}</p>
+                                    <p class="text-sm text-slate-600">Мастер: ${a.specialists?.name || 'N/A'}</p>
                                 </div>
                             `).join('')}
                         </div>
@@ -870,7 +1034,7 @@ const App = {
                         <h2 class="text-xl font-semibold mb-4">Услуги</h2>
                         <div id="admin-services-list" class="space-y-2 mb-4">
                         ${(App.state.salonConfig.services || []).map(s => `
-                            <div class="flex justify-between items-center p-2 border rounded-md">
+                            <div id="item-services-${s.id}" class="flex justify-between items-center p-2 border rounded-md">
                                 <span>${s.name} (${s.duration}) - ${s.price} ₽</span>
                                 <button onclick="App.admin.actions.deleteItem('services', ${s.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
                             </div>`).join('') || '<p class="text-slate-500">Нет услуг.</p>'}
@@ -881,7 +1045,7 @@ const App = {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input id="new-service-name" placeholder="Название" class="admin-input">
                             <input id="new-service-price" placeholder="Цена (число)" type="number" class="admin-input">
-                            <input id="new-service-duration" placeholder="Длительность (напр. 1 час)" class="admin-input">
+                            <input id="new-service-duration" placeholder="Длительность (напр. 1 час 30 мин)" class="admin-input">
                         </div>
                         <button onclick="App.admin.actions.addService()" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Добавить</button>
                     </div>`;
@@ -893,7 +1057,7 @@ const App = {
                         <h2 class="text-xl font-semibold mb-4">Мастера</h2>
                         <div id="admin-specialists-list" class="space-y-2 mb-4">
                          ${(App.state.salonConfig.specialists || []).map(s => `
-                            <div class="flex justify-between items-center p-2 border rounded-md">
+                            <div id="item-specialists-${s.id}" class="flex justify-between items-center p-2 border rounded-md">
                                 <div class="flex items-center gap-3">
                                   <img src="${s.photo_url}" class="w-10 h-10 rounded-full object-cover"/>
                                   <span>${s.name} - ${s.specialty}</span>
@@ -919,7 +1083,7 @@ const App = {
                         <h2 class="text-xl font-semibold mb-4">Портфолио</h2>
                         <div id="admin-portfolio-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                          ${(App.state.salonConfig.portfolio_posts || []).map(p => `
-                            <div class="relative">
+                            <div id="item-portfolio_posts-${p.id}" class="relative">
                                 <img src="${p.img_url}" class="w-full h-32 object-cover rounded-md"/>
                                 <p class="text-xs mt-1 truncate">${p.title}</p>
                                 <button onclick="App.admin.actions.deleteItem('portfolio_posts', ${p.id})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs">&times;</button>
@@ -943,13 +1107,40 @@ const App = {
                     <div class="admin-card">
                         <h2 class="text-xl font-semibold mb-4">Внешний вид</h2>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div><label class="block text-sm font-medium">Кнопки</label><input type="color" id="theme-button-color" value="${theme.button_color || '#c08497'}" class="w-full h-10"></div>
-                            <div><label class="block text-sm font-medium">Текст на кнопках</label><input type="color" id="theme-button-text-color" value="${theme.button_text_color || '#ffffff'}" class="w-full h-10"></div>
-                            <div><label class="block text-sm font-medium">Фон</label><input type="color" id="theme-bg-color" value="${theme.bg_color || '#f8fafc'}" class="w-full h-10"></div>
-                            <div><label class="block text-sm font-medium">Текст</label><input type="color" id="theme-text-color" value="${theme.text_color || '#334155'}" class="w-full h-10"></div>
+                            <div><label class="block text-sm font-medium">Кнопки</label><input type="color" id="theme-button-color" value="${theme.button_color || '#c08497'}" class="w-full h-10 cursor-pointer"></div>
+                            <div><label class="block text-sm font-medium">Текст на кнопках</label><input type="color" id="theme-button-text-color" value="${theme.button_text_color || '#ffffff'}" class="w-full h-10 cursor-pointer"></div>
+                            <div><label class="block text-sm font-medium">Фон</label><input type="color" id="theme-bg-color" value="${theme.bg_color || '#f8fafc'}" class="w-full h-10 cursor-pointer"></div>
+                            <div><label class="block text-sm font-medium">Текст</label><input type="color" id="theme-text-color" value="${theme.text_color || '#334155'}" class="w-full h-10 cursor-pointer"></div>
                         </div>
                         <button onclick="App.admin.actions.saveTheme()" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Сохранить тему</button>
                     </div>`;
+            },
+
+            settings(container) {
+                const config = App.state.salonConfig;
+                container.innerHTML = `
+                     <div class="admin-card">
+                        <h2 class="text-xl font-semibold mb-4">Настройки рабочего времени</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                           <div>
+                              <label class="block text-sm font-medium mb-1">Начало рабочего дня</label>
+                              <input type="time" id="settings-work-start" value="${config.work_start || '10:00'}" class="admin-input">
+                           </div>
+                           <div>
+                              <label class="block text-sm font-medium mb-1">Конец рабочего дня</label>
+                              <input type="time" id="settings-work-end" value="${config.work_end || '19:00'}" class="admin-input">
+                           </div>
+                           <div>
+                              <label class="block text-sm font-medium mb-1">Начало обеда</label>
+                              <input type="time" id="settings-lunch-start" value="${config.lunch_start || '13:00'}" class="admin-input">
+                           </div>
+                           <div>
+                              <label class="block text-sm font-medium mb-1">Конец обеда</label>
+                              <input type="time" id="settings-lunch-end" value="${config.lunch_end || '14:00'}" class="admin-input">
+                           </div>
+                        </div>
+                        <button onclick="App.admin.actions.saveSettings()" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Сохранить настройки</button>
+                     </div>`;
             }
         },
 
@@ -1004,13 +1195,27 @@ const App = {
             },
 
             async deleteItem(tableName, itemId) {
-                if (!confirm('Вы уверены? Это действие необратимо.')) return;
-                const { error } = await App.supabase.from(tableName).delete().eq('id', itemId);
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
-                else {
-                    App.utils.showToast('Удалено успешно!');
-                    await this._refreshDataAndRender();
-                }
+                App.ui.showModal({
+                    title: 'Подтвердите удаление',
+                    content: 'Это действие невозможно будет отменить.',
+                    buttons: [
+                        { text: 'Отмена', role: 'secondary', action: App.ui.hideModal },
+                        { text: 'Удалить', role: 'danger', action: async () => {
+                            App.ui.hideModal();
+                            const itemEl = document.getElementById(`item-${tableName}-${itemId}`);
+                            if (itemEl) itemEl.style.opacity = '0.5';
+
+                            const { error } = await App.supabase.from(tableName).delete().eq('id', itemId);
+                            if (error) {
+                                App.utils.showToast('Ошибка: ' + error.message);
+                                if (itemEl) itemEl.style.opacity = '1';
+                            } else {
+                                App.utils.showToast('Удалено успешно!');
+                                await this._refreshDataAndRender();
+                            }
+                        }}
+                    ]
+                });
             },
 
             async saveTheme() {
@@ -1024,6 +1229,18 @@ const App = {
                 const { error } = await App.supabase.from('themes').upsert(themeData, { onConflict: 'salon_id' });
                 if (error) App.utils.showToast('Ошибка: ' + error.message);
                 else App.utils.showToast('Тема сохранена!');
+            },
+
+            async saveSettings() {
+                const settings = {
+                    work_start: document.getElementById('settings-work-start').value,
+                    work_end: document.getElementById('settings-work-end').value,
+                    lunch_start: document.getElementById('settings-lunch-start').value,
+                    lunch_end: document.getElementById('settings-lunch-end').value,
+                };
+                const { error } = await App.supabase.from('salons').update(settings).eq('id', App.state.salonId);
+                if (error) App.utils.showToast('Ошибка: ' + error.message);
+                else App.utils.showToast('Настройки сохранены!');
             }
         }
     }
