@@ -207,17 +207,15 @@
         const showLoader = () => loader.style.display = 'flex';
         const hideLoader = () => loader.style.display = 'none';
 
-        // *** ИЗМЕНЕНО: Главная точка входа в приложение ***
         document.addEventListener('DOMContentLoaded', async () => {
             await initializeApp();
         });
 
-        // *** НОВОЕ: Единая функция инициализации ***
         async function initializeApp() {
             showLoader();
             try {
                 applyTheme();
-                displayUserData(); // Получаем данные о пользователе как можно раньше
+                displayUserData();
 
                 const hash = window.location.hash.substring(1);
                 const urlParams = new URLSearchParams(hash);
@@ -236,14 +234,23 @@
             }
         }
 
-        // *** НОВОЕ: Функция для загрузки данных салона и запуска основного приложения ***
         async function loadSalonAndRunApp(salonId) {
+            // *** ИСПРАВЛЕНИЕ: Добавлена проверка формата ID ***
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(salonId)) {
+                 console.error('Invalid Salon ID format:', salonId);
+                 alert('Некорректный формат ID салона в ссылке.');
+                 runSetup();
+                 return;
+            }
+
             const { data, error } = await supabaseClient.from('salons').select('*').eq('id', salonId).single();
             
+            // *** ИСПРАВЛЕНИЕ: Улучшенная обработка ошибок ***
             if (error || !data) {
-                console.error('Error fetching salon:', error);
-                alert('Не удалось загрузить данные салона. Пожалуйста, проверьте ссылку.');
-                runSetup(); // Если салон не найден, показываем экран создания
+                console.error('Supabase error fetching salon:', error);
+                alert(`Не удалось загрузить данные салона. ID: ${salonId}. Ошибка: ${error ? error.message : 'Салон не найден'}`);
+                runSetup();
                 return;
             }
 
@@ -254,7 +261,6 @@
             
             await runMainApp();
         }
-
 
         function runSetup() {
             document.getElementById('setup-screen').classList.add('active', 'flex');
@@ -304,28 +310,21 @@
         }
 
         async function runMainApp() {
-            // 1. Показываем обертку приложения и настраиваем интерфейс
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('app-wrapper').style.display = 'block';
             setupBranding();
             
-            // 2. Инициализируем Telegram SDK
             tg.ready();
             tg.expand();
             
-            // 3. Сохраняем пользователя в БД
             await upsertUser();
             
-            // 4. Устанавливаем обработчики событий
             setupEventListeners();
             
-            // 5. Загружаем все остальные данные
             await fetchData();
 
-            // 6. Отрисовываем все компоненты с полученными данными
             renderAll();
             
-            // 7. Показываем главный экран
             showScreen('home-screen');
             document.getElementById('nav-home').classList.add('active');
         }
