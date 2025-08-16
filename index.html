@@ -8,6 +8,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,9 +73,38 @@
         .modal.show { display: flex; }
         .like-btn.liked svg { fill: #ef4444; stroke: #ef4444; }
         #post-view-screen.active { height: 100vh; display: flex; flex-direction: column; }
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--button-color);
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="antialiased text-sm">
+
+    <!-- ===== Loader ===== -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
 
     <!-- ===== Setup Screen (Visible by default) ===== -->
     <div id="setup-screen" class="screen active p-6 min-h-screen flex flex-col justify-center items-center">
@@ -221,83 +252,104 @@
         // --- GLOBAL TELEGRAM OBJECT ---
         const tg = window.Telegram.WebApp;
 
-        // --- DATA ---
-        const specialists = [
-            { id: 1, name: 'Екатерина', specialty: 'Мастер маникюра', photo: 'https://placehold.co/80x80/fecdd3/be123c?text=E' },
-            { id: 2, name: 'Анастасия', specialty: 'Парикмахер-стилист', photo: 'https://placehold.co/80x80/d1d5db/111827?text=A' },
-            { id: 3, name: 'Светлана', specialty: 'Парикмахер-колорист', photo: 'https://placehold.co/80x80/fef08a/854d0e?text=C' },
-            { id: 4, name: 'Ольга', specialty: 'Мастер педикюра', photo: 'https://placehold.co/80x80/cffafe/155e75?text=O' },
-        ];
-        const services = [
-            { id: 1, name: 'Маникюр с покрытием', duration: '1.5 часа', price: '2000 ₽', specialistIds: [1] },
-            { id: 2, name: 'Педикюр', duration: '2 часа', price: '3000 ₽', specialistIds: [1, 4] },
-            { id: 3, name: 'Стрижка женская', duration: '1 час', price: '1800 ₽', specialistIds: [2, 3] },
-            { id: 4, name: 'Окрашивание', duration: '3 часа', price: '5000 ₽', specialistIds: [3] },
-        ];
-        const portfolio = {
-            stories: [
-                { title: "Ногти", img: "https://placehold.co/150x150/d1fae5/10b981?text=Nails" },
-                { title: "Стрижки", img: "https://placehold.co/150x150/e0f2fe/0ea5e9?text=Cuts" },
-                { title: "Окрас", img: "https://placehold.co/150x150/f3e8ff/9333ea?text=Color" },
-            ],
-            posts: [
-                { id: 1, title: "Идеальный френч", img: "https://placehold.co/600x600/fce7f3/db2777?text=French+Nails", likes: 124, liked: false, comments: [{id: 1, author: 'Елена', text: 'Очень красиво!'}]},
-                { id: 2, title: "Сложное окрашивание", img: "https://placehold.co/600x600/f3e8ff/9333ea?text=Balayage", likes: 256, liked: false, comments: [{id: 3, author: 'Светлана', text: 'Хочу так же!'}]},
-            ]
-        };
+        // --- SUPABASE SETUP ---
+        const supabaseUrl = 'https://iwvglucrgnwetczrzwqk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- DATA (will be fetched from Supabase) ---
+        let specialists = [];
+        let services = [];
+        let portfolio = { stories: [], posts: [] };
         const availableTimeSlots = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
         
         // --- APP STATE ---
-        let salonConfig = { name: 'Beauty Haven', logo: '', initials: 'BH' };
+        let salonConfig = { id: null, name: 'Beauty Haven', logo: '', initials: 'BH' };
         let bookingState = { service: null, specialist: null, date: null, time: null };
         let userAppointments = [];
         let screenHistory = ['home-screen'];
-        let currentUser = { first_name: 'Пользователь' };
+        let currentUser = { id: null, first_name: 'Пользователь' };
+
+        // --- LOADER ---
+        const loader = document.getElementById('loader');
+        const showLoader = () => loader.style.display = 'flex';
+        const hideLoader = () => loader.style.display = 'none';
 
         // --- APP INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // FIX: Read parameters from URL hash (#) as it's more reliable in WebViews
-            const hash = window.location.hash.substring(1);
-            const urlParams = new URLSearchParams(hash);
-            const salonName = urlParams.get('name');
-            const logoUrl = urlParams.get('logo');
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoader();
+            try {
+                const hash = window.location.hash.substring(1);
+                const urlParams = new URLSearchParams(hash);
+                const salonId = urlParams.get('salonId');
 
-            applyTheme();
+                applyTheme();
 
-            if (salonName && logoUrl) {
-                // If params exist, run the main app with custom branding
-                // URLSearchParams automatically decodes values
-                salonConfig.name = salonName;
-                salonConfig.logo = logoUrl;
-                salonConfig.initials = salonName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-                runMainApp();
-            } else {
-                // Otherwise, show the setup screen
-                runSetup();
+                if (salonId) {
+                    const { data, error } = await supabase
+                        .from('salons')
+                        .select('*')
+                        .eq('id', salonId)
+                        .single();
+
+                    if (error || !data) {
+                        console.error('Error fetching salon:', error);
+                        alert('Не удалось загрузить данные салона. Пожалуйста, проверьте ссылку.');
+                        runSetup();
+                    } else {
+                        salonConfig.id = data.id;
+                        salonConfig.name = data.name;
+                        salonConfig.logo = data.logo_url;
+                        salonConfig.initials = data.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
+                        await runMainApp();
+                    }
+                } else {
+                    runSetup();
+                }
+            } catch (e) {
+                console.error("Initialization failed:", e);
+                alert("Произошла ошибка при запуске приложения.");
+                runSetup(); // Fallback to setup
+            } finally {
+                hideLoader();
             }
         });
 
         // --- SETUP SCREEN LOGIC ---
         function runSetup() {
-            // The setup screen is already visible by default, so we just attach event listeners
+            document.getElementById('setup-screen').style.display = 'flex';
+            document.getElementById('app-wrapper').style.display = 'none';
             document.getElementById('generate-link-btn').onclick = generateLink;
             document.getElementById('copy-link-btn').onclick = copyLink;
         }
 
-        function generateLink() {
+        async function generateLink() {
             const nameInput = document.getElementById('salon-name-input').value.trim();
             const logoInput = document.getElementById('logo-url-input').value.trim();
 
             if (!nameInput || !logoInput) {
                 tg.HapticFeedback.notificationOccurred('error');
-                // A native alert is used here for simplicity as it's a developer-facing tool
                 alert('Пожалуйста, заполните все поля');
                 return;
             }
+            
+            showLoader();
+            const { data, error } = await supabase
+                .from('salons')
+                .insert([{ name: nameInput, logo_url: logoInput }])
+                .select()
+                .single();
+            hideLoader();
+            
+            if (error) {
+                console.error('Error creating salon:', error);
+                alert('Не удалось создать салон. Попробуйте еще раз.');
+                return;
+            }
 
-            // FIX: Use hash (#) instead of query string (?) for parameters
+            const salonId = data.id;
             const baseUrl = window.location.href.split('#')[0].split('?')[0];
-            const generatedUrl = `${baseUrl}#name=${encodeURIComponent(nameInput)}&logo=${encodeURIComponent(logoInput)}`;
+            const generatedUrl = `${baseUrl}#salonId=${salonId}`;
 
             const resultDiv = document.getElementById('link-result');
             const linkInput = document.getElementById('generated-link-input');
@@ -324,7 +376,7 @@
         }
 
         // --- MAIN APP LOGIC ---
-        function runMainApp() {
+        async function runMainApp() {
             // Hide setup, show main app
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('app-wrapper').style.display = 'block';
@@ -356,12 +408,57 @@
             tg.MainButton.onClick(confirmBooking);
             tg.BackButton.onClick(goBack);
 
+            await fetchData();
+            renderAll();
+            setupDatePicker();
+        }
+
+        // --- DATA FETCHING ---
+        async function fetchData() {
+            showLoader();
+            try {
+                const [servicesRes, specialistsRes, postsRes, storiesRes, appointmentsRes] = await Promise.all([
+                    supabase.from('services').select('*').eq('salon_id', salonConfig.id),
+                    supabase.from('specialists').select('*').eq('salon_id', salonConfig.id),
+                    supabase.from('portfolio_posts').select('*, comments(*)').eq('salon_id', salonConfig.id),
+                    supabase.from('portfolio_stories').select('*').eq('salon_id', salonConfig.id),
+                    supabase.from('appointments').select('*, services(*), specialists(*)').eq('user_id', currentUser.id).eq('salon_id', salonConfig.id)
+                ]);
+
+                if (servicesRes.error) throw servicesRes.error;
+                services = servicesRes.data;
+
+                if (specialistsRes.error) throw specialistsRes.error;
+                specialists = specialistsRes.data;
+
+                if (postsRes.error) throw postsRes.error;
+                portfolio.posts = postsRes.data;
+                
+                if (storiesRes.error) throw storiesRes.error;
+                portfolio.stories = storiesRes.data;
+
+                if (appointmentsRes.error) throw appointmentsRes.error;
+                userAppointments = appointmentsRes.data.map(a => ({
+                    ...a,
+                    service: a.services,
+                    specialist: a.specialists
+                }));
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Не удалось загрузить данные. Попробуйте перезагрузить страницу.");
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        function renderAll() {
             renderServices();
             renderAllSpecialists();
             renderAppointments();
             renderPortfolio();
-            setupDatePicker();
         }
+
 
         // --- TELEGRAM SDK INTEGRATION ---
         function applyTheme() {
@@ -383,6 +480,9 @@
                 
                 document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
                 document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
+            } else {
+                // Fallback for testing in browser
+                currentUser = { id: 12345, first_name: 'Тест' };
             }
         }
 
@@ -433,7 +533,7 @@
             }
         }
 
-        // --- RENDERING (No changes below this line) ---
+        // --- RENDERING ---
         function renderPortfolio() {
             const postsContainer = document.getElementById('portfolio-posts');
             postsContainer.innerHTML = '';
@@ -442,10 +542,10 @@
                 el.className = 'card';
                 el.innerHTML = `
                     <div class="p-4 flex items-center">
-                        <img src="https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}" class="w-8 h-8 rounded-full mr-3">
+                        <img src="${salonConfig.logo}" class="w-8 h-8 rounded-full mr-3 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/40x40/c08497/ffffff?text=${salonConfig.initials}';">
                         <span class="font-semibold">${salonConfig.name.toLowerCase().replace(/\s/g, '_')}</span>
                     </div>
-                    <img src="${post.img}" alt="${post.title}" class="w-full h-auto cursor-pointer" onclick="openPostView(${post.id})">
+                    <img src="${post.img_url}" alt="${post.title}" class="w-full h-auto cursor-pointer" onclick="openPostView(${post.id})">
                     <div class="p-4">
                         <div class="flex items-center space-x-4">
                              <button onclick="toggleLike(${post.id})" class="like-btn ${post.liked ? 'liked' : ''} flex items-center space-x-1 text-slate-600">
@@ -469,7 +569,7 @@
                 <div class="card p-4 flex justify-between items-center">
                     <div>
                         <h2 class="font-semibold text-base">${service.name}</h2>
-                        <p class="text-slate-500" style="color: var(--hint-color);">${service.duration} / ${service.price}</p>
+                        <p class="text-slate-500" style="color: var(--hint-color);">${service.duration} / ${service.price} ₽</p>
                     </div>
                     <button onclick='selectService(${JSON.stringify(service)})' class="btn-primary text-sm">Выбрать</button>
                 </div>
@@ -480,7 +580,7 @@
             const container = document.getElementById('specialists-list');
             container.innerHTML = specialists.map(specialist => `
                 <div class="card p-4 flex items-center">
-                    <img src="${specialist.photo}" alt="${specialist.name}" class="w-16 h-16 rounded-full mr-4">
+                    <img src="${specialist.photo_url}" alt="${specialist.name}" class="w-16 h-16 rounded-full mr-4 object-cover">
                     <div>
                         <h2 class="font-bold text-lg">${specialist.name}</h2>
                         <p class="text-slate-500" style="color: var(--hint-color);">${specialist.specialty}</p>
@@ -491,11 +591,11 @@
 
         function renderSpecialistSelection(service) {
             const container = document.getElementById('specialist-selection-list');
-            const availableSpecialists = specialists.filter(s => service.specialistIds.includes(s.id));
+            const availableSpecialists = specialists.filter(s => service.specialist_ids.includes(s.id));
             container.innerHTML = availableSpecialists.map(specialist => `
                 <div class="card p-4 flex justify-between items-center">
                     <div class="flex items-center">
-                         <img src="${specialist.photo}" alt="${specialist.name}" class="w-12 h-12 rounded-full mr-4">
+                         <img src="${specialist.photo_url}" alt="${specialist.name}" class="w-12 h-12 rounded-full mr-4 object-cover">
                         <div>
                             <h2 class="font-semibold text-base">${specialist.name}</h2>
                             <p class="text-slate-500" style="color: var(--hint-color);">${specialist.specialty}</p>
@@ -506,15 +606,25 @@
             `).join('');
         }
 
-        function renderTimeSlots(date, specialistId) {
+        async function renderTimeSlots(date, specialistId) {
             const container = document.getElementById('time-slots-container');
             container.innerHTML = '';
-            const seed = specialistId + date.hashCode();
-            const random = new Math.seedrandom(seed);
+            
+            const { data: bookedSlots, error } = await supabase
+                .from('appointments')
+                .select('time')
+                .eq('date', date)
+                .eq('specialist_id', specialistId);
+
+            if (error) {
+                console.error("Error fetching booked slots:", error);
+                return;
+            }
+
+            const bookedTimes = bookedSlots.map(s => s.time);
+
             availableTimeSlots.forEach(time => {
-                const isBooked = userAppointments.some(appt => appt.date === date && appt.time === time && appt.specialist.id === specialistId);
-                const isAvailable = random() > 0.3;
-                const isDisabled = isBooked || !isAvailable;
+                const isDisabled = bookedTimes.includes(time);
                 const slot = document.createElement('div');
                 slot.textContent = time;
                 slot.className = `time-slot p-2 rounded-lg ${isDisabled ? 'disabled' : ''}`;
@@ -531,20 +641,20 @@
                 container.innerHTML = `<div class="text-center text-slate-500 mt-10" style="color: var(--hint-color);"><p>У вас пока нет записей.</p><button onclick="showScreen('services-screen')" class="btn-primary mt-4">Записаться</button></div>`;
                 return;
             }
-            container.innerHTML = userAppointments.map((appt, index) => {
-                 const formattedDate = new Date(appt.date).toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
-                 return `
-                     <div class="card p-4">
-                         <div class="flex justify-between items-start">
-                             <div>
-                                 <p class="font-bold text-base">${appt.service.name}</p>
-                                 <p class="text-slate-500" style="color: var(--hint-color);">Мастер: ${appt.specialist.name}</p>
-                                 <p class="font-semibold mt-2" style="color: var(--button-color);">${formattedDate} в ${appt.time}</p>
-                             </div>
-                             <button onclick="cancelAppointment(${index})" class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-md">Отменить</button>
-                         </div>
-                     </div>
-                 `
+            container.innerHTML = userAppointments.map((appt) => {
+                   const formattedDate = new Date(appt.date).toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
+                   return `
+                        <div class="card p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-base">${appt.service.name}</p>
+                                    <p class="text-slate-500" style="color: var(--hint-color);">Мастер: ${appt.specialist.name}</p>
+                                    <p class="font-semibold mt-2" style="color: var(--button-color);">${formattedDate} в ${appt.time}</p>
+                                </div>
+                                <button onclick="cancelAppointment(${appt.id})" class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-md">Отменить</button>
+                            </div>
+                        </div>
+                    `
             }).join('');
         }
 
@@ -554,10 +664,10 @@
             const container = document.getElementById('post-view-screen');
             let commentsHtml = post.comments.map(comment => `
                 <div class="flex items-start space-x-3">
-                    <img src="https://placehold.co/32x32/e0e7ff/4338ca?text=${comment.author.charAt(0)}" class="w-8 h-8 rounded-full flex-shrink-0">
+                    <img src="https://placehold.co/32x32/e0e7ff/4338ca?text=${comment.author_name.charAt(0)}" class="w-8 h-8 rounded-full flex-shrink-0">
                     <div>
                         <div class="bg-slate-100 rounded-xl p-3" style="background-color: var(--bg-color);">
-                            <p class="font-semibold text-xs">${comment.author}</p>
+                            <p class="font-semibold text-xs">${comment.author_name}</p>
                             <p class="text-sm">${comment.text}</p>
                         </div>
                     </div>
@@ -572,7 +682,7 @@
                 </header>
                 <div class="flex-grow overflow-y-auto">
                     <div class="bg-white" style="background-color: var(--secondary-bg-color);">
-                        <img src="${post.img}" alt="${post.title}" class="w-full h-auto">
+                        <img src="${post.img_url}" alt="${post.title}" class="w-full h-auto">
                         <div class="p-4">
                             <p class="font-semibold mt-2" id="like-count-${post.id}">${post.likes} отметок "Нравится"</p>
                         </div>
@@ -587,22 +697,51 @@
             showScreen('post-view-screen');
         }
 
-        function toggleLike(postId) {
+        async function toggleLike(postId) {
             tg.HapticFeedback.impactOccurred('light');
             const post = portfolio.posts.find(p => p.id === postId);
             if (!post) return;
+            
+            // This is a simplified like toggle. A real app would track likes per user.
+            const newLikes = post.liked ? post.likes - 1 : post.likes + 1;
             post.liked = !post.liked;
-            post.likes += post.liked ? 1 : -1;
+            post.likes = newLikes;
+
+            const { error } = await supabase
+                .from('portfolio_posts')
+                .update({ likes: newLikes })
+                .eq('id', postId);
+            
+            if (error) console.error("Error updating likes:", error);
+            
             renderPortfolio();
         }
         
-        function addComment(postId) {
+        async function addComment(postId) {
             const post = portfolio.posts.find(p => p.id === postId);
             const input = document.getElementById(`comment-input-${postId}`);
             const text = input.value.trim();
             if (!post || !text) return;
-            const newComment = { id: Date.now(), author: currentUser.first_name, text: text };
-            post.comments.push(newComment);
+
+            const newComment = { 
+                post_id: postId, 
+                author_name: currentUser.first_name, 
+                text: text,
+                user_id: currentUser.id
+            };
+            
+            const { data, error } = await supabase
+                .from('comments')
+                .insert(newComment)
+                .select()
+                .single();
+
+            if (error) {
+                console.error("Error adding comment:", error);
+                return;
+            }
+            
+            post.comments.push(data);
             input.value = '';
             openPostView(postId);
         }
@@ -665,13 +804,41 @@
             }
         }
 
-        function confirmBooking() {
+        async function confirmBooking() {
             if (!tg.MainButton.isActive) return;
-            userAppointments.push({ ...bookingState });
+            
+            showLoader();
+            const appointmentData = {
+                salon_id: salonConfig.id,
+                user_id: currentUser.id,
+                user_name: currentUser.first_name,
+                service_id: bookingState.service.id,
+                specialist_id: bookingState.specialist.id,
+                date: bookingState.date,
+                time: bookingState.time
+            };
+
+            const { data, error } = await supabase
+                .from('appointments')
+                .insert(appointmentData)
+                .select('*, services(*), specialists(*)')
+                .single();
+            hideLoader();
+
+            if (error) {
+                console.error("Error confirming booking:", error);
+                alert("Не удалось создать запись. Пожалуйста, попробуйте еще раз.");
+                return;
+            }
+            
+            const newAppointment = { ...data, service: data.services, specialist: data.specialists };
+            userAppointments.push(newAppointment);
             userAppointments.sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+            
             const successDetails = document.getElementById('success-details');
             const formattedDate = new Date(bookingState.date).toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             successDetails.textContent = `Мы ждем вас ${formattedDate} в ${bookingState.time} на услугу "${bookingState.service.name}" к мастеру ${bookingState.specialist.name}.`;
+            
             showScreen('success-screen');
             renderAppointments();
             bookingState = { service: null, specialist: null, date: null, time: null };
@@ -679,21 +846,25 @@
             tg.HapticFeedback.notificationOccurred('success');
         }
 
-        function cancelAppointment(index) {
-            userAppointments.splice(index, 1);
+        async function cancelAppointment(appointmentId) {
+            showLoader();
+            const { error } = await supabase
+                .from('appointments')
+                .delete()
+                .eq('id', appointmentId);
+            hideLoader();
+
+            if (error) {
+                console.error("Error canceling appointment:", error);
+                alert("Не удалось отменить запись.");
+                return;
+            }
+
+            userAppointments = userAppointments.filter(a => a.id !== appointmentId);
             renderAppointments();
             tg.HapticFeedback.notificationOccurred('warning');
         }
 
-        String.prototype.hashCode = function() {
-            var hash = 0; if (this.length === 0) return hash;
-            for (var i = 0; i < this.length; i++) {
-                var chr = this.charCodeAt(i);
-                hash = ((hash << 5) - hash) + chr;
-                hash |= 0;
-            } return hash;
-        };
-        (function(g){var L=function(s){var _s=s;this.next=function(){_s=(214013*_s+2531011)&0x7fffffff;return _s/0x7fffffff;};};g.Math.seedrandom=function(s){return new L(s).next;};})(this);
     </script>
 </body>
 </html>
