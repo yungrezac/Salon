@@ -11,61 +11,84 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* =================================
+           THEME & BASE STYLES
+        ================================= */
         :root {
-            --bg-color: #f8fafc;
+            --bg-color: #f7f8fc;
             --secondary-bg-color: #ffffff;
-            --text-color: #334155;
-            --hint-color: #94a3b8;
+            --text-color: #1e293b;
+            --hint-color: #64748b;
             --border-color: #e2e8f0;
-            --button-color: #c08497;
-            --button-text-color: #ffffff;
-            --header-bg-color: #ffffff;
+            --primary-color: #d68099;
+            --primary-text-color: #ffffff;
             --danger-color: #ef4444;
+            --success-color: #22c55e;
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            -webkit-tap-highlight-color: transparent; 
+            overscroll-behavior-y: none;
+        }
         .main-container { padding-bottom: 80px; }
-        .btn-primary { background-color: var(--button-color); color: var(--button-text-color); }
-        .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.65rem 1.5rem; transition: all 0.2s; text-align: center; }
-        .btn:hover { opacity: 0.9; transform: scale(1.02); }
-        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
-        .card { background-color: var(--secondary-bg-color); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
         .screen { display: none; animation: fadeIn 0.3s ease-out; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =================================
+           COMPONENTS
+        ================================= */
+        .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.75rem 1.5rem; transition: all 0.2s; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn:disabled { background-color: #cbd5e1 !important; color: #fff !important; cursor: not-allowed; opacity: 0.8; transform: none; }
+        .btn-primary { background-color: var(--primary-color); color: var(--primary-text-color); }
+        .btn-secondary { background-color: #f1f5f9; color: var(--text-color); }
+        .btn-danger { background-color: var(--danger-color); color: #fff; }
+
+        .card { background-color: var(--secondary-bg-color); border-radius: 1rem; box-shadow: 0 4px 12px -1px rgb(0 0 0 / 0.06), 0 2px 8px -2px rgb(0 0 0 / 0.04); border: 1px solid var(--border-color); }
+        .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.75rem; transition: all 0.2s; background-color: #f8fafc; }
+        .form-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px #fde6ea; }
+        .form-error { color: var(--danger-color); font-size: 0.8rem; margin-top: 4px; display: none; }
         
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.3s; backdrop-filter: blur(4px); }
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--button-color); animation: spin 1s ease infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .admin-input { @apply w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition; }
-        .admin-card { @apply bg-white p-4 sm:p-6 rounded-lg shadow-md mb-6; }
-        
+        /* Time Slots */
         .time-slot { cursor: pointer; border: 1px solid var(--border-color); transition: all 0.2s; }
-        .time-slot.selected { background-color: var(--button-color); color: var(--button-text-color); border-color: var(--button-color); transform: scale(1.05); box-shadow: 0 0 10px rgba(192, 132, 151, 0.5); }
+        .time-slot.selected { background-color: var(--primary-color); color: var(--primary-text-color); border-color: var(--primary-color); transform: scale(1.05); box-shadow: 0 0 10px rgba(192, 132, 151, 0.5); }
         .time-slot:not(.disabled):hover { background-color: #fde6ea; border-color: #fde6ea; }
         .time-slot.disabled { background-color: #f1f5f9; color: var(--hint-color); cursor: not-allowed; opacity: 0.7; }
         
+        /* Navigation */
         .nav-item { color: var(--hint-color); transition: all 0.2s; }
-        .nav-item.active { color: var(--button-color); background-color: #fde6ea; }
-        .nav-item.active svg { color: var(--button-color); }
+        .nav-item.active { color: var(--primary-color); background-color: #fde6ea; }
+        .nav-item.active svg { color: var(--primary-color); }
 
+        /* Admin Navigation */
+        .admin-nav-item { border-color: transparent; color: #64748b; }
+        .admin-nav-item.active { border-color: var(--primary-color); color: var(--primary-color); }
+
+        /* =================================
+           UTILITIES & OVERLAYS
+        ================================= */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.3s; backdrop-filter: blur(4px); }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         #toast-container { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .toast { background-color: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards; backdrop-filter: blur(2px); }
+        .toast { background-color: rgba(30, 41, 59, 0.85); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards; backdrop-filter: blur(2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .toast.error { background-color: rgba(239, 68, 68, 0.85); }
+        .toast.success { background-color: rgba(34, 197, 94, 0.85); }
         @keyframes toast-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
 
-        .form-error { color: var(--danger-color); font-size: 0.8rem; margin-top: 4px; display: none; }
-
-        /* Modal */
         #modal-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; display: none; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; backdrop-filter: blur(4px); }
         #modal-container.active { display: flex; }
         .modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; animation: zoomIn 0.2s ease; }
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* Skeleton Loader */
-        .skeleton { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        .skeleton-card { background-color: var(--secondary-bg-color); border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
+        .skeleton { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; background-color: #e2e8f0; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .6; } }
     </style>
 </head>
 <body class="antialiased text-sm">
@@ -77,22 +100,22 @@
     <div id="constructor-wrapper">
         <div id="setup-screen" class="screen p-6 min-h-screen flex-col justify-center items-center">
              <div class="w-full max-w-md text-center">
-                 <h1 class="text-2xl font-bold mb-2">Создайте свой салон 💅</h1>
+                 <h1 class="text-2xl font-bold mb-2 text-slate-800">Создайте свой салон 💅</h1>
                  <p class="text-slate-500 mb-8">Заполните данные, чтобы получить ссылки на приложение и панель управления.</p>
                  <form id="setup-form" class="card p-6 text-left !mb-6">
                      <div class="mb-4">
                          <label for="salon-name-input" class="block font-semibold mb-2">Название салона</label>
-                         <input type="text" id="salon-name-input" placeholder="Например, Beauty Haven" class="w-full p-3 border rounded-lg" required>
+                         <input type="text" id="salon-name-input" placeholder="Например, Beauty Haven" class="form-input" required>
                          <span class="form-error" id="salon-name-input-error"></span>
                      </div>
                      <div class="mb-4">
                          <label for="logo-url-input" class="block font-semibold mb-2">URL логотипа</label>
-                         <input type="url" id="logo-url-input" placeholder="https://example.com/logo.png" class="w-full p-3 border rounded-lg" required>
+                         <input type="url" id="logo-url-input" placeholder="https://example.com/logo.png" class="form-input" required>
                          <span class="form-error" id="logo-url-input-error"></span>
                      </div>
                      <div class="mb-6">
                          <label for="salon-admin-password" class="block font-semibold mb-2">Пароль для админ-панели</label>
-                         <input type="password" id="salon-admin-password" placeholder="••••••••" class="w-full p-3 border rounded-lg" required minlength="6">
+                         <input type="password" id="salon-admin-password" placeholder="••••••••" class="form-input" required minlength="6">
                          <span class="form-error" id="salon-admin-password-error"></span>
                      </div>
                      <button id="generate-link-btn" type="submit" class="btn btn-primary w-full py-3">Создать салон</button>
@@ -100,12 +123,12 @@
                  <div id="link-result" class="text-left" style="display: none;">
                      <div class="card p-4 space-y-4">
                          <div>
-                             <label class="block font-semibold mb-2 text-sm">✅ Готово! Ссылка для ваших клиентов:</label>
-                             <div class="flex space-x-2"><input type="text" id="generated-client-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-client-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
+                             <label class="block font-semibold mb-2 text-sm text-green-600">✅ Готово! Ссылка для ваших клиентов:</label>
+                             <div class="flex space-x-2"><input type="text" id="generated-client-link" readonly class="form-input text-xs !bg-slate-100"><button data-copy-target="generated-client-link" class="btn btn-primary text-sm px-4">Копировать</button></div>
                          </div>
                          <div>
                              <label class="block font-semibold mb-2 text-sm text-red-600">⚠️ Ваша секретная ссылка для админ-панели:</label>
-                             <div class="flex space-x-2"><input type="text" id="generated-admin-link" readonly class="w-full p-2 border rounded-lg bg-slate-100 text-xs"><button onclick="App.copyLink('generated-admin-link')" class="btn btn-primary text-sm px-4">Копировать</button></div>
+                             <div class="flex space-x-2"><input type="text" id="generated-admin-link" readonly class="form-input text-xs !bg-slate-100"><button data-copy-target="generated-admin-link" class="btn btn-primary text-sm px-4">Копировать</button></div>
                          </div>
                      </div>
                  </div>
@@ -116,26 +139,16 @@
     <div id="client-app-wrapper" style="display: none;">
         <div class="main-container min-h-screen">
             
-            <header id="client-header" class="flex items-center p-4 pt-6 bg-white shadow-sm sticky top-0 z-20" style="background-color: var(--header-bg-color);">
+            <header id="client-header" class="flex items-center p-4 pt-6 bg-white shadow-sm sticky top-0 z-20" style="background-color: var(--secondary-bg-color);">
                 <img id="salon-logo-header" src="" alt="Logo" class="w-10 h-10 rounded-full object-cover">
                 <h1 id="salon-name-header" class="text-xl font-bold text-slate-800 ml-3" style="color: var(--text-color);"></h1>
             </header>
             
-            <div id="home-screen" class="screen">
-                <div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div>
-            </div>
-
+            <div id="home-screen" class="screen"><div id="portfolio-posts" class="space-y-1 bg-slate-100 pt-1" style="background-color: var(--bg-color);"></div></div>
             <div id="post-view-screen" class="screen"></div>
-            
-            <div id="services-screen" class="screen p-4">
-                <h1 class="text-xl font-bold mb-5">Выберите услугу</h1>
-                <div id="services-list" class="space-y-3"></div>
-            </div>
-
-            <div id="specialist-selection-screen" class="screen p-4">
-                <h1 class="text-xl font-bold mb-5">Выберите мастера</h1>
-                <div id="specialists-list" class="space-y-3"></div>
-            </div>
+            <div id="services-screen" class="screen p-4"><h1 class="text-xl font-bold mb-5">Выберите услугу</h1><div id="services-list" class="space-y-3"></div></div>
+            <div id="specialist-selection-screen" class="screen p-4"><h1 class="text-xl font-bold mb-5">Выберите мастера</h1><div id="specialists-list" class="space-y-3"></div></div>
+            <div id="my-appointments-screen" class="screen p-4"><h1 class="text-xl font-bold mb-5">Мои записи</h1><div id="appointments-list"></div></div>
             
             <div id="booking-screen" class="screen p-4">
                 <h1 class="text-xl font-bold mb-5">Выберите дату и время</h1>
@@ -144,15 +157,10 @@
                     <p class="text-sm text-slate-500" id="selected-specialist-subtitle" style="color: var(--hint-color);"></p>
                 </div>
                 <div class="card p-4">
-                    <input type="date" id="date-picker" class="w-full p-2 border rounded-lg mb-4">
+                    <input type="date" id="date-picker" class="form-input w-full p-2 mb-4">
                     <h2 class="font-semibold mb-3">Доступное время:</h2>
                     <div id="time-slots-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3 text-center text-xs"></div>
                 </div>
-            </div>
-            
-            <div id="my-appointments-screen" class="screen p-4">
-                <h1 class="text-xl font-bold mb-5">Мои записи</h1>
-                <div id="appointments-list"></div>
             </div>
             
             <div id="profile-screen" class="screen p-4">
@@ -171,7 +179,7 @@
                     <div class="mb-5"><svg class="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                     <h1 class="text-xl font-bold mb-2">Вы успешно записаны!</h1>
                     <p class="text-slate-600 mb-6" id="success-details" style="color: var(--hint-color);"></p>
-                    <button onclick="App.ui.showScreen('my-appointments-screen')" class="btn btn-primary">Посмотреть мои записи</button>
+                    <button data-screen="my-appointments-screen" class="btn btn-primary nav-action-btn">Посмотреть мои записи</button>
                 </div>
             </div>
         </div>
@@ -183,15 +191,15 @@
             <button data-screen="profile-screen" class="nav-item flex flex-col items-center justify-center w-full text-xs p-1 rounded-lg"><svg class="w-6 h-6 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span>Профиль</span></button>
         </nav>
     </div>
-
+    
     <div id="admin-mode-wrapper" style="display: none;" class="p-4 md:p-8 bg-slate-50 min-h-screen">
         <div id="admin-login-screen" class="max-w-md mx-auto">
-            <div class="admin-card mt-10">
+            <div class="card mt-10 p-6">
                 <h1 class="text-2xl font-bold mb-4">Вход в панель управления</h1>
                 <p class="mb-4 text-gray-600">Введите пароль от вашего салона.</p>
                 <form id="admin-login-form">
-                    <input type="password" id="password-input" class="admin-input" placeholder="••••••••" required>
-                    <button id="login-btn" type="submit" class="btn btn-primary w-full mt-4 bg-pink-600 hover:bg-pink-700">Войти</button>
+                    <input type="password" id="password-input" class="form-input" placeholder="••••••••" required>
+                    <button id="login-btn" type="submit" class="btn btn-primary w-full mt-4">Войти</button>
                     <p id="login-error" class="text-red-500 mt-2 text-sm text-center"></p>
                 </form>
             </div>
@@ -204,25 +212,23 @@
             </div>
             
             <div class="mb-6 border-b border-slate-200">
-                <nav class="-mb-px flex space-x-6" id="admin-nav">
+                <nav class="-mb-px flex space-x-6" id="admin-nav" style="overflow-x: auto;">
                     <button data-panel="appointments" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Записи</button>
                     <button data-panel="services" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Услуги</button>
                     <button data-panel="specialists" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Мастера</button>
                     <button data-panel="portfolio" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Портфолио</button>
+                    <button data-panel="comments" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Комментарии</button>
                     <button data-panel="theme" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Тема</button>
                     <button data-panel="settings" class="admin-nav-item whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Настройки</button>
                 </nav>
             </div>
-            <style>
-                .admin-nav-item { border-color: transparent; color: #64748b; }
-                .admin-nav-item.active { border-color: var(--button-color); color: var(--button-color); }
-            </style>
             
             <div id="admin-panels-container">
                 <div id="admin-panel-appointments" class="admin-panel-content"></div>
                 <div id="admin-panel-services" class="admin-panel-content"></div>
                 <div id="admin-panel-specialists" class="admin-panel-content"></div>
                 <div id="admin-panel-portfolio" class="admin-panel-content"></div>
+                <div id="admin-panel-comments" class="admin-panel-content"></div>
                 <div id="admin-panel-theme" class="admin-panel-content"></div>
                 <div id="admin-panel-settings" class="admin-panel-content"></div>
             </div>
@@ -233,27 +239,25 @@
 <script>
 // ==================================================================
 // ==================================================================
-//                      BEAUTY SALON MINI APP SCRIPT
+//               BEAUTY SALON MINI APP SCRIPT (REFACTORED)
 // ==================================================================
 // ==================================================================
 
 const App = {
-
     // ------------------------------------------------------------------
-    // Properties
+    // Properties & Configuration
     // ------------------------------------------------------------------
     tg: window.Telegram.WebApp,
     supabase: null,
     
     config: {
-        // !!! ВАЖНО: Активируйте Row Level Security (RLS) в вашем проекте Supabase.
-        // Этот 'anon' ключ является публичным, и его безопасно использовать только
-        // при правильно настроенных политиках RLS для каждой таблицы.
+        // !!! ВАЖНО: Убедитесь, что Row Level Security (RLS) включена для всех таблиц в Supabase.
         supabaseUrl: 'https://iwvglucrgnwetczrzwqk.supabase.co',
         supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dmdsdWNyZ253ZXRjenJ6d3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzY3NDgsImV4cCI6MjA3MDk1Mjc0OH0.Cn8YUKAlGyQKpZkXUxSHE9gQwsn0BFtH9GcaSJSpEiQ',
     },
 
-    state: {
+    // Centralized state management
+    store: {
         salonId: null,
         salonConfig: {},
         currentUser: {},
@@ -262,75 +266,74 @@ const App = {
         portfolio: [],
         userAppointments: [],
         allAppointments: [],
+        allComments: [],
         bookingState: {},
         screenHistory: ['home-screen'],
-        currentAdminPanel: 'appointments'
+        currentAdminPanel: 'appointments',
+        editingItemId: null,
     },
 
-    elements: {
-        loader: null,
-        toastContainer: null,
-        modalContainer: null,
-    },
+    // Cached DOM elements
+    elements: {},
 
     // ------------------------------------------------------------------
-    // Initializer
+    // App Initializer
     // ------------------------------------------------------------------
     init() {
         console.log("App Initializing...");
         this.supabase = supabase.createClient(this.config.supabaseUrl, this.config.supabaseKey);
-        this.elements.loader = document.getElementById('loader');
-        this.elements.toastContainer = document.getElementById('toast-container');
-        this.elements.modalContainer = document.getElementById('modal-container');
+        
+        // Cache all relevant DOM elements on startup
+        const ids = [
+            'loader', 'toast-container', 'modal-container', 'constructor-wrapper', 'setup-screen', 'setup-form', 'generate-link-btn', 
+            'link-result', 'generated-client-link', 'generated-admin-link', 'client-app-wrapper', 'client-header', 'salon-logo-header', 
+            'salon-name-header', 'home-screen', 'portfolio-posts', 'post-view-screen', 'services-screen', 'services-list', 
+            'specialist-selection-screen', 'specialists-list', 'booking-screen', 'selected-service-title', 'selected-specialist-subtitle', 
+            'date-picker', 'time-slots-container', 'my-appointments-screen', 'appointments-list', 'profile-screen', 'profile-avatar', 
+            'profile-name', 'success-screen', 'success-details', 'admin-mode-wrapper', 'admin-login-screen', 'admin-login-form', 
+            'password-input', 'login-btn', 'login-error', 'admin-panel', 'admin-salon-name', 'logout-btn', 'admin-nav', 
+            'admin-panels-container', 'admin-panel-appointments', 'admin-panel-services', 'admin-panel-specialists', 
+            'admin-panel-portfolio', 'admin-panel-comments', 'admin-panel-theme', 'admin-panel-settings'
+        ];
+        ids.forEach(id => this.elements[id] = document.getElementById(id));
         
         this.tg.ready();
         this.tg.expand();
-        this.tg.setHeaderColor('#ffffff'); // Default header color
+        this.tg.setHeaderColor('#ffffff');
         
         this.router();
     },
 
     // ------------------------------------------------------------------
-    // Core Utilities
+    // Router: Determines which mode to launch
     // ------------------------------------------------------------------
     async router() {
-        this.utils.showLoader();
+        this.ui.showLoader();
         try {
             const params = new URLSearchParams(this.tg.initDataUnsafe?.start_param ? `?${this.tg.initDataUnsafe.start_param}` : window.location.hash.substring(1));
-            this.state.salonId = params.get('salonId');
+            this.store.salonId = params.get('salonId');
             const mode = params.get('mode');
 
-            if (mode === 'admin' && this.state.salonId) {
+            if (mode === 'admin' && this.store.salonId) {
                 this.initAdmin();
-            } else if (this.state.salonId) {
+            } else if (this.store.salonId) {
                 await this.initClientApp();
             } else {
                 this.initConstructor();
             }
         } catch (e) {
             console.error("Router failed:", e);
-            this.utils.showToast("Произошла критическая ошибка.", 'error');
+            this.ui.showToast("Произошла критическая ошибка.", 'error');
+            this.initConstructor();
         } finally {
-            this.utils.hideLoader();
+            this.ui.hideLoader();
         }
     },
-
+    
+    // ------------------------------------------------------------------
+    // GENERAL UTILITIES
+    // ------------------------------------------------------------------
     utils: {
-        showLoader() { App.elements.loader.style.display = 'flex'; },
-        hideLoader() {
-            App.elements.loader.style.opacity = 0;
-            setTimeout(() => {
-                App.elements.loader.style.display = 'none';
-                App.elements.loader.style.opacity = 1;
-            }, 300);
-        },
-        showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            App.elements.toastContainer.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        },
         getTodayDateString() {
             const today = new Date();
             const offset = today.getTimezoneOffset();
@@ -340,14 +343,14 @@ const App = {
         formatDate(dateString) {
             return new Date(dateString).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         },
-        parseDuration(durationStr) { // Parses "1 час 30 мин" into 90
+        parseDuration(durationStr) {
             let totalMinutes = 0;
             if (!durationStr || typeof durationStr !== 'string') return 60;
             const hourMatch = durationStr.match(/(\d+)\s*(час|ч)/);
             const minMatch = durationStr.match(/(\d+)\s*(мин|м)/);
             if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
             if (minMatch) totalMinutes += parseInt(minMatch[1]);
-            return totalMinutes || 60; // Default to 60 if parsing fails
+            return totalMinutes || 60;
         },
         minutesToTime(minutes) {
              const h = Math.floor(minutes / 60).toString().padStart(2, '0');
@@ -355,6 +358,7 @@ const App = {
              return `${h}:${m}`;
         },
         timeToMinutes(timeStr) {
+            if (!timeStr || !timeStr.includes(':')) return 0;
             const [h, m] = timeStr.split(':').map(Number);
             return h * 60 + m;
         },
@@ -369,7 +373,7 @@ const App = {
 
                 if (field.required && !input.value.trim()) {
                     message = 'Это поле обязательно для заполнения';
-                } else if (field.type === 'url' && !/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i.test(input.value)) {
+                } else if (field.type === 'url' && input.value.trim() && !/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i.test(input.value)) {
                     message = 'Введите корректный URL';
                 } else if (field.minLength && input.value.length < field.minLength) {
                     message = `Минимальная длина: ${field.minLength} символов`;
@@ -379,34 +383,72 @@ const App = {
                     errorEl.textContent = message;
                     errorEl.style.display = 'block';
                     isValid = false;
-                } else {
-                    errorEl.style.display = 'none';
                 }
             }
             return isValid;
+        },
+        escapeHTML(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
     },
-
-    copyLink(elementId) {
-        const linkInput = document.getElementById(elementId);
-        linkInput.select();
-        document.execCommand('copy');
-        this.utils.showToast('Ссылка скопирована!');
+    
+    // ------------------------------------------------------------------
+    // API Layer: All Supabase calls are handled here
+    // ------------------------------------------------------------------
+    api: {
+        async createSalon(name, logo, password) {
+            const { data, error } = await App.supabase.from('salons').insert([{ name, logo_url: logo, admin_password: password }]).select().single();
+            if (error) throw error;
+            await App.supabase.from('themes').insert([{ salon_id: data.id }]);
+            return data;
+        },
+        getSalonData: (id) => App.supabase.from('salons').select(`*, themes(*)`).eq('id', id).single(),
+        upsertUser: (user) => App.supabase.from('users').upsert({ telegram_id: user.id, first_name: user.first_name, username: user.username }, { onConflict: 'telegram_id' }),
+        getClientData: (salonId, userId) => Promise.all([
+            App.supabase.from('services').select('*').eq('salon_id', salonId),
+            App.supabase.from('specialists').select('*').eq('salon_id', salonId),
+            App.supabase.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonId).order('created_at', { ascending: false }),
+            App.supabase.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', userId).eq('salon_id', salonId).order('date').order('time')
+        ]),
+        getAppointmentsForDate: (salonId, specialistId, date) => App.supabase.from('appointments').select('time, services(duration)').eq('salon_id', salonId).eq('date', date).eq('specialist_id', specialistId),
+        createAppointment: (appt) => App.supabase.from('appointments').insert([appt]),
+        cancelAppointment: (id) => App.supabase.from('appointments').delete().eq('id', id),
+        postComment: (comment) => App.supabase.from('comments').insert(comment).select().single(),
+        
+        // Admin API
+        getAdminData: (salonId) => Promise.all([
+             App.supabase.from('salons').select(`*, services(*), specialists(*), portfolio_posts(*), themes(*)`).eq('id', salonId).single(),
+             App.supabase.from('appointments').select('*, services(name), specialists(name), users(first_name, username)').eq('salon_id', salonId).order('date', { ascending: true }).order('time', { ascending: true }),
+             App.supabase.from('comments').select('*, users(first_name, username), portfolio_posts(title)').eq('portfolio_posts.salon_id', salonId).order('created_at', { ascending: false })
+        ]),
+        upsertItem: (table, item) => App.supabase.from(table).upsert(item),
+        deleteItem: (table, id) => App.supabase.from(table).delete().eq('id', id),
+        updateSalonSettings: (salonId, settings) => App.supabase.from('salons').update(settings).eq('id', salonId),
+        updateTheme: (salonId, themeData) => App.supabase.from('themes').upsert({ salon_id: salonId, ...themeData }, { onConflict: 'salon_id' }),
     },
 
     // ------------------------------------------------------------------
-    // Constructor Mode
+    // CONSTRUCTOR MODE LOGIC
     // ------------------------------------------------------------------
     initConstructor() {
-        document.getElementById('constructor-wrapper').style.display = 'block';
-        document.getElementById('setup-screen').classList.add('active', 'flex');
-        document.getElementById('setup-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleGenerateLink();
+        this.elements['constructor-wrapper'].style.display = 'block';
+        this.elements['setup-screen'].classList.add('active', 'flex');
+        this.elements['setup-form'].addEventListener('submit', this.handleGenerateLink.bind(this));
+        
+        this.elements['link-result'].addEventListener('click', (e) => {
+            const target = e.target.closest('[data-copy-target]');
+            if (target) {
+                const inputId = target.dataset.copyTarget;
+                const linkInput = this.elements[inputId];
+                linkInput.select();
+                document.execCommand('copy');
+                this.ui.showToast('Ссылка скопирована!', 'success');
+            }
         });
     },
 
-    async handleGenerateLink() {
+    async handleGenerateLink(e) {
+        e.preventDefault();
         const isValid = this.utils.validateForm('setup-form', [
             { id: 'salon-name-input', required: true },
             { id: 'logo-url-input', required: true, type: 'url' },
@@ -417,54 +459,57 @@ const App = {
         const name = document.getElementById('salon-name-input').value.trim();
         const logo = document.getElementById('logo-url-input').value.trim();
         const password = document.getElementById('salon-admin-password').value.trim();
-        const generateBtn = document.getElementById('generate-link-btn');
+        
+        this.ui.setButtonLoading(this.elements['generate-link-btn'], true);
+        this.ui.showLoader();
 
-        this.utils.showLoader();
-        generateBtn.disabled = true;
         try {
-            const { data: salonData, error } = await this.supabase
-                .from('salons')
-                .insert([{ name, logo_url: logo, admin_password: password }])
-                .select()
-                .single();
-            if (error) throw error;
+            const salonData = await this.api.createSalon(name, logo, password);
             
-            await this.supabase.from('themes').insert([{ salon_id: salonData.id }]);
-
             const appName = this.tg.initDataUnsafe.web_app.url.split('t.me/')[1].split('/')[0];
-            const baseUrl = `https://t.me/${appName}`; 
-            document.getElementById('generated-client-link').value = `${baseUrl}?startapp=salonId=${salonData.id}`;
-            document.getElementById('generated-admin-link').value = `${baseUrl}?startapp=salonId=${salonData.id}-mode=admin`;
-            document.getElementById('setup-form').style.display = 'none';
-            document.getElementById('link-result').style.display = 'block';
-
+            const baseUrl = `https://t.me/${appName}`;
+            this.elements['generated-client-link'].value = `${baseUrl}?startapp=salonId=${salonData.id}`;
+            this.elements['generated-admin-link'].value = `${baseUrl}?startapp=salonId=${salonData.id}-mode=admin`;
+            
+            this.elements['setup-form'].style.display = 'none';
+            this.elements['link-result'].style.display = 'block';
         } catch (error) {
             console.error("Salon creation failed:", error);
-            this.utils.showToast('Ошибка создания салона: ' + error.message);
+            this.ui.showToast('Ошибка создания салона: ' + error.message, 'error');
         } finally {
-            this.utils.hideLoader();
-            generateBtn.disabled = false;
+            this.ui.setButtonLoading(this.elements['generate-link-btn'], false);
+            this.ui.hideLoader();
         }
     },
     
-    // ------------------------------------------------------------------
-    // Client App Mode
-    // ------------------------------------------------------------------
+    // ==================================================================
+    // ==================================================================
+    //                         CLIENT APP LOGIC
+    // ==================================================================
+    // ==================================================================
+    
     async initClientApp() {
-        document.getElementById('client-app-wrapper').style.display = 'block';
-        this.client.displayUserData();
+        this.elements['client-app-wrapper'].style.display = 'block';
         
-        const { data, error } = await this.supabase.from('salons').select(`*, themes(*)`).eq('id', this.state.salonId).single();
+        // Setup current user
+        const user = this.tg.initDataUnsafe?.user;
+        this.store.currentUser = user || { id: 123456789, first_name: 'Тест', username: 'testuser' }; // Fallback for testing
+        await this.api.upsertUser(this.store.currentUser);
+
+        // Fetch salon config
+        const { data, error } = await this.api.getSalonData(this.store.salonId);
         if (error || !data) {
-            this.utils.showToast('Салон не найден. Открываю конструктор.');
-            setTimeout(() => this.initConstructor(), 2000);
+            this.ui.showToast('Салон не найден. Открываю конструктор.', 'error');
+            setTimeout(() => window.location.hash = '', 2000);
             return;
         }
         
-        this.state.salonConfig = data;
-        this.ui.applyTheme(data.themes[0]);
-        await this.client.upsertUser();
+        this.store.salonConfig = data;
+        
+        // Initial setup
         this.client.setupEventListeners();
+        this.ui.applyTheme(data.themes[0]);
+        this.ui.renderProfile();
         
         await this.client.loadData();
         this.client.renderAll();
@@ -473,95 +518,98 @@ const App = {
     },
 
     client: {
-        displayUserData() {
-            const user = App.tg.initDataUnsafe?.user;
-            App.state.currentUser = user || { id: 123456789, first_name: 'Тест', username: 'testuser' };
-            const userInitial = (App.state.currentUser.first_name || 'U').charAt(0).toUpperCase();
-            document.getElementById('profile-name').textContent = App.state.currentUser.first_name || 'Пользователь';
-            document.getElementById('profile-avatar').src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
-        },
-
-        async upsertUser() {
-            const { id, first_name, username } = App.state.currentUser;
-            if (!id) return;
-            await App.supabase.from('users').upsert({ telegram_id: id, first_name, username }, { onConflict: 'telegram_id' });
-        },
-
         setupEventListeners() {
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.onclick = () => App.ui.showScreen(btn.dataset.screen);
+            // Main navigation
+            document.querySelector('nav').addEventListener('click', e => {
+                const navBtn = e.target.closest('.nav-item, .nav-action-btn');
+                if (navBtn) App.ui.showScreen(navBtn.dataset.screen);
             });
-            App.tg.MainButton.setText('Подтвердить запись').onClick(App.client.handleBookingConfirm);
-            App.tg.BackButton.onClick(() => App.ui.goBack());
             
-            const datePicker = document.getElementById('date-picker');
-            datePicker.min = App.utils.getTodayDateString();
-            datePicker.onchange = e => {
-                App.state.bookingState.date = e.target.value;
-                App.state.bookingState.time = null;
+            // Back & Main TG buttons
+            App.tg.BackButton.onClick(() => App.ui.goBack());
+            App.tg.MainButton.setText('Подтвердить запись').onClick(App.client.handleBookingConfirm);
+            
+            // Date picker
+            App.elements['date-picker'].min = App.utils.getTodayDateString();
+            App.elements['date-picker'].addEventListener('change', e => {
+                App.store.bookingState.date = e.target.value;
+                App.store.bookingState.time = null;
                 App.ui.renderTimeSlots();
-            };
+            });
+
+            // Dynamic content listeners (Event Delegation)
+            App.elements['services-list'].addEventListener('click', App.client.handleServiceSelect);
+            App.elements['specialists-list'].addEventListener('click', App.client.handleSpecialistSelect);
+            App.elements['time-slots-container'].addEventListener('click', App.client.handleTimeSelect);
+            App.elements['appointments-list'].addEventListener('click', App.client.handleAppointmentCancel);
+            App.elements['portfolio-posts'].addEventListener('click', App.client.handlePostClick);
+            App.elements['post-view-screen'].addEventListener('submit', App.client.handlePostComment);
         },
 
         async loadData() {
-            App.ui.renderSkeletons();
-            const { salonId, currentUser } = App.state;
+            App.ui.renderAllSkeletons();
             try {
-                const [servicesRes, specialistsRes, postsRes, appointmentsRes] = await Promise.all([
-                    App.supabase.from('services').select('*').eq('salon_id', salonId),
-                    App.supabase.from('specialists').select('*').eq('salon_id', salonId),
-                    App.supabase.from('portfolio_posts').select('*, comments(*, users(first_name))').eq('salon_id', salonId).order('created_at', { ascending: false }),
-                    App.supabase.from('appointments').select('*, services(*), specialists(*)').eq('user_telegram_id', currentUser.id).eq('salon_id', salonId).order('date').order('time')
-                ]);
+                const [servicesRes, specialistsRes, postsRes, appointmentsRes] = await App.api.getClientData(App.store.salonId, App.store.currentUser.id);
 
-                App.state.services = servicesRes.data || [];
-                App.state.specialists = specialistsRes.data || [];
-                App.state.portfolio = postsRes.data || [];
-                App.state.userAppointments = (appointmentsRes.data || []).map(a => ({ ...a, service: a.services, specialist: a.specialists }));
+                App.store.services = servicesRes.data || [];
+                App.store.specialists = specialistsRes.data || [];
+                App.store.portfolio = postsRes.data || [];
+                App.store.userAppointments = (appointmentsRes.data || []).map(a => ({ ...a, service: a.services, specialist: a.specialists }));
             } catch (error) {
                 console.error("Failed to load client data:", error);
-                App.utils.showToast("Не удалось загрузить данные.");
+                App.ui.showToast("Не удалось загрузить данные.", 'error');
             }
         },
 
         renderAll() {
-            document.getElementById('salon-name-header').textContent = App.state.salonConfig.name;
-            document.getElementById('salon-logo-header').src = App.state.salonConfig.logo_url;
+            App.elements['salon-name-header'].textContent = App.store.salonConfig.name;
+            App.elements['salon-logo-header'].src = App.store.salonConfig.logo_url;
             App.ui.renderServices();
             App.ui.renderAppointments();
             App.ui.renderPortfolio();
         },
 
-        handleServiceSelect(service) {
-            App.state.bookingState = { service };
-            App.ui.renderSpecialists();
-            App.ui.showScreen('specialist-selection-screen');
+        handleServiceSelect(e) {
+            const button = e.target.closest('[data-service-id]');
+            if (!button) return;
+            const service = App.store.services.find(s => s.id == button.dataset.serviceId);
+            if (service) {
+                App.store.bookingState = { service };
+                App.ui.renderSpecialists();
+                App.ui.showScreen('specialist-selection-screen');
+            }
         },
         
-        handleSpecialistSelect(specialist) {
-            App.state.bookingState.specialist = specialist;
-            const service = App.state.bookingState.service;
-            document.getElementById('selected-service-title').textContent = service.name;
-            document.getElementById('selected-specialist-subtitle').textContent = `Мастер: ${specialist.name}・${service.duration}`;
+        handleSpecialistSelect(e) {
+            const button = e.target.closest('[data-specialist-id]');
+            if (!button) return;
+            const specialist = App.store.specialists.find(s => s.id == button.dataset.specialistId);
+            if (specialist) {
+                App.store.bookingState.specialist = specialist;
+                const { service } = App.store.bookingState;
+                App.elements['selected-service-title'].textContent = service.name;
+                App.elements['selected-specialist-subtitle'].textContent = `Мастер: ${specialist.name}・${service.duration}`;
 
-            const datePicker = document.getElementById('date-picker');
-            datePicker.value = App.utils.getTodayDateString();
-            App.state.bookingState.date = datePicker.value;
-            
-            App.ui.renderTimeSlots();
-            App.ui.showScreen('booking-screen');
+                const datePicker = App.elements['date-picker'];
+                datePicker.value = App.utils.getTodayDateString();
+                App.store.bookingState.date = datePicker.value;
+                
+                App.ui.renderTimeSlots();
+                App.ui.showScreen('booking-screen');
+            }
         },
         
-        handleTimeSelect(el, time) {
-            if (el.classList.contains('disabled')) return;
+        handleTimeSelect(e) {
+            const slot = e.target.closest('.time-slot');
+            if (!slot || slot.classList.contains('disabled')) return;
             document.querySelectorAll('#time-slots-container .time-slot').forEach(s => s.classList.remove('selected'));
-            el.classList.add('selected');
-            App.state.bookingState.time = time;
-            App.client.updateConfirmButtonState();
+            slot.classList.add('selected');
+            App.store.bookingState.time = slot.dataset.time;
+            App.client.updateMainButtonState();
         },
 
-        updateConfirmButtonState() {
-            const { service, specialist, date, time } = App.state.bookingState;
+        updateMainButtonState() {
+            const { service, specialist, date, time } = App.store.bookingState;
             const isActive = !!(service && specialist && date && time);
             if (App.tg.MainButton.isVisible) {
                 App.tg.MainButton.setParams({ is_active: isActive });
@@ -570,124 +618,180 @@ const App = {
 
         async handleBookingConfirm() {
             if (!App.tg.MainButton.isActive) return;
-            App.utils.showLoader();
-            const { service, specialist, date, time } = App.state.bookingState;
+            App.ui.showLoader();
+            const { service, specialist, date, time } = App.store.bookingState;
             try {
-                const { error } = await App.supabase.from('appointments').insert([{
-                    salon_id: App.state.salonId,
-                    user_telegram_id: App.state.currentUser.id,
+                const { error } = await App.api.createAppointment({
+                    salon_id: App.store.salonId,
+                    user_telegram_id: App.store.currentUser.id,
                     service_id: service.id,
                     specialist_id: specialist.id,
                     date: date,
                     time: time
-                }]);
+                });
                 if (error) throw error;
                 
-                document.getElementById('success-details').textContent = `Ждем вас ${App.utils.formatDate(date)} в ${time} на услугу "${service.name}".`;
+                App.elements['success-details'].textContent = `Ждем вас ${App.utils.formatDate(date)} в ${time} на услугу "${service.name}".`;
                 App.ui.showScreen('success-screen');
-                await App.client.loadData();
+                await App.client.loadData(); // Reload all data
                 App.ui.renderAppointments();
-
             } catch (error) {
                 console.error("Booking failed:", error);
-                App.utils.showToast('Ошибка записи: ' + error.message);
+                App.ui.showToast('Ошибка записи: ' + error.message, 'error');
             } finally {
-                App.utils.hideLoader();
+                App.ui.hideLoader();
             }
-        },
-
-        handleAppointmentCancel(appointmentId) {
-             App.ui.showModal({
-                title: 'Отменить запись?',
-                content: 'Вы уверены, что хотите отменить эту запись? Это действие необратимо.',
-                buttons: [
-                    { text: 'Оставить', role: 'secondary', action: App.ui.hideModal },
-                    { text: 'Отменить', role: 'danger', action: async () => {
-                        App.ui.hideModal();
-                        App.utils.showLoader();
-                        try {
-                            const { error } = await App.supabase.from('appointments').delete().eq('id', appointmentId);
-                            if (error) throw error;
-                            App.utils.showToast('Запись успешно отменена');
-                            await App.client.loadData();
-                            App.ui.renderAppointments();
-                        } catch (error) {
-                            console.error("Cancellation failed:", error);
-                            App.utils.showToast('Ошибка отмены: ' + error.message);
-                        } finally {
-                            App.utils.hideLoader();
-                        }
-                    }}
-                ]
-            });
         },
         
-        async handlePostComment(postId) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
-            
-            App.utils.showLoader();
-            try {
-                const { data: commentData, error } = await App.supabase.from('comments').insert({
-                    post_id: postId,
-                    user_telegram_id: App.state.currentUser.id,
-                    text: text
-                }).select().single();
-                if (error) throw error;
-                input.value = '';
+        handleAppointmentCancel(e) {
+            const button = e.target.closest('[data-appointment-id]');
+            if (!button) return;
+            const appointmentId = button.dataset.appointmentId;
+             App.ui.showModal({
+                 title: 'Отменить запись?',
+                 content: 'Вы уверены, что хотите отменить эту запись? Это действие необратимо.',
+                 buttons: [
+                     { text: 'Оставить', role: 'secondary', action: App.ui.hideModal },
+                     { text: 'Отменить', role: 'danger', action: async () => {
+                         App.ui.hideModal();
+                         App.ui.showLoader();
+                         try {
+                             const { error } = await App.api.cancelAppointment(appointmentId);
+                             if (error) throw error;
+                             App.ui.showToast('Запись успешно отменена', 'success');
+                             // Optimistic update
+                             App.store.userAppointments = App.store.userAppointments.filter(a => a.id != appointmentId);
+                             App.ui.renderAppointments();
+                         } catch (error) {
+                             console.error("Cancellation failed:", error);
+                             App.ui.showToast('Ошибка отмены: ' + error.message, 'error');
+                             // If fails, reload data to be safe
+                             await App.client.loadData();
+                             App.ui.renderAppointments();
+                         } finally {
+                             App.ui.hideLoader();
+                         }
+                     }}
+                 ]
+             });
+        },
+        
+        handlePostClick(e) {
+            const card = e.target.closest('[data-post-id]');
+            if (!card) return;
+            const post = App.store.portfolio.find(p => p.id == card.dataset.postId);
+            if (post) App.ui.renderPostDetail(post);
+        },
 
-                // Optimistic update: add comment to UI without full reload
-                const post = App.state.portfolio.find(p => p.id === postId);
-                if (post) {
-                    post.comments.push({ ...commentData, users: { first_name: App.state.currentUser.first_name } });
-                    App.ui.renderPostDetail(post);
-                }
-            } catch (error) {
-                console.error("Comment failed:", error);
-                App.utils.showToast('Не удалось отправить комментарий.');
-            } finally {
-                App.utils.hideLoader();
-            }
+        async handlePostComment(e) {
+             const form = e.target.closest('form');
+             if (!form) return;
+             e.preventDefault();
+             const postId = form.dataset.postId;
+             const input = form.querySelector('input');
+             const text = input.value.trim();
+             if (!text) return;
+             
+             App.ui.showLoader();
+             try {
+                 const { data: commentData, error } = await App.api.postComment({
+                     post_id: postId,
+                     user_telegram_id: App.store.currentUser.id,
+                     text: text
+                 });
+                 if (error) throw error;
+                 input.value = '';
+
+                 // Optimistic update
+                 const post = App.store.portfolio.find(p => p.id == postId);
+                 if (post) {
+                     post.comments.push({ ...commentData, users: { first_name: App.store.currentUser.first_name } });
+                     App.ui.renderPostDetail(post); // Re-render the detail view
+                 }
+             } catch (error) {
+                 console.error("Comment failed:", error);
+                 App.ui.showToast('Не удалось отправить комментарий.', 'error');
+             } finally {
+                 App.ui.hideLoader();
+             }
         }
     },
 
+    // ------------------------------------------------------------------
+    // UI Layer: All DOM manipulation, rendering, and animations
+    // ------------------------------------------------------------------
     ui: {
+        showLoader: () => App.elements.loader.style.display = 'flex',
+        hideLoader() {
+            App.elements.loader.style.opacity = 0;
+            setTimeout(() => {
+                App.elements.loader.style.display = 'none';
+                App.elements.loader.style.opacity = 1;
+            }, 300);
+        },
+
+        showToast(message, type = 'info') { // types: info, success, error
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            App.elements.toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        },
+        
+        setButtonLoading(button, isLoading) {
+            if (!button) return;
+            if (isLoading) {
+                button.disabled = true;
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = `<span class="spinner !w-5 !h-5 !border-2"></span>`;
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.dataset.originalText || 'Submit';
+            }
+        },
+
         applyTheme(theme) {
-            const root = document.documentElement;
             if (!theme) return;
+            const root = document.documentElement;
             const updateVar = (name, value, fallback) => root.style.setProperty(name, value || fallback);
-            updateVar('--bg-color', theme.bg_color, '#f8fafc');
-            updateVar('--text-color', theme.text_color, '#334155');
-            updateVar('--button-color', theme.button_color, '#c08497');
-            updateVar('--button-text-color', theme.button_text_color, '#ffffff');
+            updateVar('--bg-color', theme.bg_color, '#f7f8fc');
+            updateVar('--text-color', theme.text_color, '#1e293b');
+            updateVar('--primary-color', theme.button_color, '#d68099');
+            updateVar('--primary-text-color', theme.button_text_color, '#ffffff');
             updateVar('--secondary-bg-color', theme.secondary_bg_color, '#ffffff');
-            
             App.tg.setHeaderColor(theme.secondary_bg_color || '#ffffff');
         },
 
         showScreen(screenId, isBack = false) {
-            if (!isBack && App.state.screenHistory[App.state.screenHistory.length - 1] !== screenId) {
-                App.state.screenHistory.push(screenId);
+            if (!this.elements[screenId]) {
+                console.error(`Screen with id "${screenId}" not found.`);
+                return;
+            }
+            if (!isBack && App.store.screenHistory[App.store.screenHistory.length - 1] !== screenId) {
+                App.store.screenHistory.push(screenId);
             }
             document.querySelectorAll('#client-app-wrapper .screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
+            this.elements[screenId].classList.add('active');
 
             const isBaseScreen = ['home-screen', 'services-screen', 'my-appointments-screen', 'profile-screen'].includes(screenId);
-            App.tg.BackButton.setVisible(App.state.screenHistory.length > 1);
+            App.tg.BackButton.setVisible(App.store.screenHistory.length > 1);
             App.tg.MainButton.setVisible(screenId === 'booking-screen');
-            document.getElementById('client-header').style.display = isBaseScreen ? 'flex' : 'none';
+            this.elements['client-header'].style.display = isBaseScreen ? 'flex' : 'none';
 
-            if (screenId === 'booking-screen') App.client.updateConfirmButtonState();
+            if (screenId === 'booking-screen') App.client.updateMainButtonState();
             
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.screen === screenId || (screenId.includes('booking') && item.dataset.screen === 'services-screen')));
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const isBookingFlow = ['specialist-selection-screen', 'booking-screen'].includes(screenId);
+                const isActive = item.dataset.screen === screenId || (isBookingFlow && item.dataset.screen === 'services-screen');
+                item.classList.toggle('active', isActive);
+            });
             window.scrollTo(0, 0);
         },
 
         goBack() {
-            if (App.state.screenHistory.length > 1) {
-                App.state.screenHistory.pop();
-                App.ui.showScreen(App.state.screenHistory[App.state.screenHistory.length - 1], true);
+            if (App.store.screenHistory.length > 1) {
+                App.store.screenHistory.pop();
+                this.showScreen(App.store.screenHistory[App.store.screenHistory.length - 1], true);
             }
         },
 
@@ -698,58 +802,56 @@ const App = {
                     <p class="text-slate-600 mb-6">${content}</p>
                     <div class="flex gap-3 justify-center">
                         ${buttons.map((btn, index) => {
-                            const roleClass = btn.role === 'danger' ? 'bg-red-500 text-white' : (btn.role === 'secondary' ? 'bg-slate-200 text-slate-800' : 'btn-primary');
+                            const roleClass = btn.role === 'danger' ? 'btn-danger' : (btn.role === 'secondary' ? 'btn-secondary' : 'btn-primary');
                             return `<button id="modal-btn-${index}" class="btn w-full ${roleClass}">${btn.text}</button>`;
                         }).join('')}
                     </div>
                 </div>`;
-            App.elements.modalContainer.innerHTML = modalHTML;
+            this.elements.modalContainer.innerHTML = modalHTML;
             buttons.forEach((btn, index) => {
                 document.getElementById(`modal-btn-${index}`).onclick = btn.action;
             });
-            App.elements.modalContainer.classList.add('active');
+            this.elements.modalContainer.classList.add('active');
         },
 
-        hideModal() {
-            App.elements.modalContainer.classList.remove('active');
+        hideModal: () => App.elements.modalContainer.classList.remove('active'),
+        
+        // ------------- RENDER FUNCTIONS -------------
+        components: {
+            skeletonCard: `<div class="card p-4 flex justify-between items-center"><div class="flex-grow pr-4"><div class="h-5 skeleton rounded w-3/4 mb-2"></div><div class="h-4 skeleton rounded w-1/2"></div></div><div class="h-10 w-24 skeleton rounded-lg"></div></div>`,
+            skeletonPost: `<div class="card"><div class="p-4 flex items-center"><div class="w-8 h-8 rounded-full skeleton mr-3"></div><div class="h-4 skeleton rounded w-1/3"></div></div><div class="w-full h-64 skeleton"></div><div class="p-4 space-y-2"><div class="h-4 skeleton rounded w-full"></div><div class="h-4 skeleton rounded w-3/4"></div></div></div>`,
+            emptyState: (message, buttonText, actionScreen) => `<div class="text-center text-slate-500 py-16 px-4 flex flex-col items-center"><div class="mb-4 text-4xl">🤷‍♀️</div><p class="mb-4">${message}</p>${buttonText ? `<button data-screen="${actionScreen}" class="btn btn-primary nav-action-btn">${buttonText}</button>` : ''}</div>`,
         },
-
-        renderSkeletons() {
-            const skeletonPost = `<div class="card skeleton"><div class="p-4 flex items-center"><div class="w-8 h-8 rounded-full bg-slate-200 mr-3"></div><div class="h-4 bg-slate-200 rounded w-1/3"></div></div><div class="w-full h-64 bg-slate-200"></div><div class="p-4"><div class="h-4 bg-slate-200 rounded w-full"></div></div></div>`;
-            const skeletonCard = `<div class="skeleton-card flex justify-between items-center skeleton"><div><div class="h-5 bg-slate-200 rounded w-32 mb-2"></div><div class="h-4 bg-slate-200 rounded w-24"></div></div><div class="h-9 w-20 bg-slate-200 rounded-lg"></div></div>`;
-            
-            document.getElementById('portfolio-posts').innerHTML = Array(2).fill(skeletonPost).join('');
-            document.getElementById('services-list').innerHTML = Array(4).fill(skeletonCard).join('');
-            document.getElementById('specialists-list').innerHTML = Array(3).fill(skeletonCard).join('');
-        },
-
-        renderEmptyState(container, message, buttonText, action) {
-            container.innerHTML = `<div class="text-center text-slate-500 py-10 px-4"><p class="mb-4">${message}</p>${buttonText ? `<button onclick="${action}" class="btn btn-primary">${buttonText}</button>` : ''}</div>`;
+        
+        renderAllSkeletons() {
+            App.elements['portfolio-posts'].innerHTML = App.ui.components.skeletonPost.repeat(2);
+            App.elements['services-list'].innerHTML = App.ui.components.skeletonCard.repeat(4);
+            App.elements['specialists-list'].innerHTML = App.ui.components.skeletonCard.repeat(3);
+            App.elements['appointments-list'].innerHTML = App.ui.components.skeletonCard.repeat(3);
         },
 
         renderServices() {
-            const list = document.getElementById('services-list');
-            if (App.state.services.length === 0) {
-                this.renderEmptyState(list, 'В этом салоне пока нет доступных услуг.');
-                return;
+            const list = App.elements['services-list'];
+            const { services } = App.store;
+            if (services.length === 0) {
+                list.innerHTML = this.components.emptyState('В этом салоне пока нет доступных услуг.'); return;
             }
-            list.innerHTML = App.state.services.map(s => `
+            list.innerHTML = services.map(s => `
                 <div class="card p-4 flex justify-between items-center">
                     <div>
                         <h2 class="font-semibold">${s.name}</h2>
                         <p class="text-sm text-slate-500" style="color: var(--hint-color);">${s.duration} / ${s.price} ₽</p>
                     </div>
-                    <button onclick='App.client.handleServiceSelect(${JSON.stringify(s)})' class="btn btn-primary text-sm">Выбрать</button>
+                    <button data-service-id="${s.id}" class="btn btn-primary text-sm">Выбрать</button>
                 </div>
             `).join('');
         },
         
         renderSpecialists() {
-            const list = document.getElementById('specialists-list');
-            const { specialists } = App.state;
+            const list = App.elements['specialists-list'];
+            const { specialists } = App.store;
             if (specialists.length === 0) {
-                this.renderEmptyState(list, 'Мастера пока не добавлены.');
-                return;
+                list.innerHTML = this.components.emptyState('Мастера пока не добавлены.'); return;
             }
             list.innerHTML = specialists.map(s => `
                 <div class="card p-4 flex justify-between items-center">
@@ -760,51 +862,51 @@ const App = {
                             <p class="text-sm text-slate-500" style="color: var(--hint-color);">${s.specialty}</p>
                         </div>
                     </div>
-                    <button onclick='App.client.handleSpecialistSelect(${JSON.stringify(s)})' class="btn btn-primary text-sm">Выбрать</button>
+                    <button data-specialist-id="${s.id}" class="btn btn-primary text-sm">Выбрать</button>
                 </div>
             `).join('');
         },
 
         renderPortfolio() {
-            const container = document.getElementById('portfolio-posts');
-            if (App.state.portfolio.length === 0) {
-                this.renderEmptyState(container, 'В портфолио пока нет работ.');
-                return;
+            const container = App.elements['portfolio-posts'];
+            const { portfolio, salonConfig } = App.store;
+            if (portfolio.length === 0) {
+                container.innerHTML = this.components.emptyState('В портфолио пока нет работ.'); return;
             }
-            container.innerHTML = App.state.portfolio.map(post => `
-                <div class="card cursor-pointer" onclick='App.ui.renderPostDetail(${JSON.stringify(post)})'>
+            container.innerHTML = portfolio.map(post => `
+                <div class="card" data-post-id="${post.id}">
                     <div class="p-4 flex items-center">
-                        <img src="${App.state.salonConfig.logo_url}" class="w-8 h-8 rounded-full mr-3 object-cover">
-                        <span class="font-semibold">${App.state.salonConfig.name}</span>
+                        <img src="${salonConfig.logo_url}" class="w-8 h-8 rounded-full mr-3 object-cover">
+                        <span class="font-semibold">${salonConfig.name}</span>
                     </div>
-                    <img src="${post.img_url}" alt="${post.title}" class="w-full h-auto max-h-96 object-cover">
+                    <img src="${post.img_url}" alt="${post.title}" class="w-full h-auto max-h-96 object-cover" loading="lazy">
                     <div class="p-4">
-                        <p><span class="font-semibold">${App.state.salonConfig.name}</span> ${post.description || ''}</p>
-                        <p class="text-xs text-slate-400 mt-2" style="color: var(--hint-color);">${post.comments.length} комментариев</p>
+                        <p><span class="font-semibold">${salonConfig.name}</span> ${App.utils.escapeHTML(post.description || '')}</p>
+                        <p class="text-xs text-slate-400 mt-2 cursor-pointer" style="color: var(--hint-color);">${post.comments.length} комментариев</p>
                     </div>
                 </div>`).join('');
         },
         
         renderPostDetail(post) {
-            const container = document.getElementById('post-view-screen');
-            const commentsHtml = post.comments.map(c => `<div class="mb-2"><span class="font-semibold">${c.users.first_name}:</span> ${c.text}</div>`).join('');
+            const container = App.elements['post-view-screen'];
+            const commentsHtml = post.comments.map(c => `<div class="mb-2"><span class="font-semibold">${App.utils.escapeHTML(c.users.first_name)}:</span> ${App.utils.escapeHTML(c.text)}</div>`).join('');
             
             container.innerHTML = `
                 <div class="p-4">
                     <div class="card">
-                        <div class="p-4 flex items-center"><img src="${App.state.salonConfig.logo_url}" class="w-8 h-8 rounded-full mr-3 object-cover"><span class="font-semibold">${App.state.salonConfig.name}</span></div>
+                        <div class="p-4 flex items-center"><img src="${App.store.salonConfig.logo_url}" class="w-8 h-8 rounded-full mr-3 object-cover"><span class="font-semibold">${App.store.salonConfig.name}</span></div>
                         <img src="${post.img_url}" class="w-full h-auto">
                         <div class="p-4">
-                            <p class="font-semibold mb-2">${post.title}</p>
-                            <p>${post.description || ''}</p>
+                            <p class="font-semibold mb-2">${App.utils.escapeHTML(post.title)}</p>
+                            <p>${App.utils.escapeHTML(post.description || '')}</p>
                         </div>
                     </div>
                     <div class="card mt-4 p-4">
                         <h3 class="font-semibold mb-3">Комментарии</h3>
                         <div class="text-sm space-y-2 mb-4">${commentsHtml || '<p class="text-slate-400">Комментариев пока нет.</p>'}</div>
-                        <form onsubmit="event.preventDefault(); App.client.handlePostComment(${post.id})">
+                        <form data-post-id="${post.id}">
                             <div class="flex space-x-2">
-                                <input id="comment-input-${post.id}" type="text" placeholder="Ваш комментарий..." class="w-full p-2 border rounded-lg" required>
+                                <input type="text" placeholder="Ваш комментарий..." class="form-input w-full p-2" required>
                                 <button type="submit" class="btn btn-primary px-4">✓</button>
                             </div>
                         </form>
@@ -814,12 +916,12 @@ const App = {
         },
 
         async renderTimeSlots() {
-            const container = document.getElementById('time-slots-container');
+            const container = App.elements['time-slots-container'];
             container.innerHTML = `<div class="col-span-full flex justify-center py-4"><div class="spinner !w-6 !h-6"></div></div>`;
             App.tg.MainButton.setParams({ is_active: false });
 
-            const { date, specialist, service } = App.state.bookingState;
-            const { work_start, work_end, lunch_start, lunch_end } = App.state.salonConfig;
+            const { date, specialist, service } = App.store.bookingState;
+            const { work_start, work_end, lunch_start, lunch_end } = App.store.salonConfig;
             
             const serviceDuration = App.utils.parseDuration(service.duration);
             const workStartMins = App.utils.timeToMinutes(work_start || '10:00');
@@ -827,63 +929,52 @@ const App = {
             const lunchStartMins = App.utils.timeToMinutes(lunch_start || '13:00');
             const lunchEndMins = App.utils.timeToMinutes(lunch_end || '14:00');
 
-            const { data } = await App.supabase.from('appointments').select('time, services(duration)').eq('salon_id', App.state.salonId).eq('date', date).eq('specialist_id', specialist.id);
-            const busySlots = (data || []).map(d => {
-                const start = App.utils.timeToMinutes(d.time);
-                const duration = App.utils.parseDuration(d.services.duration);
-                return { start, end: start + duration };
-            });
+            const { data } = await App.api.getAppointmentsForDate(App.store.salonId, specialist.id, date);
+            const busySlots = (data || []).map(d => ({
+                start: App.utils.timeToMinutes(d.time),
+                end: App.utils.timeToMinutes(d.time) + App.utils.parseDuration(d.services.duration)
+            }));
 
             let slots = '';
-            // Итерация с шагом 15 минут для большей гибкости
             for (let t = workStartMins; t <= workEndMins - serviceDuration; t += 15) {
                 const slotStart = t;
                 const slotEnd = t + serviceDuration;
                 let isAvailable = true;
 
-                // 1. Проверка на конфликт с обедом
-                if (Math.max(slotStart, lunchStartMins) < Math.min(slotEnd, lunchEndMins)) {
-                    isAvailable = false;
-                }
+                if (Math.max(slotStart, lunchStartMins) < Math.min(slotEnd, lunchEndMins)) isAvailable = false;
 
-                // 2. Проверка на конфликт с существующими записями
                 if (isAvailable) {
                     for (const busy of busySlots) {
                         if (Math.max(slotStart, busy.start) < Math.min(slotEnd, busy.end)) {
-                            isAvailable = false;
-                            break;
+                            isAvailable = false; break;
                         }
                     }
                 }
                 
-                // 3. Если сегодня, проверка, не прошел ли уже этот слот
                 const now = new Date();
                 const selectedDate = new Date(date + 'T00:00:00');
-                if (selectedDate.toDateString() === now.toDateString()) {
-                    const currentMins = now.getHours() * 60 + now.getMinutes();
-                    if (slotStart <= currentMins) {
-                        isAvailable = false;
-                    }
+                if (selectedDate.toDateString() === now.toDateString() && slotStart <= (now.getHours() * 60 + now.getMinutes())) {
+                    isAvailable = false;
                 }
 
                 if (isAvailable) {
                     const time = App.utils.minutesToTime(slotStart);
-                    slots += `<div onclick="App.client.handleTimeSelect(this, '${time}')" class="time-slot p-2 rounded-lg">${time}</div>`;
+                    slots += `<div data-time="${time}" class="time-slot p-2 rounded-lg">${time}</div>`;
                 }
             }
             container.innerHTML = slots || '<div class="col-span-full text-center text-slate-500 py-4">Нет доступных слотов на эту дату.</div>';
         },
 
         renderAppointments() {
-            const container = document.getElementById('appointments-list');
-            if (App.state.userAppointments.length === 0) {
-                this.renderEmptyState(container, 'У вас пока нет записей. 🗓️', 'Записаться', 'App.ui.showScreen("services-screen")');
-                return;
+            const container = App.elements['appointments-list'];
+            const { userAppointments } = App.store;
+            if (userAppointments.length === 0) {
+                container.innerHTML = this.components.emptyState('У вас пока нет записей.', 'Записаться', 'services-screen'); return;
             }
 
             const now = new Date();
-            const upcoming = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now).sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
-            const past = App.state.userAppointments.filter(a => new Date(a.date + 'T' + a.time) < now).sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
+            const upcoming = userAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now).sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+            const past = userAppointments.filter(a => new Date(a.date + 'T' + a.time) < now).sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
 
             const renderList = (title, list, showCancel) => {
                 if(list.length === 0) return '';
@@ -894,134 +985,164 @@ const App = {
                         <div class="card p-4">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h3 class="font-bold">${a.service.name}</h3>
-                                    <p class="text-sm text-slate-500" style="color: var(--hint-color);">Мастер: ${a.specialist.name}</p>
+                                    <h3 class="font-bold">${a.service?.name || 'Удаленная услуга'}</h3>
+                                    <p class="text-sm text-slate-500" style="color: var(--hint-color);">Мастер: ${a.specialist?.name || 'Удаленный мастер'}</p>
                                     <p class="text-sm font-semibold mt-1">${App.utils.formatDate(a.date)} в ${a.time}</p>
                                 </div>
-                                ${showCancel ? `<button onclick="App.client.handleAppointmentCancel(${a.id})" class="text-xs text-red-500 font-semibold p-1">Отменить</button>` : ''}
+                                ${showCancel ? `<button data-appointment-id="${a.id}" class="text-xs text-red-500 font-semibold p-1">Отменить</button>` : ''}
                             </div>
                         </div>`).join('')}
-                    </div>
-                `;
+                    </div>`;
             };
-            
             container.innerHTML = renderList('Предстоящие', upcoming, true) + renderList('Прошедшие', past, false);
+        },
+        
+        renderProfile() {
+            const { currentUser } = App.store;
+            const userInitial = (currentUser.first_name || 'U').charAt(0).toUpperCase();
+            App.elements['profile-name'].textContent = currentUser.first_name || 'Пользователь';
+            App.elements['profile-avatar'].src = `https://placehold.co/64x64/fde6ea/c08497?text=${userInitial}`;
         }
     },
-
-    // ------------------------------------------------------------------
-    // Admin Mode
-    // ------------------------------------------------------------------
+    
+    // ==================================================================
+    // ==================================================================
+    //                          ADMIN APP LOGIC
+    // ==================================================================
+    // ==================================================================
+    
     initAdmin() {
-        document.getElementById('admin-mode-wrapper').style.display = 'block';
-        if (sessionStorage.getItem('admin_logged_in_' + this.state.salonId)) {
+        this.elements['admin-mode-wrapper'].style.display = 'block';
+        if (sessionStorage.getItem('admin_logged_in_' + this.store.salonId)) {
             this.admin.showPanel();
         } else {
-            document.getElementById('admin-login-screen').style.display = 'block';
-            document.getElementById('admin-login-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.admin.handleLogin();
-            });
+            this.elements['admin-login-screen'].style.display = 'block';
+            this.elements['admin-login-form'].addEventListener('submit', this.admin.handleLogin);
         }
     },
 
     admin: {
-        async handleLogin() {
-            App.utils.showLoader();
-            const password = document.getElementById('password-input').value;
-            const errorEl = document.getElementById('login-error');
+        handleLogin: async (e) => {
+            e.preventDefault();
+            App.ui.setButtonLoading(App.elements['login-btn'], true);
+            const password = App.elements['password-input'].value;
+            const errorEl = App.elements['login-error'];
             errorEl.textContent = '';
             
             try {
-                const { data, error } = await App.supabase.from('salons').select('admin_password').eq('id', App.state.salonId).single();
+                const { data, error } = await App.api.getSalonData(App.store.salonId);
                 if (error || !data) throw new Error('Салон не найден.');
                 if (data.admin_password === password) {
-                    sessionStorage.setItem('admin_logged_in_' + App.state.salonId, 'true');
+                    sessionStorage.setItem('admin_logged_in_' + App.store.salonId, 'true');
                     await App.admin.showPanel();
                 } else {
                     errorEl.textContent = 'Неверный пароль.';
+                    App.tg.HapticFeedback.notificationOccurred('error');
                 }
-            } catch (e) {
-                errorEl.textContent = e.message;
+            } catch (err) {
+                errorEl.textContent = err.message;
             } finally {
-                App.utils.hideLoader();
+                App.ui.setButtonLoading(App.elements['login-btn'], false);
             }
         },
 
-        handleLogout() {
-            sessionStorage.removeItem('admin_logged_in_' + App.state.salonId);
-            document.getElementById('admin-panel').style.display = 'none';
-            document.getElementById('login-error').textContent = '';
-            document.getElementById('password-input').value = '';
-            document.getElementById('admin-login-screen').style.display = 'block';
+        handleLogout: () => {
+            sessionStorage.removeItem('admin_logged_in_' + App.store.salonId);
+            App.elements['admin-panel'].style.display = 'none';
+            App.elements['login-error'].textContent = '';
+            App.elements['password-input'].value = '';
+            App.elements['admin-login-screen'].style.display = 'block';
         },
         
         async showPanel() {
-            document.getElementById('admin-login-screen').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('logout-btn').onclick = () => this.handleLogout();
+            App.elements['admin-login-screen'].style.display = 'none';
+            App.elements['admin-panel'].style.display = 'block';
+            App.elements['logout-btn'].onclick = this.handleLogout;
 
-            App.utils.showLoader();
+            App.ui.showLoader();
             await this.loadData();
             this.setupNav();
             this.renderCurrentPanel();
-            App.utils.hideLoader();
+            this.setupEventListeners();
+            App.ui.hideLoader();
         },
 
         setupNav() {
-            const navContainer = document.getElementById('admin-nav');
-            navContainer.querySelectorAll('.admin-nav-item').forEach(btn => {
-                btn.onclick = () => {
-                    App.state.currentAdminPanel = btn.dataset.panel;
-                    this.renderCurrentPanel();
-                };
+            App.elements['admin-nav'].addEventListener('click', e => {
+                const btn = e.target.closest('.admin-nav-item');
+                if (btn) {
+                    App.store.currentAdminPanel = btn.dataset.panel;
+                    App.admin.renderCurrentPanel();
+                }
+            });
+        },
+        
+        setupEventListeners() {
+            App.elements['admin-panels-container'].addEventListener('submit', e => {
+                e.preventDefault();
+                const form = e.target;
+                if(form.id === 'admin-service-form') App.admin.actions.saveService(form);
+                if(form.id === 'admin-specialist-form') App.admin.actions.saveSpecialist(form);
+                if(form.id === 'admin-post-form') App.admin.actions.savePortfolioPost(form);
+            });
+            App.elements['admin-panels-container'].addEventListener('click', e => {
+                const btn = e.target.closest('button');
+                if(!btn) return;
+                
+                const { action, table, id } = btn.dataset;
+                if(action === 'delete') App.admin.actions.deleteItem(table, id);
+                if(action === 'edit') App.admin.actions.editItem(table, id);
+                if(action === 'cancel-edit') App.admin.actions.cancelEdit();
+                if(action === 'save-theme') App.admin.actions.saveTheme();
+                if(action === 'save-settings') App.admin.actions.saveSettings();
             });
         },
         
         renderCurrentPanel() {
-             document.querySelectorAll('.admin-nav-item').forEach(btn => {
-                 btn.classList.toggle('active', btn.dataset.panel === App.state.currentAdminPanel);
-             });
+             document.querySelectorAll('.admin-nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.panel === App.store.currentAdminPanel));
              document.querySelectorAll('.admin-panel-content').forEach(p => p.style.display = 'none');
             
-            const panelId = `admin-panel-${App.state.currentAdminPanel}`;
-            const panel = document.getElementById(panelId);
+            App.store.editingItemId = null; // Reset editing state on panel switch
+            
+            const panelId = `admin-panel-${App.store.currentAdminPanel}`;
+            const panel = App.elements[panelId];
+            if (!panel) return;
+            
             panel.style.display = 'block';
             
-            switch(App.state.currentAdminPanel) {
+            switch(App.store.currentAdminPanel) {
                 case 'appointments': this.render.appointments(panel); break;
                 case 'services': this.render.services(panel); break;
                 case 'specialists': this.render.specialists(panel); break;
                 case 'portfolio': this.render.portfolio(panel); break;
+                case 'comments': this.render.comments(panel); break;
                 case 'theme': this.render.theme(panel); break;
                 case 'settings': this.render.settings(panel); break;
             }
         },
 
         async loadData() {
-            const { data, error } = await App.supabase.from('salons').select(`*, themes(*), services(*), specialists(*), portfolio_posts(*)`).eq('id', App.state.salonId).single();
-            if (error) { App.utils.showToast('Не удалось загрузить данные салона.'); return; }
-            App.state.salonConfig = data;
-            
-            const { data: appointments, error: apptError } = await App.supabase
-                .from('appointments')
-                .select('*, services(name), specialists(name), users(first_name)')
-                .eq('salon_id', App.state.salonId)
-                .order('date', { ascending: true })
-                .order('time', { ascending: true });
-            if(apptError){ App.utils.showToast('Не удалось загрузить записи.'); return; }
-            
-            App.state.allAppointments = appointments || [];
-            document.getElementById('admin-salon-name').textContent = App.state.salonConfig.name;
-        },
+            try {
+                const [salonRes, appointmentsRes, commentsRes] = await App.api.getAdminData(App.store.salonId);
+                
+                if (salonRes.error) throw salonRes.error;
+                App.store.salonConfig = salonRes.data;
+                App.store.allAppointments = appointmentsRes.data || [];
+                App.store.allComments = commentsRes.data || [];
 
+                App.elements['admin-salon-name'].textContent = App.store.salonConfig.name;
+            } catch (error) {
+                App.ui.showToast('Не удалось загрузить данные: ' + error.message, 'error');
+            }
+        },
+        
+        // Admin render methods
         render: {
             appointments(container) {
                 const now = new Date();
-                const upcoming = App.state.allAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now);
+                const upcoming = App.store.allAppointments.filter(a => new Date(a.date + 'T' + a.time) >= now);
                 if (upcoming.length === 0) {
-                    container.innerHTML = `<div class="admin-card text-center text-slate-500">Предстоящих записей нет.</div>`;
-                    return;
+                    container.innerHTML = App.ui.components.emptyState('Предстоящих записей нет.'); return;
                 }
                 const appointmentsByDate = upcoming.reduce((acc, curr) => {
                     (acc[curr.date] = acc[curr.date] || []).push(curr);
@@ -1029,13 +1150,13 @@ const App = {
                 }, {});
 
                 container.innerHTML = Object.entries(appointmentsByDate).map(([date, appts]) => `
-                    <div class="admin-card">
+                    <div class="card p-4 sm:p-6 mb-6">
                         <h3 class="font-bold mb-4">${App.utils.formatDate(date)}</h3>
                         <div class="space-y-3">
                             ${appts.map(a => `
                                 <div class="p-3 border rounded-md bg-slate-50">
                                     <p class="font-semibold">${a.time} - ${a.services?.name || 'Удаленная услуга'}</p>
-                                    <p class="text-sm text-slate-600">Клиент: ${a.users?.first_name || 'N/A'}</p>
+                                    <p class="text-sm text-slate-600">Клиент: ${a.users?.first_name || a.users?.username || 'N/A'}</p>
                                     <p class="text-sm text-slate-600">Мастер: ${a.specialists?.name || 'Удаленный мастер'}</p>
                                 </div>
                             `).join('')}
@@ -1044,176 +1165,192 @@ const App = {
             },
             
             services(container) {
+                const services = App.store.salonConfig.services || [];
+                const isEditing = !!App.store.editingItemId;
+                const item = isEditing ? services.find(s => s.id === App.store.editingItemId) : {};
+                
                 container.innerHTML = `
-                    <div class="admin-card">
+                    <div class="card p-4 sm:p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4">Услуги</h2>
-                        <div id="admin-services-list" class="space-y-2 mb-4">
-                        ${(App.state.salonConfig.services || []).map(s => `
+                        <div id="admin-services-list" class="space-y-2">
+                        ${services.map(s => `
                             <div id="item-services-${s.id}" class="flex justify-between items-center p-2 border rounded-md">
                                 <span>${s.name} (${s.duration}) - ${s.price} ₽</span>
-                                <button onclick="App.admin.actions.deleteItem('services', ${s.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
-                            </div>`).join('') || '<p class="text-slate-500">Нет услуг.</p>'}
+                                <div class="flex items-center gap-2">
+                                    <button data-action="edit" data-table="services" data-id="${s.id}" class="text-slate-500 hover:text-slate-800 text-lg px-2">✏️</button>
+                                    <button data-action="delete" data-table="services" data-id="${s.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                                </div>
+                            </div>`).join('') || App.ui.components.emptyState('Нет услуг.')}
                         </div>
                     </div>
-                    <form id="add-service-form" class="admin-card">
-                        <h3 class="font-semibold mb-2">Добавить услугу</h3>
+                    <form id="admin-service-form" class="card p-4 sm:p-6">
+                        <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать услугу' : 'Добавить услугу'}</h3>
+                        <input type="hidden" name="id" value="${item.id || ''}">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input id="new-service-name" placeholder="Название" class="admin-input" required>
-                            <input id="new-service-price" placeholder="Цена (число)" type="number" class="admin-input" required>
-                            <input id="new-service-duration" placeholder="Длительность (напр. 1 час 30 мин)" class="admin-input" required>
+                            <input name="name" placeholder="Название" class="form-input" required value="${item.name || ''}">
+                            <input name="price" placeholder="Цена (число)" type="number" class="form-input" required value="${item.price || ''}">
+                            <input name="duration" placeholder="Длительность (напр. 1 час 30 мин)" class="form-input" required value="${item.duration || ''}">
                         </div>
-                        <button type="submit" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Добавить</button>
+                        <div class="flex items-center gap-4 mt-4">
+                            <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
+                            ${isEditing ? '<button type="button" data-action="cancel-edit" class="btn btn-secondary">Отмена</button>' : ''}
+                        </div>
                     </form>`;
-                document.getElementById('add-service-form').onsubmit = e => { e.preventDefault(); App.admin.actions.addService(); };
             },
             
             specialists(container){
+                const specialists = App.store.salonConfig.specialists || [];
+                const isEditing = !!App.store.editingItemId;
+                const item = isEditing ? specialists.find(s => s.id === App.store.editingItemId) : {};
+
                 container.innerHTML = `
-                    <div class="admin-card">
+                    <div class="card p-4 sm:p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4">Мастера</h2>
-                        <div id="admin-specialists-list" class="space-y-2 mb-4">
-                         ${(App.state.salonConfig.specialists || []).map(s => `
+                        <div id="admin-specialists-list" class="space-y-2">
+                           ${specialists.map(s => `
                             <div id="item-specialists-${s.id}" class="flex justify-between items-center p-2 border rounded-md">
                                 <div class="flex items-center gap-3">
-                                  <img src="${s.photo_url}" class="w-10 h-10 rounded-full object-cover"/>
-                                  <span>${s.name} - ${s.specialty}</span>
+                                    <img src="${s.photo_url}" class="w-10 h-10 rounded-full object-cover"/>
+                                    <span>${s.name} - ${s.specialty}</span>
                                 </div>
-                                <button onclick="App.admin.actions.deleteItem('specialists', ${s.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
-                            </div>`).join('') || '<p class="text-slate-500">Нет мастеров.</p>'}
+                                <div class="flex items-center gap-2">
+                                    <button data-action="edit" data-table="specialists" data-id="${s.id}" class="text-slate-500 hover:text-slate-800 text-lg px-2">✏️</button>
+                                    <button data-action="delete" data-table="specialists" data-id="${s.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                                </div>
+                            </div>`).join('') || App.ui.components.emptyState('Нет мастеров.')}
                         </div>
                     </div>
-                    <form id="add-specialist-form" class="admin-card">
-                        <h3 class="font-semibold mb-2">Добавить мастера</h3>
+                    <form id="admin-specialist-form" class="card p-4 sm:p-6">
+                        <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать мастера' : 'Добавить мастера'}</h3>
+                        <input type="hidden" name="id" value="${item.id || ''}">
                         <div class="space-y-4">
-                            <input id="new-specialist-name" placeholder="Имя" class="admin-input" required>
-                            <input id="new-specialist-specialty" placeholder="Специальность (напр. Мастер маникюра)" class="admin-input" required>
-                            <input id="new-specialist-photo" placeholder="URL фото" type="url" class="admin-input" required>
+                            <input name="name" placeholder="Имя" class="form-input" required value="${item.name || ''}">
+                            <input name="specialty" placeholder="Специальность" class="form-input" required value="${item.specialty || ''}">
+                            <input name="photo_url" placeholder="URL фото" type="url" class="form-input" required value="${item.photo_url || ''}">
                         </div>
-                        <button type="submit" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Добавить</button>
+                        <div class="flex items-center gap-4 mt-4">
+                            <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
+                            ${isEditing ? '<button type="button" data-action="cancel-edit" class="btn btn-secondary">Отмена</button>' : ''}
+                        </div>
                     </form>`;
-                document.getElementById('add-specialist-form').onsubmit = e => { e.preventDefault(); App.admin.actions.addSpecialist(); };
             },
             
             portfolio(container){
+                const posts = App.store.salonConfig.portfolio_posts || [];
+                const isEditing = !!App.store.editingItemId;
+                const item = isEditing ? posts.find(p => p.id === App.store.editingItemId) : {};
+
                 container.innerHTML = `
-                    <div class="admin-card">
+                    <div class="card p-4 sm:p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4">Портфолио</h2>
-                        <div id="admin-portfolio-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                         ${(App.state.salonConfig.portfolio_posts || []).map(p => `
-                            <div id="item-portfolio_posts-${p.id}" class="relative">
+                        <div id="admin-portfolio-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                           ${posts.map(p => `
+                            <div id="item-portfolio_posts-${p.id}" class="relative group">
                                 <img src="${p.img_url}" class="w-full h-32 object-cover rounded-md"/>
                                 <p class="text-xs mt-1 truncate" title="${p.title}">${p.title}</p>
-                                <button onclick="App.admin.actions.deleteItem('portfolio_posts', ${p.id})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs">&times;</button>
-                            </div>`).join('') || '<p class="text-slate-500 col-span-full">Нет постов.</p>'}
+                                <div class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button data-action="edit" data-table="portfolio_posts" data-id="${p.id}" class="bg-slate-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✏️</button>
+                                    <button data-action="delete" data-table="portfolio_posts" data-id="${p.id}" class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs">&times;</button>
+                                </div>
+                            </div>`).join('') || App.ui.components.emptyState('Нет постов.')}
                         </div>
                     </div>
-                    <form id="add-post-form" class="admin-card">
-                        <h3 class="font-semibold mb-2">Добавить пост</h3>
+                    <form id="admin-post-form" class="card p-4 sm:p-6">
+                        <h3 class="font-semibold mb-2 text-lg">${isEditing ? 'Редактировать пост' : 'Добавить пост'}</h3>
+                        <input type="hidden" name="id" value="${item.id || ''}">
                         <div class="space-y-4">
-                            <input id="new-post-title" placeholder="Заголовок" class="admin-input" required>
-                            <input id="new-post-desc" placeholder="Описание (необязательно)" class="admin-input">
-                            <input id="new-post-img" placeholder="URL изображения" type="url" class="admin-input" required>
+                            <input name="title" placeholder="Заголовок" class="form-input" required value="${item.title || ''}">
+                            <input name="img_url" placeholder="URL изображения" type="url" class="form-input" required value="${item.img_url || ''}">
+                            <textarea name="description" placeholder="Описание (необязательно)" class="form-input h-24">${item.description || ''}</textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Добавить</button>
+                        <div class="flex items-center gap-4 mt-4">
+                            <button type="submit" class="btn btn-primary">${isEditing ? 'Сохранить' : 'Добавить'}</button>
+                            ${isEditing ? '<button type="button" data-action="cancel-edit" class="btn btn-secondary">Отмена</button>' : ''}
+                        </div>
                     </form>`;
-                document.getElementById('add-post-form').onsubmit = e => { e.preventDefault(); App.admin.actions.addPortfolioPost(); };
             },
             
-            theme(container) {
-                const theme = App.state.salonConfig.themes[0] || {};
+            comments(container) {
+                const comments = App.store.allComments || [];
                 container.innerHTML = `
-                    <div class="admin-card">
+                    <div class="card p-4 sm:p-6">
+                        <h2 class="text-xl font-semibold mb-4">Комментарии</h2>
+                        <div class="space-y-3">
+                        ${comments.map(c => `
+                            <div id="item-comments-${c.id}" class="p-3 border rounded-md bg-slate-50 flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs text-slate-500">
+                                        <strong>${c.users?.first_name || 'N/A'}</strong> к посту
+                                        <em class="font-medium">"${c.portfolio_posts?.title || 'удален'}"</em>
+                                    </p>
+                                    <p>"${c.text}"</p>
+                                </div>
+                                <button data-action="delete" data-table="comments" data-id="${c.id}" class="text-red-500 hover:text-red-700 font-bold text-lg px-2 flex-shrink-0">&times;</button>
+                            </div>
+                        `).join('') || App.ui.components.emptyState('Нет комментариев.')}
+                        </div>
+                    </div>`;
+            },
+
+            theme(container) {
+                const theme = App.store.salonConfig.themes[0] || {};
+                container.innerHTML = `
+                    <div class="card p-4 sm:p-6">
                         <h2 class="text-xl font-semibold mb-4">Внешний вид</h2>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div><label class="block text-sm font-medium">Кнопки</label><input type="color" id="theme-button-color" value="${theme.button_color || '#c08497'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
+                            <div><label class="block text-sm font-medium">Кнопки</label><input type="color" id="theme-button-color" value="${theme.button_color || '#d68099'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
                             <div><label class="block text-sm font-medium">Текст на кнопках</label><input type="color" id="theme-button-text-color" value="${theme.button_text_color || '#ffffff'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
-                            <div><label class="block text-sm font-medium">Фон</label><input type="color" id="theme-bg-color" value="${theme.bg_color || '#f8fafc'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
-                            <div><label class="block text-sm font-medium">Текст</label><input type="color" id="theme-text-color" value="${theme.text_color || '#334155'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
+                            <div><label class="block text-sm font-medium">Фон</label><input type="color" id="theme-bg-color" value="${theme.bg_color || '#f7f8fc'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
+                            <div><label class="block text-sm font-medium">Текст</label><input type="color" id="theme-text-color" value="${theme.text_color || '#1e293b'}" class="w-full h-10 cursor-pointer p-1 border border-slate-200 rounded"></div>
                         </div>
-                        <button onclick="App.admin.actions.saveTheme()" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Сохранить тему</button>
+                        <button data-action="save-theme" class="btn btn-primary mt-4">Сохранить тему</button>
                     </div>`;
             },
 
             settings(container) {
-                const config = App.state.salonConfig;
+                const config = App.store.salonConfig;
                 container.innerHTML = `
-                     <div class="admin-card">
-                        <h2 class="text-xl font-semibold mb-4">Настройки рабочего времени</h2>
-                        <div class="grid grid-cols-2 gap-4">
-                           <div>
-                              <label class="block text-sm font-medium mb-1">Начало рабочего дня</label>
-                              <input type="time" id="settings-work-start" value="${config.work_start || '10:00'}" class="admin-input">
-                           </div>
-                           <div>
-                              <label class="block text-sm font-medium mb-1">Конец рабочего дня</label>
-                              <input type="time" id="settings-work-end" value="${config.work_end || '19:00'}" class="admin-input">
-                           </div>
-                           <div>
-                              <label class="block text-sm font-medium mb-1">Начало обеда</label>
-                              <input type="time" id="settings-lunch-start" value="${config.lunch_start || '13:00'}" class="admin-input">
-                           </div>
-                           <div>
-                              <label class="block text-sm font-medium mb-1">Конец обеда</label>
-                              <input type="time" id="settings-lunch-end" value="${config.lunch_end || '14:00'}" class="admin-input">
-                           </div>
-                        </div>
-                        <button onclick="App.admin.actions.saveSettings()" class="btn btn-primary mt-4 bg-pink-600 hover:bg-pink-700">Сохранить настройки</button>
+                     <div class="card p-4 sm:p-6">
+                         <h2 class="text-xl font-semibold mb-4">Настройки рабочего времени</h2>
+                         <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium mb-1">Начало дня</label><input type="time" id="settings-work-start" value="${config.work_start || '10:00'}" class="form-input"></div>
+                            <div><label class="block text-sm font-medium mb-1">Конец дня</label><input type="time" id="settings-work-end" value="${config.work_end || '19:00'}" class="form-input"></div>
+                            <div><label class="block text-sm font-medium mb-1">Начало обеда</label><input type="time" id="settings-lunch-start" value="${config.lunch_start || '13:00'}" class="form-input"></div>
+                            <div><label class="block text-sm font-medium mb-1">Конец обеда</label><input type="time" id="settings-lunch-end" value="${config.lunch_end || '14:00'}" class="form-input"></div>
+                         </div>
+                         <button data-action="save-settings" class="btn btn-primary mt-4">Сохранить настройки</button>
                      </div>`;
             }
         },
-
+        
+        // Admin actions
         actions: {
-            async _refreshDataAndRender() {
-                App.utils.showLoader();
+            async _refreshAndRender() {
+                App.ui.showLoader();
                 await App.admin.loadData();
                 App.admin.renderCurrentPanel();
-                App.utils.hideLoader();
+                App.ui.hideLoader();
             },
-
-            async addService() {
-                const nameInput = document.getElementById('new-service-name');
-                const priceInput = document.getElementById('new-service-price');
-                const durationInput = document.getElementById('new-service-duration');
+            
+            async _saveItem(table, formData) {
+                const item = Object.fromEntries(new FormData(formData));
+                if(item.id === '') delete item.id; // Supabase needs id removed for inserts
+                item.salon_id = App.store.salonId;
                 
-                if (!nameInput.value || !priceInput.value || !durationInput.value) { App.utils.showToast('Заполните все поля.'); return; }
-                
-                const { error } = await App.supabase.from('services').insert([{ salon_id: App.state.salonId, name: nameInput.value, price: priceInput.value, duration: durationInput.value }]);
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
+                const { error } = await App.api.upsertItem(table, item);
+                if (error) App.ui.showToast('Ошибка: ' + error.message, 'error');
                 else {
-                    App.utils.showToast('Услуга добавлена!');
-                    await this._refreshDataAndRender();
+                    App.ui.showToast('Сохранено!', 'success');
+                    App.store.editingItemId = null;
+                    await this._refreshAndRender();
                 }
             },
             
-            async addSpecialist() {
-                const name = document.getElementById('new-specialist-name').value.trim();
-                const specialty = document.getElementById('new-specialist-specialty').value.trim();
-                const photo_url = document.getElementById('new-specialist-photo').value.trim();
-                if (!name || !specialty || !photo_url) { App.utils.showToast('Заполните все поля.'); return; }
+            saveService: (form) => App.admin.actions._saveItem('services', form),
+            saveSpecialist: (form) => App.admin.actions._saveItem('specialists', form),
+            savePortfolioPost: (form) => App.admin.actions._saveItem('portfolio_posts', form),
 
-                const { error } = await App.supabase.from('specialists').insert([{ salon_id: App.state.salonId, name, specialty, photo_url }]);
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
-                else {
-                    App.utils.showToast('Мастер добавлен!');
-                    await this._refreshDataAndRender();
-                }
-            },
-
-            async addPortfolioPost() {
-                const title = document.getElementById('new-post-title').value.trim();
-                const description = document.getElementById('new-post-desc').value.trim();
-                const img_url = document.getElementById('new-post-img').value.trim();
-                if (!title || !img_url) { App.utils.showToast('Заполните заголовок и URL.'); return; }
-
-                const { error } = await App.supabase.from('portfolio_posts').insert([{ salon_id: App.state.salonId, title, description, img_url }]);
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
-                else {
-                    App.utils.showToast('Пост добавлен!');
-                    await this._refreshDataAndRender();
-                }
-            },
-
-            async deleteItem(tableName, itemId) {
+            deleteItem(tableName, itemId) {
                 App.ui.showModal({
                     title: 'Подтвердите удаление',
                     content: 'Это действие невозможно будет отменить.',
@@ -1224,30 +1361,40 @@ const App = {
                             const itemEl = document.getElementById(`item-${tableName}-${itemId}`);
                             if (itemEl) itemEl.style.opacity = '0.5';
 
-                            const { error } = await App.supabase.from(tableName).delete().eq('id', itemId);
+                            const { error } = await App.api.deleteItem(tableName, itemId);
                             if (error) {
-                                App.utils.showToast('Ошибка: ' + error.message);
+                                App.ui.showToast('Ошибка: ' + error.message, 'error');
                                 if (itemEl) itemEl.style.opacity = '1';
                             } else {
-                                App.utils.showToast('Удалено успешно!');
-                                await this._refreshDataAndRender();
+                                App.ui.showToast('Удалено успешно!', 'success');
+                                if (itemEl) itemEl.remove();
+                                await App.admin.loadData(); // Just reload data, no full render
                             }
                         }}
                     ]
                 });
             },
-
+            
+            editItem(tableName, itemId) {
+                App.store.editingItemId = Number(itemId);
+                App.admin.renderCurrentPanel();
+            },
+            
+            cancelEdit() {
+                App.store.editingItemId = null;
+                App.admin.renderCurrentPanel();
+            },
+            
             async saveTheme() {
                 const themeData = {
-                    salon_id: App.state.salonId,
                     button_color: document.getElementById('theme-button-color').value,
                     button_text_color: document.getElementById('theme-button-text-color').value,
                     bg_color: document.getElementById('theme-bg-color').value,
                     text_color: document.getElementById('theme-text-color').value
                 };
-                const { error } = await App.supabase.from('themes').upsert(themeData, { onConflict: 'salon_id' });
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
-                else App.utils.showToast('Тема сохранена!');
+                const { error } = await App.api.updateTheme(App.store.salonId, themeData);
+                if (error) App.ui.showToast('Ошибка: ' + error.message, 'error');
+                else App.ui.showToast('Тема сохранена!', 'success');
             },
 
             async saveSettings() {
@@ -1257,9 +1404,9 @@ const App = {
                     lunch_start: document.getElementById('settings-lunch-start').value,
                     lunch_end: document.getElementById('settings-lunch-end').value,
                 };
-                const { error } = await App.supabase.from('salons').update(settings).eq('id', App.state.salonId);
-                if (error) App.utils.showToast('Ошибка: ' + error.message);
-                else App.utils.showToast('Настройки сохранены!');
+                const { error } = await App.api.updateSalonSettings(App.store.salonId, settings);
+                if (error) App.ui.showToast('Ошибка: ' + error.message, 'error');
+                else App.ui.showToast('Настройки сохранены!', 'success');
             }
         }
     }
