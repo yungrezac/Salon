@@ -33,6 +33,12 @@
         #toast.show { opacity: 1; visibility: visible; bottom: 80px; }
         .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; display: none; }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; display: none; }
+        .skeleton { background-color: #e5e7eb; }
+        .dark .skeleton { background-color: #374151; }
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        .skeleton-shimmer { animation: shimmer 2s infinite linear; background: linear-gradient(to right, transparent 0%, #ffffff33 50%, transparent 100%); background-size: 1000px 100%; }
+        .fade-out { animation: fadeOut 0.3s ease-out forwards; }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 font-sans antialiased overflow-x-hidden text-sm">
@@ -167,6 +173,22 @@
         };
         const openModal = () => { editModal.style.display = 'block'; editModalBackdrop.style.display = 'block'; };
         const closeModal = () => { editModal.style.display = 'none'; editModalBackdrop.style.display = 'none'; };
+        const renderSkeletons = (container, count, skeletonHTML) => {
+            container.innerHTML = Array(count).fill(skeletonHTML).join('');
+        };
+        const portfolioSkeleton = `
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+                <div class="w-full h-64 skeleton skeleton-shimmer"></div>
+                <div class="p-3 space-y-2">
+                    <div class="h-4 w-full skeleton skeleton-shimmer rounded"></div>
+                    <div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div>
+                </div>
+            </div>`;
+        const serviceSkeleton = `
+            <div class="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm flex justify-between items-center">
+                <div class="space-y-2"><div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div></div>
+                <div class="h-5 w-12 skeleton skeleton-shimmer rounded"></div>
+            </div>`;
 
         // ===== Navigation =====
         function switchPage(pageId) {
@@ -188,7 +210,7 @@
 
         // ===== User Functions =====
         async function renderUserPortfolio() {
-            showLoader(portfolioGrid);
+            renderSkeletons(portfolioGrid, 3, portfolioSkeleton);
             try {
                 const { data: portfolio, error: pError } = await supabase.from('portfolio').select('*').order('id');
                 if (pError) throw pError;
@@ -196,7 +218,7 @@
                 if (lError) throw lError;
                 const likedPostIds = new Set(userLikes.map(like => like.post_id));
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Работ в портфолио пока нет.</p>'; return; }
+                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Работ в портфолио пока нет. Администратор скоро добавит новые!</p>'; return; }
                 portfolio.forEach(post => {
                     const isLiked = likedPostIds.has(post.id);
                     const postElement = document.createElement('div');
@@ -207,7 +229,7 @@
             } catch (error) { showError(portfolioGrid, 'Не удалось загрузить портфолио.'); console.error(error); }
         }
         async function renderUserServices() {
-            showLoader(servicesList);
+            renderSkeletons(servicesList, 4, serviceSkeleton);
             try {
                 const { data, error } = await supabase.from('services').select('*').order('id');
                 if (error) throw error;
@@ -357,20 +379,32 @@
                 const button = e.target.closest('.like-btn');
                 if (!button || !userId) return;
                 const postId = parseInt(button.dataset.id);
-                const isLiked = button.dataset.liked === 'true';
+                let isLiked = button.dataset.liked === 'true';
+                const countSpan = button.querySelector('.like-count');
+                let currentLikes = parseInt(countSpan.textContent);
+
                 tg.HapticFeedback.impactOccurred('light');
+                isLiked = !isLiked;
                 button.classList.toggle('liked');
-                button.dataset.liked = !isLiked;
+                button.dataset.liked = isLiked;
+                countSpan.textContent = isLiked ? currentLikes + 1 : currentLikes - 1;
+
                 try {
                     if (isLiked) {
-                        await supabase.from('likes').delete().match({ post_id: postId, user_id: userId });
-                        await supabase.rpc('decrement_likes', { post_id_in: postId });
-                    } else {
                         await supabase.from('likes').insert({ post_id: postId, user_id: userId });
                         await supabase.rpc('increment_likes', { post_id_in: postId });
+                    } else {
+                        await supabase.from('likes').delete().match({ post_id: postId, user_id: userId });
+                        await supabase.rpc('decrement_likes', { post_id_in: postId });
                     }
-                    renderUserPortfolio();
-                } catch (error) { console.error('Like error:', error); }
+                } catch (error) { 
+                    console.error('Like error:', error);
+                    // Revert UI on error
+                    button.classList.toggle('liked');
+                    button.dataset.liked = !isLiked;
+                    countSpan.textContent = currentLikes;
+                    showToast('Ошибка сети');
+                }
             } else {
                 const deleteBtn = e.target.closest('.delete-post-btn');
                 const editBtn = e.target.closest('.edit-post-btn');
@@ -469,10 +503,12 @@
             tg.showConfirm('Отменить эту запись?', async (confirmed) => {
                 if(confirmed) {
                     try {
+                        const card = button.closest('.bg-white');
                         const { error } = await supabase.from('appointments').delete().eq('id', button.dataset.id);
                         if (error) throw error;
                         showToast('Запись отменена');
-                        renderUserAppointments();
+                        card.classList.add('fade-out');
+                        card.addEventListener('animationend', () => renderUserAppointments());
                         tg.HapticFeedback.notificationOccurred('success');
                     } catch (error) { tg.showAlert('Не удалось отменить запись.'); console.error(error); }
                 }
