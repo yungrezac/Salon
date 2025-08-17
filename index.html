@@ -100,11 +100,11 @@
                 <ul class="space-y-1">
                     <li class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer">
                         <span>Уведомления</span>
-                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                     </li>
                     <li class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer">
                         <span>Связаться с нами</span>
-                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                     </li>
                 </ul>
             </div>
@@ -126,7 +126,7 @@
             <span class="text-xs font-medium mt-0.5">Мои записи</span>
         </button>
         <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
             <span class="text-xs font-medium mt-0.5">Профиль</span>
         </button>
     </nav>
@@ -151,8 +151,8 @@
             const db = getFirestore(app);
             const auth = getAuth(app);
             
-            let currentUser = null; 
-            let userAppointmentsCache = []; // Кэш для записей пользователя
+            let currentTgUser = tg.initDataUnsafe.user;
+            let userAppointmentsCache = []; 
             
             // --- ПУТИ К ДАННЫМ ---
             const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
@@ -184,15 +184,51 @@
             // --- АУТЕНТИФИКАЦИЯ И ИНИЦИАЛИЗАЦИЯ ---
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    currentUser = user;
-                    renderProfile();
-                    renderPortfolio();
-                    renderServices();
-                    listenForAppointments(); 
+                    // Firebase сессия активна, теперь можно работать с данными
+                    initializeApp();
                 } else {
                     signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
                 }
             });
+
+            // NEW: Функция для создания профиля пользователя, если он не существует
+            async function initializeUserProfile() {
+                if (!currentTgUser) {
+                    console.error("Telegram user data is not available.");
+                    tg.showAlert("Не удалось получить данные пользователя Telegram.");
+                    return;
+                }
+                // Используем Telegram ID как уникальный ключ документа
+                const userDocRef = doc(db, `${publicDataPath}/users`, String(currentTgUser.id));
+                const docSnap = await getDoc(userDocRef);
+
+                if (!docSnap.exists()) {
+                    // Профиль не найден, создаем новый
+                    const newUserProfile = {
+                        tgId: currentTgUser.id,
+                        firstName: currentTgUser.first_name,
+                        lastName: currentTgUser.last_name || null,
+                        username: currentTgUser.username || null,
+                        createdAt: new Date()
+                    };
+                    try {
+                        await setDoc(userDocRef, newUserProfile);
+                        console.log("New user profile created:", currentTgUser.id);
+                    } catch (error) {
+                        console.error("Error creating user profile:", error);
+                    }
+                } else {
+                    console.log("User profile already exists:", currentTgUser.id);
+                }
+            }
+
+            async function initializeApp() {
+                await initializeUserProfile(); // Сначала проверяем/создаем профиль
+                renderProfile();
+                renderPortfolio();
+                renderServices();
+                listenForAppointments(); 
+            }
 
             // --- НАВИГАЦИЯ ---
             function switchPage(pageId) {
@@ -260,7 +296,6 @@
                 }
             }
             
-            // FIX: Читает только публично доступные занятые слоты
             async function renderTimeSlots() {
                 const selectedDate = datePicker.value;
                 if (!selectedDate) return;
@@ -301,10 +336,10 @@
                 }
             }
 
-            // FIX: Слушает записи только из приватной коллекции пользователя
+            // FIX: Путь к записям теперь использует Telegram ID
             function listenForAppointments() {
-                if (!currentUser) return;
-                const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                if (!currentTgUser) return;
+                const privateAppointmentsPath = `artifacts/${appId}/users/${currentTgUser.id}/appointments`;
                 const appointmentsCol = collection(db, privateAppointmentsPath);
 
                 onSnapshot(appointmentsCol, (snapshot) => {
@@ -360,12 +395,11 @@
             }
 
             function renderProfile() {
-                const user = tg.initDataUnsafe.user;
-                if (user) {
-                    document.getElementById('user-name').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-                    document.getElementById('user-username').textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
+                if (currentTgUser) {
+                    document.getElementById('user-name').textContent = `${currentTgUser.first_name || ''} ${currentTgUser.last_name || ''}`.trim();
+                    document.getElementById('user-username').textContent = currentTgUser.username ? `@${currentTgUser.username}` : `ID: ${currentTgUser.id}`;
                     const userPhoto = document.getElementById('user-photo');
-                    const initials = (user.first_name ? user.first_name[0] : '') + (user.last_name ? user.last_name[0] : '');
+                    const initials = (currentTgUser.first_name ? currentTgUser.first_name[0] : '') + (currentTgUser.last_name ? currentTgUser.last_name[0] : '');
                     userPhoto.textContent = initials ? initials.toUpperCase() : '👤';
                 }
             }
@@ -397,9 +431,8 @@
                 tg.MainButton.onClick(confirmBooking);
             }
 
-            // FIX: Записывает в приватную коллекцию и обновляет публичные слоты
             async function confirmBooking() {
-                if (!selectedService || !selectedTime || !datePicker.value || !currentUser) return;
+                if (!selectedService || !selectedTime || !datePicker.value || !currentTgUser) return;
                 
                 const date = datePicker.value;
                 const time = selectedTime;
@@ -410,11 +443,10 @@
                     if (confirmed) {
                         tg.MainButton.showProgress();
                         try {
-                            // 1. Добавляем полную информацию в приватную коллекцию
-                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                            // FIX: Путь к записям теперь использует Telegram ID
+                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentTgUser.id}/appointments`;
                             const appointmentsCol = collection(db, privateAppointmentsPath);
                             const newAppointment = {
-                                tgUserId: tg.initDataUnsafe.user.id,
                                 serviceId: selectedService.id,
                                 serviceName: selectedService.name,
                                 date: date,
@@ -423,7 +455,6 @@
                             };
                             await addDoc(appointmentsCol, newAppointment);
                             
-                            // 2. Обновляем публичный документ с занятыми слотами
                             const dailySlotsDocRef = doc(db, `${publicDataPath}/dailySlots`, date);
                             const docSnap = await getDoc(dailySlotsDocRef);
                             const existingTimes = docSnap.exists() ? docSnap.data().times || [] : [];
@@ -447,7 +478,6 @@
                 });
             }
             
-            // FIX: Удаляет из приватной коллекции и обновляет публичные слоты
             appointmentsList.addEventListener('click', async (e) => {
                 const button = e.target.closest('.cancel-btn');
                 if (!button) return;
@@ -459,11 +489,10 @@
                 tg.showConfirm('Вы уверены, что хотите отменить запись?', async (confirmed) => {
                     if(confirmed) {
                         try {
-                            // 1. Удаляем приватный документ
-                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                            // FIX: Путь к записям теперь использует Telegram ID
+                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentTgUser.id}/appointments`;
                             await deleteDoc(doc(db, privateAppointmentsPath, appointmentId));
                             
-                            // 2. Обновляем публичный документ со слотами
                             const dailySlotsDocRef = doc(db, `${publicDataPath}/dailySlots`, appointmentToCancel.date);
                             const docSnap = await getDoc(dailySlotsDocRef);
                             if (docSnap.exists()) {
