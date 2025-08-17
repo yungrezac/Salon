@@ -4,19 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Nail Studio Mini App</title>
-    <!-- Подключение Tailwind CSS -->
+    <!-- Подключение Tailwind CSS для стилизации -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Подключение Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключение Supabase Client SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* Стили для плавного перехода между экранами */
         .page { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .nav-item.active svg, .nav-item.active span { color: #4f46e5; }
+
+        /* Стили для активной иконки в навбаре */
+        .nav-item.active svg, .nav-item.active span { color: #4f46e5; /* indigo-600 */ }
+        
+        /* Скрытие скроллбара */
         body { -ms-overflow-style: none; scrollbar-width: none; }
         body::-webkit-scrollbar { display: none; }
+
+        /* Стили для иконки лайка */
+        .like-btn.liked svg.solid { display: block; color: #ef4444; animation: pop 0.3s ease; }
+        .like-btn.liked svg.outline { display: none; }
+        .like-btn svg.solid { display: none; }
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        /* Стиль для загрузчика */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #4f46e5;
@@ -35,11 +49,13 @@
 
     <!-- Основной контейнер приложения -->
     <div id="app-container" class="pb-16">
+
         <!-- ===== ЭКРАН 1: ПОРТФОЛИО ===== -->
         <div id="portfolio-page" class="page active p-3 space-y-3">
             <h1 class="text-xl font-bold px-1">Портфолио</h1>
             <div id="portfolio-grid" class="space-y-4">
-                <div class="flex justify-center items-center h-64"><div class="loader"></div></div>
+                <!-- Карточки портфолио будут рендериться здесь -->
+                 <div class="flex justify-center items-center h-64"><div class="loader"></div></div>
             </div>
         </div>
 
@@ -81,14 +97,14 @@
                 </div>
             </div>
             <div class="bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm">
-                 <ul class="space-y-1">
+                <ul class="space-y-1">
                     <li class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer">
                         <span>Уведомления</span>
-                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                     </li>
                     <li class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer">
                         <span>Связаться с нами</span>
-                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                     </li>
                 </ul>
             </div>
@@ -110,25 +126,37 @@
             <span class="text-xs font-medium mt-0.5">Мои записи</span>
         </button>
         <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
             <span class="text-xs font-medium mt-0.5">Профиль</span>
         </button>
     </nav>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Импортируем необходимые функции из Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, onSnapshot, query, addDoc, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        document.addEventListener('DOMContentLoaded', async () => {
             const tg = window.Telegram.WebApp;
             tg.ready();
             tg.expand();
             
-            // --- SUPABASE SETUP ---
-            const supabaseUrl = 'https://ogqufmdhlscmyrdvrzxz.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ncXVmbWRobHNjbXlyZHZyenh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MjExMTIsImV4cCI6MjA3MDk5NzExMn0.fqbMtcWWn5tWZZXWyUaLkC_k0nKYYLj3b_zf8SI_C2Y';
-            const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            // --- FIREBASE SETUP ---
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-nail-app';
 
-            // --- ДАННЫЕ ПРИЛОЖЕНИЯ ---
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            
+            let currentUser = null; 
+            let userAppointmentsCache = []; // Кэш для записей пользователя
+            
+            // --- ПУТИ К ДАННЫМ ---
             const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
-            const currentTgUser = tg.initDataUnsafe?.user;
+            const publicDataPath = `artifacts/${appId}/public/data`;
 
             // --- UI ЭЛЕМЕНТЫ ---
             const pages = document.querySelectorAll('.page');
@@ -148,21 +176,24 @@
 
             // Настройка темы
             const body = document.querySelector('body');
-            if (tg.colorScheme === 'dark') body.classList.add('dark');
+            if (tg.colorScheme === 'dark') {
+                body.classList.add('dark');
+            }
             tg.setHeaderColor(body.classList.contains('dark') ? '#000000' : '#f9fafb');
 
-            // --- ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ---
-            functioninitializeApp() {
-                if (!currentTgUser) {
-                    tg.showAlert('Не удалось идентифицировать пользователя. Попробуйте перезапустить приложение.');
-                    return;
+            // --- АУТЕНТИФИКАЦИЯ И ИНИЦИАЛИЗАЦИЯ ---
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    renderProfile();
+                    renderPortfolio();
+                    renderServices();
+                    listenForAppointments(); 
+                } else {
+                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
                 }
-                renderProfile();
-                renderPortfolio();
-                renderServices();
-                listenForAppointments(); // Запускаем прослушивание записей
-            }
-            
+            });
+
             // --- НАВИГАЦИЯ ---
             function switchPage(pageId) {
                 pages.forEach(page => page.classList.remove('active'));
@@ -173,50 +204,63 @@
             }
             navItems.forEach(item => item.addEventListener('click', () => switchPage(item.dataset.page)));
 
-            // --- ФУНКЦИИ РЕНДЕРА (С ИСПОЛЬЗОВАНИЕМ SUPABASE) ---
+            // --- ФУНКЦИИ РЕНДЕРА ---
 
             async function renderPortfolio() {
-                const { data, error } = await _supabase.from('portfolio').select('*').order('order');
-                if (error) {
-                    console.error('Error fetching portfolio:', error);
-                    portfolioGrid.innerHTML = `<p class="text-center text-red-500">Ошибка загрузки портфолио.</p>`;
-                    return;
+                const portfolioCol = collection(db, `${publicDataPath}/portfolio`);
+                try {
+                    const portfolioSnapshot = await getDocs(portfolioCol);
+                    if (portfolioSnapshot.empty) {
+                        await addDemoPortfolio();
+                        renderPortfolio(); 
+                        return;
+                    }
+                    portfolioGrid.innerHTML = '';
+                    portfolioSnapshot.docs.sort((a, b) => a.data().order - b.data().order).forEach(doc => {
+                        const post = { id: doc.id, ...doc.data() };
+                        const postElement = document.createElement('div');
+                        postElement.className = 'bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden';
+                        postElement.innerHTML = `
+                            <img src="${post.imageUrl}" alt="Nail Art" class="w-full h-auto object-cover" onerror="this.src='https://placehold.co/600x400/e0e0e0/333?text=Error'">
+                            <div class="p-3">
+                                <p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p>
+                            </div>`;
+                        portfolioGrid.appendChild(postElement);
+                    });
+                } catch (error) {
+                    console.error("Error fetching portfolio:", error);
                 }
-                portfolioGrid.innerHTML = '';
-                data.forEach(post => {
-                    const postElement = document.createElement('div');
-                    postElement.className = 'bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden';
-                    postElement.innerHTML = `
-                        <img src="${post.imageUrl}" alt="Nail Art" class="w-full h-auto object-cover" onerror="this.src='https://placehold.co/600x400/e0e0e0/333?text=Error'">
-                        <div class="p-3">
-                            <p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p>
-                        </div>`;
-                    portfolioGrid.appendChild(postElement);
-                });
             }
 
             async function renderServices() {
-                const { data, error } = await _supabase.from('services').select('*').order('order');
-                if (error) {
-                    console.error('Error fetching services:', error);
-                    servicesList.innerHTML = `<p class="text-center text-red-500">Ошибка загрузки услуг.</p>`;
-                    return;
+                const servicesCol = collection(db, `${publicDataPath}/services`);
+                 try {
+                    const servicesSnapshot = await getDocs(servicesCol);
+                    if (servicesSnapshot.empty) {
+                        await addDemoServices();
+                        renderServices();
+                        return;
+                    }
+                    servicesList.innerHTML = '';
+                    servicesSnapshot.docs.sort((a,b) => a.data().order - b.data().order).forEach(doc => {
+                        const service = { id: doc.id, ...doc.data() };
+                        const serviceEl = document.createElement('div');
+                        serviceEl.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm flex justify-between items-center cursor-pointer active:bg-indigo-50 dark:active:bg-gray-800';
+                        serviceEl.innerHTML = `
+                            <div>
+                                <h3 class="font-semibold">${service.name}</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${service.duration}</p>
+                            </div>
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400">${service.price}</span>`;
+                        serviceEl.addEventListener('click', () => handleServiceSelect(service));
+                        servicesList.appendChild(serviceEl);
+                    });
+                } catch (error) {
+                    console.error("Error fetching services:", error);
                 }
-                servicesList.innerHTML = '';
-                data.forEach(service => {
-                    const serviceEl = document.createElement('div');
-                    serviceEl.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm flex justify-between items-center cursor-pointer active:bg-indigo-50 dark:active:bg-gray-800';
-                    serviceEl.innerHTML = `
-                        <div>
-                            <h3 class="font-semibold">${service.name}</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">${service.duration}</p>
-                        </div>
-                        <span class="font-bold text-indigo-600 dark:text-indigo-400">${service.price}</span>`;
-                    serviceEl.addEventListener('click', () => handleServiceSelect(service));
-                    servicesList.appendChild(serviceEl);
-                });
             }
-
+            
+            // FIX: Читает только публично доступные занятые слоты
             async function renderTimeSlots() {
                 const selectedDate = datePicker.value;
                 if (!selectedDate) return;
@@ -226,80 +270,75 @@
                 timeSlotsLoader.classList.remove('hidden');
                 tg.MainButton.hide();
 
-                const { data: bookedAppointments, error } = await _supabase
-                    .from('appointments')
-                    .select('time')
-                    .eq('date', selectedDate);
+                try {
+                    const dailySlotsDocRef = doc(db, `${publicDataPath}/dailySlots`, selectedDate);
+                    const docSnap = await getDoc(dailySlotsDocRef);
+                    const bookedTimes = docSnap.exists() ? docSnap.data().times || [] : [];
+                    
+                    timeSlotsContainer.innerHTML = '';
+                    const availableSlots = timeSlotsData.filter(slot => !bookedTimes.includes(slot));
 
-                timeSlotsLoader.classList.add('hidden');
-                if (error) {
-                    console.error('Error fetching time slots:', error);
-                    timeSlotsContainer.innerHTML = `<p class="text-center text-red-500 col-span-4">Ошибка загрузки слотов.</p>`;
-                    return;
-                }
-                
-                const bookedTimes = bookedAppointments.map(app => app.time);
-                const availableSlots = timeSlotsData.filter(slot => !bookedTimes.includes(slot));
-
-                if (availableSlots.length === 0) noSlotsMessage.classList.remove('hidden');
-
-                timeSlotsData.forEach(time => {
-                    const slotEl = document.createElement('button');
-                    const isBooked = bookedTimes.includes(time);
-                    slotEl.className = `p-2 rounded-lg text-center font-semibold ${isBooked ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-200 dark:bg-gray-800 active:bg-indigo-500 active:text-white focus:bg-indigo-500 focus:text-white'}`;
-                    slotEl.textContent = time;
-                    slotEl.disabled = isBooked;
-                    if (!isBooked) {
-                        slotEl.addEventListener('click', () => handleTimeSlotSelect(time, slotEl));
+                    if (availableSlots.length === 0) {
+                        noSlotsMessage.classList.remove('hidden');
                     }
-                    timeSlotsContainer.appendChild(slotEl);
-                });
-            }
 
-            async function fetchAndRenderAppointments() {
-                if (!currentTgUser) return;
-                const { data, error } = await _supabase
-                    .from('appointments')
-                    .select('*')
-                    .eq('tgUserId', currentTgUser.id);
-
-                if (error) {
-                    console.error("Error fetching appointments:", error);
-                    appointmentsList.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить записи.</p>`;
-                    return;
-                }
-                
-                appointmentsList.innerHTML = '';
-                if (data.length === 0) {
-                    appointmentsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 mt-8">У вас пока нет записей.</p>`;
-                    return;
-                }
-                
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                const upcoming = data.filter(a => new Date(a.date) >= today).sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
-                const completed = data.filter(a => new Date(a.date) < today).sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
-
-                if (upcoming.length > 0) {
-                    appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 dark:text-gray-300 px-1">Предстоящие</h2>`;
-                    upcoming.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, true)));
-                }
-                if (completed.length > 0) {
-                    appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 dark:text-gray-300 mt-4 px-1">Прошедшие</h2>`;
-                    completed.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, false)));
+                    timeSlotsData.forEach(time => {
+                        const slotEl = document.createElement('button');
+                        const isBooked = bookedTimes.includes(time);
+                        slotEl.className = `p-2 rounded-lg text-center font-semibold ${isBooked ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-200 dark:bg-gray-800 active:bg-indigo-500 active:text-white focus:bg-indigo-500 focus:text-white'}`;
+                        slotEl.textContent = time;
+                        slotEl.disabled = isBooked;
+                        if (!isBooked) {
+                            slotEl.addEventListener('click', () => handleTimeSlotSelect(time, slotEl));
+                        }
+                        timeSlotsContainer.appendChild(slotEl);
+                    });
+                } catch (error) {
+                    console.error("Error fetching time slots: ", error);
+                    timeSlotsContainer.innerHTML = `<p class="text-center text-red-500 col-span-4">Ошибка загрузки слотов.</p>`;
+                } finally {
+                    timeSlotsLoader.classList.add('hidden');
                 }
             }
 
+            // FIX: Слушает записи только из приватной коллекции пользователя
             function listenForAppointments() {
-                fetchAndRenderAppointments(); // Первоначальная загрузка
-                // Подписываемся на изменения в таблице appointments
-                _supabase.channel('public:appointments')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
-                        // При любом изменении просто перезагружаем список записей для текущего пользователя
-                        fetchAndRenderAppointments();
-                    })
-                    .subscribe();
+                if (!currentUser) return;
+                const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                const appointmentsCol = collection(db, privateAppointmentsPath);
+
+                onSnapshot(appointmentsCol, (snapshot) => {
+                    userAppointmentsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    appointmentsList.innerHTML = '';
+
+                    if (userAppointmentsCache.length === 0) {
+                        appointmentsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 mt-8">У вас пока нет записей.</p>`;
+                        return;
+                    }
+                    
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const upcoming = userAppointmentsCache
+                        .filter(a => new Date(a.date) >= today)
+                        .sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+                    
+                    const completed = userAppointmentsCache
+                        .filter(a => new Date(a.date) < today)
+                        .sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
+
+                    if (upcoming.length > 0) {
+                        appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 dark:text-gray-300 px-1">Предстоящие</h2>`;
+                        upcoming.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, true)));
+                    }
+                    if (completed.length > 0) {
+                        appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 dark:text-gray-300 mt-4 px-1">Прошедшие</h2>`;
+                        completed.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, false)));
+                    }
+                }, (error) => {
+                    console.error("Error listening for appointments:", error);
+                    appointmentsList.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить записи.</p>`;
+                });
             }
 
             function createAppointmentCard(appointment, isUpcoming) {
@@ -321,11 +360,12 @@
             }
 
             function renderProfile() {
-                if (currentTgUser) {
-                    document.getElementById('user-name').textContent = `${currentTgUser.first_name || ''} ${currentTgUser.last_name || ''}`.trim();
-                    document.getElementById('user-username').textContent = currentTgUser.username ? `@${currentTgUser.username}` : `ID: ${currentTgUser.id}`;
+                const user = tg.initDataUnsafe.user;
+                if (user) {
+                    document.getElementById('user-name').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                    document.getElementById('user-username').textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
                     const userPhoto = document.getElementById('user-photo');
-                    const initials = (currentTgUser.first_name?.[0] || '') + (currentTgUser.last_name?.[0] || '');
+                    const initials = (user.first_name ? user.first_name[0] : '') + (user.last_name ? user.last_name[0] : '');
                     userPhoto.textContent = initials ? initials.toUpperCase() : '👤';
                 }
             }
@@ -357,54 +397,85 @@
                 tg.MainButton.onClick(confirmBooking);
             }
 
+            // FIX: Записывает в приватную коллекцию и обновляет публичные слоты
             async function confirmBooking() {
-                if (!selectedService || !selectedTime || !datePicker.value || !currentTgUser) return;
+                if (!selectedService || !selectedTime || !datePicker.value || !currentUser) return;
                 
                 const date = datePicker.value;
                 const time = selectedTime;
+
                 const details = `Услуга: ${selectedService.name}\nДата: ${date}\nВремя: ${time}\n\nПодтвердить?`;
                 
                 tg.showConfirm(details, async (confirmed) => {
                     if (confirmed) {
                         tg.MainButton.showProgress();
-                        const newAppointment = {
-                            tgUserId: currentTgUser.id,
-                            serviceId: selectedService.id,
-                            serviceName: selectedService.name,
-                            date: date,
-                            time: time,
-                        };
-                        
-                        const { error } = await _supabase.from('appointments').insert([newAppointment]);
-                        
-                        tg.MainButton.hideProgress();
-                        if (error) {
-                            console.error("Error creating appointment:", error);
-                            tg.showAlert('Произошла ошибка при записи. Возможно, этот слот только что заняли. Попробуйте снова.');
-                            renderTimeSlots(); // Обновляем слоты, чтобы показать актуальную информацию
-                        } else {
+                        try {
+                            // 1. Добавляем полную информацию в приватную коллекцию
+                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                            const appointmentsCol = collection(db, privateAppointmentsPath);
+                            const newAppointment = {
+                                tgUserId: tg.initDataUnsafe.user.id,
+                                serviceId: selectedService.id,
+                                serviceName: selectedService.name,
+                                date: date,
+                                time: time,
+                                createdAt: new Date()
+                            };
+                            await addDoc(appointmentsCol, newAppointment);
+                            
+                            // 2. Обновляем публичный документ с занятыми слотами
+                            const dailySlotsDocRef = doc(db, `${publicDataPath}/dailySlots`, date);
+                            const docSnap = await getDoc(dailySlotsDocRef);
+                            const existingTimes = docSnap.exists() ? docSnap.data().times || [] : [];
+                            if (!existingTimes.includes(time)) {
+                                await setDoc(dailySlotsDocRef, { times: [...existingTimes, time] }, { merge: true });
+                            }
+                            
                             tg.HapticFeedback.notificationOccurred('success');
                             tg.showAlert('Вы успешно записаны!', () => {
                                 switchPage('history-page');
                             });
+
+                        } catch (error) {
+                            console.error("Error creating appointment: ", error);
+                            tg.showAlert('Произошла ошибка при записи. Попробуйте снова.');
+                        } finally {
+                            tg.MainButton.hideProgress();
+                            tg.MainButton.hide();
                         }
                     }
                 });
             }
             
+            // FIX: Удаляет из приватной коллекции и обновляет публичные слоты
             appointmentsList.addEventListener('click', async (e) => {
                 const button = e.target.closest('.cancel-btn');
                 if (!button) return;
                 const appointmentId = button.dataset.id;
+                const appointmentToCancel = userAppointmentsCache.find(app => app.id === appointmentId);
+
+                if (!appointmentToCancel) return;
                 
                 tg.showConfirm('Вы уверены, что хотите отменить запись?', async (confirmed) => {
                     if(confirmed) {
-                        const { error } = await _supabase.from('appointments').delete().eq('id', appointmentId);
-                        if (error) {
-                            console.error("Error canceling appointment:", error);
-                            tg.showAlert('Не удалось отменить запись.');
-                        } else {
+                        try {
+                            // 1. Удаляем приватный документ
+                            const privateAppointmentsPath = `artifacts/${appId}/users/${currentUser.uid}/appointments`;
+                            await deleteDoc(doc(db, privateAppointmentsPath, appointmentId));
+                            
+                            // 2. Обновляем публичный документ со слотами
+                            const dailySlotsDocRef = doc(db, `${publicDataPath}/dailySlots`, appointmentToCancel.date);
+                            const docSnap = await getDoc(dailySlotsDocRef);
+                            if (docSnap.exists()) {
+                                const existingTimes = docSnap.data().times || [];
+                                const newTimes = existingTimes.filter(t => t !== appointmentToCancel.time);
+                                await setDoc(dailySlotsDocRef, { times: newTimes });
+                            }
+                            
                             tg.HapticFeedback.notificationOccurred('success');
+                        } catch (error) {
+                            console.error("Error canceling appointment: ", error);
+                            tg.showAlert('Не удалось отменить запись.');
                         }
                     }
                 });
@@ -423,8 +494,26 @@
                 timeSlotsContainer.innerHTML = '';
             }
 
-            // --- ЗАПУСК ПРИЛОЖЕНИЯ ---
-            initializeApp();
+            // --- ДЕМО-ДАННЫЕ (для первого запуска) ---
+            async function addDemoServices() {
+                const services = [
+                    { id: "1", name: 'Классический маникюр', price: '1500 ₽', duration: '60 мин', order: 1 },
+                    { id: "2", name: 'Наращивание (гель)', price: '3500 ₽', duration: '120 мин', order: 2 },
+                    { id: "3", name: 'Коррекция', price: '2500 ₽', duration: '90 мин', order: 3 },
+                ];
+                for (const service of services) {
+                    await setDoc(doc(db, `${publicDataPath}/services`, service.id), service);
+                }
+            }
+            async function addDemoPortfolio() {
+                const portfolio = [
+                    { id: "1", imageUrl: 'https://placehold.co/600x800/d1d5db/374151?text=Nail+Art+1', description: 'Элегантный френч с глиттером.', order: 1 },
+                    { id: "2", imageUrl: 'https://placehold.co/600x800/fecaca/991b1b?text=Nail+Art+2', description: 'Яркий летний дизайн.', order: 2 },
+                ];
+                for (const item of portfolio) {
+                    await setDoc(doc(db, `${publicDataPath}/portfolio`, item.id), item);
+                }
+            }
         });
     </script>
 </body>
