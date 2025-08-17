@@ -87,11 +87,13 @@
                 <h2 class="font-semibold">Добавить новый пост</h2>
                 <!-- Image uploader -->
                 <input id="new-post-files" type="file" multiple accept="image/*" class="hidden">
-                <label for="new-post-files" class="w-full p-3 block text-center bg-[var(--tg-bg-color)] text-[var(--tg-text-color)] font-bold rounded-lg cursor-pointer">
+                <label for="new-post-files" id="file-upload-label" class="w-full p-3 block text-center bg-[var(--tg-bg-color)] text-[var(--tg-text-color)] font-bold rounded-lg cursor-pointer transition-colors">
                     Выбрать изображения (до 10)
                 </label>
                 <!-- Image preview container -->
-                <div id="image-preview-container" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                <div id="image-preview-wrapper" class="hidden p-2 bg-[var(--tg-bg-color)] rounded-lg">
+                    <div id="image-preview-container" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                </div>
                 
                 <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]"></textarea>
                 <button id="add-post-btn" class="w-full p-3 bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold rounded-lg active:scale-95 transition-transform disabled:opacity-50">Добавить пост</button>
@@ -686,30 +688,67 @@
         if (isAdmin) {
             const fileInput = document.getElementById('new-post-files');
             const previewContainer = document.getElementById('image-preview-container');
+            const previewWrapper = document.getElementById('image-preview-wrapper');
+            const fileUploadLabel = document.getElementById('file-upload-label');
+            let selectedFiles = []; // Array to store and manage File objects
 
-            fileInput.addEventListener('change', () => {
-                previewContainer.innerHTML = '';
-                const files = Array.from(fileInput.files);
-                if (files.length > 10) {
-                    tg.showAlert('Можно загрузить не более 10 изображений.');
-                    fileInput.value = ''; // Clear selection
-                    return;
+            // Renders image previews and updates UI state
+            function renderPreviews() {
+                previewContainer.innerHTML = ''; // Clear existing previews
+                
+                if (selectedFiles.length > 0) {
+                    previewWrapper.classList.remove('hidden');
+                    fileUploadLabel.textContent = `Выбрано ${selectedFiles.length} из 10. Нажмите, чтобы добавить еще.`;
+                    fileUploadLabel.classList.remove('bg-[var(--tg-bg-color)]');
+                    fileUploadLabel.classList.add('bg-gray-200', 'dark:bg-gray-700');
+                } else {
+                    previewWrapper.classList.add('hidden');
+                    fileUploadLabel.textContent = 'Выбрать изображения (до 10)';
+                    fileUploadLabel.classList.add('bg-[var(--tg-bg-color)]');
+                    fileUploadLabel.classList.remove('bg-gray-200', 'dark:bg-gray-700');
                 }
-                files.forEach(file => {
+
+                selectedFiles.forEach((file, index) => {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'w-full h-24 object-cover rounded-md';
-                        previewContainer.appendChild(img);
+                        const previewElement = document.createElement('div');
+                        previewElement.className = 'relative';
+                        previewElement.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-24 object-cover rounded-md">
+                            <button data-index="${index}" class="remove-img-btn absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold leading-none">&times;</button>
+                        `;
+                        previewContainer.appendChild(previewElement);
                     };
                     reader.readAsDataURL(file);
                 });
+            }
+
+            // Handles new file selection
+            fileInput.addEventListener('change', (event) => {
+                const newFiles = Array.from(event.target.files);
+                if (selectedFiles.length + newFiles.length > 10) {
+                    tg.showAlert('Можно загрузить не более 10 изображений.');
+                    return;
+                }
+                selectedFiles.push(...newFiles);
+                fileInput.value = ''; // Reset input to allow selecting the same file again after removing it
+                renderPreviews();
             });
 
+            // Handles removing a specific image preview
+            previewContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.remove-img-btn');
+                if (removeBtn) {
+                    const indexToRemove = parseInt(removeBtn.dataset.index);
+                    selectedFiles.splice(indexToRemove, 1);
+                    renderPreviews();
+                }
+            });
+
+            // Handles the final post submission
             document.getElementById('add-post-btn').addEventListener('click', async (e) => {
                 const btn = e.target;
-                const files = fileInput.files;
+                const files = selectedFiles;
                 const desc = document.getElementById('new-post-desc');
                 
                 if (files.length === 0) { tg.showAlert('Выберите хотя бы одно изображение.'); return; }
@@ -719,7 +758,7 @@
                 btn.textContent = `Загрузка (0/${files.length})...`;
 
                 try {
-                    const uploadPromises = Array.from(files).map(async (file, index) => {
+                    const uploadPromises = files.map(async (file, index) => {
                         const filePath = `public/${Date.now()}-${file.name}`;
                         const { error: uploadError } = await supabase.storage.from('image').upload(filePath, file);
                         if (uploadError) throw uploadError;
@@ -737,8 +776,8 @@
 
                     // Reset form
                     desc.value = '';
-                    fileInput.value = '';
-                    previewContainer.innerHTML = '';
+                    selectedFiles = [];
+                    renderPreviews();
 
                     showToast('Пост успешно добавлен!');
                     await renderAdminPortfolio();
