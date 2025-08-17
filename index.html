@@ -35,31 +35,58 @@
 
     <!-- Основной контейнер приложения -->
     <div id="app-container" class="pb-16">
-        <!-- ===== ЭКРАН 1: ПОРТФОЛИО ===== -->
+        <!-- ===== ЭКРАН 1: ПОРТФОЛИО / УПРАВЛЕНИЕ ПОСТАМИ ===== -->
         <div id="portfolio-page" class="page active p-3 space-y-3">
-            <h1 class="text-xl font-bold px-1">Портфолио</h1>
+            <h1 id="portfolio-title" class="text-xl font-bold px-1">Портфолио</h1>
+            <!-- Admin View -->
+            <div id="admin-portfolio-controls" class="hidden space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
+                <h2 class="font-semibold">Добавить новый пост</h2>
+                <input id="new-post-url" type="text" placeholder="URL изображения" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
+                <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                <button id="add-post-btn" class="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg active:bg-indigo-700">Добавить пост</button>
+            </div>
             <div id="portfolio-grid" class="space-y-4"><div class="loader"></div></div>
         </div>
-        <!-- ===== ЭКРАН 2: ЗАПИСЬ ===== -->
+        
+        <!-- ===== ЭКРАН 2: ЗАПИСЬ / УПРАВЛЕНИЕ УСЛУГАМИ ===== -->
         <div id="booking-page" class="page p-3 space-y-4">
-            <h1 class="text-xl font-bold px-1">Запись на услугу</h1>
-            <div id="step-1-service">
-                <h2 class="text-base font-semibold mb-2 px-1">1. Выберите услугу</h2>
-                <div id="services-list" class="space-y-2"><div class="loader"></div></div>
+            <h1 id="booking-title" class="text-xl font-bold px-1">Запись на услугу</h1>
+            <!-- User View -->
+            <div id="user-booking-view">
+                <div id="step-1-service">
+                    <h2 class="text-base font-semibold mb-2 px-1">1. Выберите услугу</h2>
+                    <div id="services-list" class="space-y-2"><div class="loader"></div></div>
+                </div>
+                <div id="step-2-datetime" class="hidden">
+                    <h2 class="text-base font-semibold mb-2 px-1">2. Выберите дату и время</h2>
+                    <input type="date" id="date-picker" class="w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
+                    <div id="time-slots" class="grid grid-cols-4 gap-2 mt-3"></div>
+                    <p id="no-slots-message" class="text-center text-gray-500 mt-4 hidden">На выбранную дату нет свободных слотов.</p>
+                </div>
+                <button id="back-to-services" class="hidden w-full mt-3 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-center font-semibold">Назад к услугам</button>
             </div>
-            <div id="step-2-datetime" class="hidden">
-                <h2 class="text-base font-semibold mb-2 px-1">2. Выберите дату и время</h2>
-                <input type="date" id="date-picker" class="w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
-                <div id="time-slots" class="grid grid-cols-4 gap-2 mt-3"></div>
-                <p id="no-slots-message" class="text-center text-gray-500 mt-4 hidden">На выбранную дату нет свободных слотов.</p>
+            <!-- Admin View -->
+            <div id="admin-services-view" class="hidden space-y-4">
+                <div class="space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
+                    <h2 class="font-semibold">Добавить новую услугу</h2>
+                    <input id="new-service-name" type="text" placeholder="Название услуги" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <input id="new-service-price" type="text" placeholder="Цена (напр. 1500 ₽)" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <input id="new-service-duration" type="text" placeholder="Длительность (напр. 60 мин)" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <button id="add-service-btn" class="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg">Добавить услугу</button>
+                </div>
+                <div>
+                    <h2 class="text-base font-semibold mb-2 px-1">Существующие услуги</h2>
+                    <div id="admin-services-list" class="space-y-2"></div>
+                </div>
             </div>
-            <button id="back-to-services" class="hidden w-full mt-3 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-center font-semibold">Назад к услугам</button>
         </div>
-        <!-- ===== ЭКРАН 3: МОИ ЗАПИСИ ===== -->
+
+        <!-- ===== ЭКРАН 3: МОИ ЗАПИСИ / ДАШБОРД ===== -->
         <div id="history-page" class="page p-3 space-y-3">
-            <h1 class="text-xl font-bold px-1">Мои записи</h1>
+            <h1 id="history-title" class="text-xl font-bold px-1">Мои записи</h1>
             <div id="appointments-list" class="space-y-3"><div class="loader"></div></div>
         </div>
+
         <!-- ===== ЭКРАН 4: ПРОФИЛЬ ===== -->
         <div id="profile-page" class="page p-3 space-y-4">
             <h1 class="text-xl font-bold px-1">Профиль</h1>
@@ -70,22 +97,14 @@
                     <p id="user-username" class="text-gray-500 dark:text-gray-400 text-xs"></p>
                 </div>
             </div>
-            <div class="bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm">
-                 <ul class="space-y-1">
-                    <li class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer">
-                        <span>Уведомления</span>
-                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                    </li>
-                 </ul>
-            </div>
         </div>
     </div>
 
     <!-- ===== НИЖНИЙ НАВБАР ===== -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800 flex justify-around">
-        <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg><span class="text-xs font-medium mt-0.5">Портфолио</span></button>
-        <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span class="text-xs font-medium mt-0.5">Запись</span></button>
-        <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="text-xs font-medium mt-0.5">Мои записи</span></button>
+        <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg><span id="nav-portfolio" class="text-xs font-medium mt-0.5">Портфолио</span></button>
+        <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span id="nav-booking" class="text-xs font-medium mt-0.5">Запись</span></button>
+        <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span id="nav-history" class="text-xs font-medium mt-0.5">Мои записи</span></button>
         <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span class="text-xs font-medium mt-0.5">Профиль</span></button>
     </nav>
 
@@ -93,11 +112,16 @@
         const tg = window.Telegram.WebApp;
         const supabase = window.supabase;
         
-        const userId = tg.initDataUnsafe?.user?.id?.toString();
+        const ADMIN_ID = '5042988950';
+        const user = tg.initDataUnsafe?.user;
+        const userId = user?.id?.toString();
+        const isAdmin = userId === ADMIN_ID;
+
         const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
         let servicesData = [];
         let selectedService = null;
 
+        // ===== UI Elements =====
         const pages = document.querySelectorAll('.page');
         const navItems = document.querySelectorAll('.nav-item');
         const portfolioGrid = document.getElementById('portfolio-grid');
@@ -110,6 +134,7 @@
         const step2 = document.getElementById('step-2-datetime');
         const backBtn = document.getElementById('back-to-services');
 
+        // ===== Navigation =====
         function switchPage(pageId) {
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -118,50 +143,34 @@
         }
         navItems.forEach(item => item.addEventListener('click', () => switchPage(item.dataset.page)));
 
+        // ===== Profile Management =====
         async function upsertUserProfile() {
-            const user = tg.initDataUnsafe?.user;
-            if (!user) {
-                console.log("User data not available.");
-                return;
-            };
-
+            if (!user) return;
             const { error } = await supabase.from('profiles').upsert({
-                id: user.id.toString(),
+                id: userId,
                 first_name: user.first_name,
                 last_name: user.last_name,
                 username: user.username
             }, { onConflict: 'id' });
-
             if (error) console.error('Error upserting profile:', error);
         }
 
-        async function renderPortfolio() {
+        // ===== User Functions =====
+        async function renderUserPortfolio() {
             const { data: portfolio, error } = await supabase.from('portfolio').select('*').order('id');
             if (error) { console.error(error); return; }
-            
             const { data: userLikes } = await supabase.from('likes').select('post_id').eq('user_id', userId);
             const likedPostIds = new Set(userLikes.map(like => like.post_id));
-
             portfolioGrid.innerHTML = '';
             portfolio.forEach(post => {
                 const isLiked = likedPostIds.has(post.id);
                 const postElement = document.createElement('div');
                 postElement.className = 'bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden';
-                postElement.innerHTML = `
-                    <img src="${post.image_url}" class="w-full h-auto object-cover">
-                    <div class="p-3">
-                        <p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p>
-                        <button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-gray-500 ${isLiked ? 'liked' : ''}">
-                            <svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-                            <svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-1.344-.688 15.182 15.182 0 01-1.06-1.017c-.8-1.04-1.59-2.178-2.155-3.37A8.242 8.242 0 013 10.5a8.25 8.25 0 0116.5 0c0 1.258-.25 2.45-.705 3.524-1.121 2.36-2.913 4.2-4.831 5.5z" /></svg>
-                            <span class="like-count text-xs font-medium">${post.likes}</span>
-                        </button>
-                    </div>`;
+                postElement.innerHTML = `<img src="${post.image_url}" class="w-full h-auto object-cover"><div class="p-3"><p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p><button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-gray-500 ${isLiked ? 'liked' : ''}"><svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg><svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-1.344-.688 15.182 15.182 0 01-1.06-1.017c-.8-1.04-1.59-2.178-2.155-3.37A8.242 8.242 0 013 10.5a8.25 8.25 0 0116.5 0c0 1.258-.25 2.45-.705 3.524-1.121 2.36-2.913 4.2-4.831 5.5z" /></svg><span class="like-count text-xs font-medium">${post.likes}</span></button></div>`;
                 portfolioGrid.appendChild(postElement);
             });
         }
-
-        async function renderServices() {
+        async function renderUserServices() {
             const { data, error } = await supabase.from('services').select('*').order('id');
             if (error) { console.error(error); return; }
             servicesData = data;
@@ -174,33 +183,9 @@
                 servicesList.appendChild(serviceEl);
             });
         }
-
-        async function renderTimeSlots() {
-            const selectedDate = datePicker.value;
-            const { data, error } = await supabase.from('appointments').select('time').eq('date', selectedDate);
-            if (error) { console.error(error); return; }
-            
-            const bookedTimes = new Set(data.map(slot => slot.time));
-            timeSlotsContainer.innerHTML = '';
-            
-            let availableCount = 0;
-            timeSlotsData.forEach(time => {
-                const isBooked = bookedTimes.has(time);
-                if (!isBooked) availableCount++;
-                const slotEl = document.createElement('button');
-                slotEl.className = `p-2 rounded-lg text-center font-semibold ${isBooked ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-200 dark:bg-gray-800 active:bg-indigo-500'}`;
-                slotEl.textContent = time;
-                slotEl.disabled = isBooked;
-                if (!isBooked) slotEl.addEventListener('click', () => handleTimeSlotSelect(time, slotEl));
-                timeSlotsContainer.appendChild(slotEl);
-            });
-            noSlotsMessage.classList.toggle('hidden', availableCount > 0);
-        }
-
-        async function renderAppointments() {
+        async function renderUserAppointments() {
             const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
             if (error) { console.error(error); return; }
-
             appointmentsList.innerHTML = '';
             if (data.length === 0) {
                 appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">У вас пока нет записей.</p>`;
@@ -209,7 +194,6 @@
             const today = new Date(new Date().toDateString());
             const upcoming = data.filter(a => new Date(a.date) >= today).sort((a,b) => new Date(a.date) - new Date(b.date));
             const completed = data.filter(a => new Date(a.date) < today).sort((a,b) => new Date(b.date) - new Date(a.date));
-
             if (upcoming.length > 0) {
                 appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 px-1">Предстоящие</h2>`;
                 upcoming.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, true)));
@@ -220,53 +204,111 @@
             }
         }
 
+        // ===== Admin Functions =====
+        async function renderAdminPortfolio() {
+            const { data: portfolio, error } = await supabase.from('portfolio').select('*').order('id');
+            if (error) { console.error(error); return; }
+            portfolioGrid.innerHTML = '';
+            portfolio.forEach(post => {
+                const postEl = document.createElement('div');
+                postEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
+                postEl.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <img src="${post.image_url}" class="w-12 h-12 object-cover rounded-md">
+                        <p class="text-xs">${post.description.substring(0, 30)}...</p>
+                    </div>
+                    <button data-id="${post.id}" class="delete-post-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                `;
+                portfolioGrid.appendChild(postEl);
+            });
+        }
+        async function renderAdminServices() {
+            const { data, error } = await supabase.from('services').select('*').order('id');
+            if (error) { console.error(error); return; }
+            const listEl = document.getElementById('admin-services-list');
+            listEl.innerHTML = '';
+            data.forEach(service => {
+                const serviceEl = document.createElement('div');
+                serviceEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
+                serviceEl.innerHTML = `
+                    <div>
+                        <p class="font-semibold">${service.name}</p>
+                        <p class="text-xs text-gray-500">${service.price} - ${service.duration}</p>
+                    </div>
+                    <button data-id="${service.id}" class="delete-service-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                `;
+                listEl.appendChild(serviceEl);
+            });
+        }
+        async function renderAdminDashboard() {
+            const today = new Date().toISOString().split('T')[0];
+            const { data, error } = await supabase.from('appointments').select(`*, profiles(first_name, username)`).gte('date', today).order('date').order('time');
+            if (error) { console.error(error); return; }
+            appointmentsList.innerHTML = '';
+            if (data.length === 0) {
+                appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">Предстоящих записей нет.</p>`;
+                return;
+            }
+            data.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
+                const profile = app.profiles;
+                const clientName = profile ? `${profile.first_name || ''} (@${profile.username || '...'})` : '...';
+                card.innerHTML = `
+                    <p class="font-bold">${app.service_name}</p>
+                    <p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p>
+                    <p class="text-xs text-indigo-500">${clientName}</p>
+                `;
+                appointmentsList.appendChild(card);
+            });
+        }
+
+        // ===== Common Functions =====
         function createAppointmentCard(appointment, isUpcoming) {
             const card = document.createElement('div');
             card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-bold text-base">${appointment.service_name}</h3>
-                        <p class="text-gray-500 text-xs">${new Date(appointment.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${appointment.time}</p>
-                    </div>
-                    <span class="text-xs font-medium py-1 px-2 rounded-full ${isUpcoming ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-200 text-gray-700'}">
-                        ${isUpcoming ? 'Предстоит' : 'Завершена'}
-                    </span>
-                </div>
-                ${isUpcoming ? `<button data-id="${appointment.id}" class="cancel-btn w-full text-left text-red-500 font-semibold mt-2 p-2 -m-2 rounded-lg">Отменить запись</button>` : ''}`;
+            card.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-base">${appointment.service_name}</h3><p class="text-gray-500 text-xs">${new Date(appointment.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${appointment.time}</p></div><span class="text-xs font-medium py-1 px-2 rounded-full ${isUpcoming ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-200 text-gray-700'}">${isUpcoming ? 'Предстоит' : 'Завершена'}</span></div>${isUpcoming ? `<button data-id="${appointment.id}" class="cancel-btn w-full text-left text-red-500 font-semibold mt-2 p-2 -m-2 rounded-lg">Отменить запись</button>` : ''}`;
             return card;
         }
-
         function renderProfile() {
-            const user = tg.initDataUnsafe?.user;
             if (user) {
-                document.getElementById('user-name').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                document.getElementById('user-name').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() + (isAdmin ? ' (Admin)' : '');
                 document.getElementById('user-username').textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
                 const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
                 document.getElementById('user-photo').textContent = initials ? initials.toUpperCase() : '👤';
             }
         }
 
+        // ===== Event Listeners =====
         portfolioGrid.addEventListener('click', async (e) => {
-            const button = e.target.closest('.like-btn');
-            if (!button || !userId) return;
-            const postId = parseInt(button.dataset.id);
-            const isLiked = button.dataset.liked === 'true';
-
-            tg.HapticFeedback.impactOccurred('light');
-            button.classList.toggle('liked');
-            button.dataset.liked = !isLiked;
-
-            if (isLiked) {
-                await supabase.from('likes').delete().match({ post_id: postId, user_id: userId });
-                await supabase.rpc('decrement_likes', { post_id_in: postId });
+            if (isAdmin) {
+                const button = e.target.closest('.delete-post-btn');
+                if (!button) return;
+                tg.showConfirm('Удалить этот пост?', async (confirmed) => {
+                    if (confirmed) {
+                        await supabase.from('portfolio').delete().eq('id', button.dataset.id);
+                        renderAdminPortfolio();
+                    }
+                });
             } else {
-                await supabase.from('likes').insert({ post_id: postId, user_id: userId });
-                await supabase.rpc('increment_likes', { post_id_in: postId });
+                const button = e.target.closest('.like-btn');
+                if (!button || !userId) return;
+                const postId = parseInt(button.dataset.id);
+                const isLiked = button.dataset.liked === 'true';
+                tg.HapticFeedback.impactOccurred('light');
+                button.classList.toggle('liked');
+                button.dataset.liked = !isLiked;
+                if (isLiked) {
+                    await supabase.from('likes').delete().match({ post_id: postId, user_id: userId });
+                    await supabase.rpc('decrement_likes', { post_id_in: postId });
+                } else {
+                    await supabase.from('likes').insert({ post_id: postId, user_id: userId });
+                    await supabase.rpc('increment_likes', { post_id_in: postId });
+                }
+                renderUserPortfolio();
             }
-            renderPortfolio();
         });
-
+        
         function handleServiceSelect(service) {
             selectedService = service;
             step1.classList.add('hidden');
@@ -277,7 +319,6 @@
             datePicker.min = today;
             renderTimeSlots();
         }
-
         function handleTimeSlotSelect(time, el) {
             document.querySelectorAll('#time-slots button').forEach(btn => {
                 btn.classList.remove('bg-indigo-600', 'text-white');
@@ -287,47 +328,86 @@
             tg.MainButton.setText(`Записаться на ${time}`).show();
             tg.MainButton.onClick(() => confirmBooking(datePicker.value, time));
         }
-
         function confirmBooking(date, time) {
             if (!userId) { tg.showAlert('Не удалось определить пользователя.'); return; }
             tg.showConfirm(`Подтвердить запись на ${date} в ${time}?`, async (confirmed) => {
                 if (confirmed) {
-                    await supabase.from('appointments').insert({
-                        user_id: userId,
-                        service_id: selectedService.id,
-                        service_name: selectedService.name,
-                        date: date,
-                        time: time
-                    });
+                    await supabase.from('appointments').insert({ user_id: userId, service_id: selectedService.id, service_name: selectedService.name, date: date, time: time });
                     tg.showAlert('Вы успешно записаны!', () => {
                         switchPage('history-page');
-                        renderAppointments();
+                        renderUserAppointments();
                     });
                 }
             });
         }
-        
         appointmentsList.addEventListener('click', (e) => {
             const button = e.target.closest('.cancel-btn');
             if (!button) return;
-            const appointmentId = parseInt(button.dataset.id);
             tg.showConfirm('Отменить эту запись?', async (confirmed) => {
                 if(confirmed) {
-                    await supabase.from('appointments').delete().eq('id', appointmentId);
-                    renderAppointments();
+                    await supabase.from('appointments').delete().eq('id', button.dataset.id);
+                    renderUserAppointments();
                     tg.HapticFeedback.notificationOccurred('success');
                 }
             });
         });
-
         backBtn.addEventListener('click', () => {
             step1.classList.remove('hidden');
-            step2.classList.add('hidden');
+            step2.classList.remove('hidden');
             backBtn.classList.add('hidden');
             tg.MainButton.hide();
         });
         datePicker.addEventListener('change', renderTimeSlots);
 
+        // ===== Admin Event Listeners =====
+        document.getElementById('add-post-btn').addEventListener('click', async () => {
+            const url = document.getElementById('new-post-url').value;
+            const desc = document.getElementById('new-post-desc').value;
+            if (!url || !desc) { tg.showAlert('Заполните все поля'); return; }
+            await supabase.from('portfolio').insert({ image_url: url, description: desc });
+            document.getElementById('new-post-url').value = '';
+            document.getElementById('new-post-desc').value = '';
+            renderAdminPortfolio();
+        });
+        document.getElementById('add-service-btn').addEventListener('click', async () => {
+            const name = document.getElementById('new-service-name').value;
+            const price = document.getElementById('new-service-price').value;
+            const duration = document.getElementById('new-service-duration').value;
+            if (!name || !price || !duration) { tg.showAlert('Заполните все поля'); return; }
+            await supabase.from('services').insert({ name, price, duration });
+            document.getElementById('new-service-name').value = '';
+            document.getElementById('new-service-price').value = '';
+            document.getElementById('new-service-duration').value = '';
+            renderAdminServices();
+        });
+        document.getElementById('admin-services-list').addEventListener('click', (e) => {
+            const button = e.target.closest('.delete-service-btn');
+            if (!button) return;
+            tg.showConfirm('Удалить эту услугу?', async (confirmed) => {
+                if (confirmed) {
+                    await supabase.from('services').delete().eq('id', button.dataset.id);
+                    renderAdminServices();
+                }
+            });
+        });
+
+        // ===== App Initialization =====
+        async function initializeAdminPanel() {
+            document.getElementById('portfolio-title').textContent = 'Управление постами';
+            document.getElementById('booking-title').textContent = 'Управление услугами';
+            document.getElementById('history-title').textContent = 'Дашборд записей';
+            document.getElementById('nav-portfolio').textContent = 'Посты';
+            document.getElementById('nav-booking').textContent = 'Услуги';
+            document.getElementById('nav-history').textContent = 'Дашборд';
+            document.getElementById('admin-portfolio-controls').classList.remove('hidden');
+            document.getElementById('admin-services-view').classList.remove('hidden');
+            document.getElementById('user-booking-view').classList.add('hidden');
+            
+            await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard()]);
+        }
+        async function initializeUserPanel() {
+            await Promise.all([renderUserPortfolio(), renderUserServices(), renderUserAppointments()]);
+        }
         (async () => {
             tg.ready();
             const body = document.querySelector('body');
@@ -336,7 +416,12 @@
             
             renderProfile();
             await upsertUserProfile();
-            await Promise.all([renderPortfolio(), renderServices(), renderAppointments()]);
+            
+            if (isAdmin) {
+                await initializeAdminPanel();
+            } else {
+                await initializeUserPanel();
+            }
         })();
     </script>
 </body>
