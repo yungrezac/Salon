@@ -2,108 +2,139 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Nail Studio Mini App</title>
-    <!-- Подключение Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключение Telegram Web App SDK -->
+    
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключение Supabase Client -->
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Supabase Client -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-        window.supabase = createClient(
-            'https://ogqufmdhlscmyrdvrzxz.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ncXVmbWRobHNjbXlyZHZyenh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MjExMTIsImV4cCI6MjA3MDk5NzExMn0.fqbMtcWWn5tWZZXWyUaLkC_k0nKYYLj3b_zf8SI_C2Y'
-        );
+        // IMPORTANT: Replace with your actual Supabase URL and Anon Key
+        const supabaseUrl = 'https://ogqufmdhlscmyrdvrzxz.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ncXVmbWRobHNjbXlyZHZyenh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MjExMTIsImV4cCI6MjA3MDk5NzExMn0.fqbMtcWWn5tWZZXWyUaLkC_k0nKYYLj3b_zf8SI_C2Y';
+        window.supabase = createClient(supabaseUrl, supabaseAnonKey);
     </script>
+
+    <!-- Custom Styles -->
     <style>
+        :root {
+            --tg-bg-color: var(--tg-theme-bg-color, #ffffff);
+            --tg-text-color: var(--tg-theme-text-color, #000000);
+            --tg-hint-color: var(--tg-theme-hint-color, #999999);
+            --tg-link-color: var(--tg-theme-link-color, #2481cc);
+            --tg-button-color: var(--tg-theme-button-color, #2481cc);
+            --tg-button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary-bg-color: var(--tg-theme-secondary-bg-color, #f4f4f4);
+        }
+
+        body {
+            background-color: var(--tg-bg-color);
+            color: var(--tg-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
         .page { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .nav-item.active svg, .nav-item.active span { color: #4f46e5; }
-        body { -ms-overflow-style: none; scrollbar-width: none; }
-        body::-webkit-scrollbar { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-item.active { color: var(--tg-button-color); }
+        .nav-item.active svg { color: var(--tg-button-color); }
+        
         .like-btn.liked svg.solid { display: block; color: #ef4444; animation: pop 0.3s ease; }
         .like-btn.liked svg.outline { display: none; }
         .like-btn svg.solid { display: none; }
-        @keyframes pop { 0% { transform: scale(0.8); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
+        @keyframes pop { 0% { transform: scale(0.8); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        .loader { border: 4px solid var(--tg-secondary-bg-color); border-top: 4px solid var(--tg-button-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); background-color: #333; color: white; padding: 10px 20px; border-radius: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s, bottom 0.3s; }
-        #toast.show { opacity: 1; visibility: visible; bottom: 80px; }
-        .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; display: none; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; display: none; }
-        .skeleton { background-color: #e5e7eb; }
-        .dark .skeleton { background-color: #374151; }
+
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.7); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; transition: bottom 0.4s ease-in-out; font-weight: 500; }
+        #toast.show { bottom: 80px; }
+
+        .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+        .modal { position: fixed; bottom: -100%; left: 0; right: 0; z-index: 50; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .modal.show { bottom: 0; }
+        
+        .skeleton { background-color: var(--tg-secondary-bg-color); }
         @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
-        .skeleton-shimmer { animation: shimmer 2s infinite linear; background: linear-gradient(to right, transparent 0%, #ffffff33 50%, transparent 100%); background-size: 1000px 100%; }
+        .skeleton-shimmer { animation: shimmer 2s infinite linear; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); background-size: 1000px 100%; }
+        
         .fade-out { animation: fadeOut 0.3s ease-out forwards; }
-        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(0.95); } }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 font-sans antialiased overflow-x-hidden text-sm">
+<body class="text-sm">
 
-    <!-- Основной контейнер приложения -->
-    <div id="app-container" class="pb-16">
-        <!-- ===== ЭКРАН 1: ПОРТФОЛИО / УПРАВЛЕНИЕ ПОСТАМИ ===== -->
-        <div id="portfolio-page" class="page active p-3 space-y-3">
-            <h1 id="portfolio-title" class="text-xl font-bold px-1">Портфолио</h1>
-            <div id="admin-portfolio-controls" class="hidden space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
+    <!-- Main App Container -->
+    <div id="app-container" class="pb-20">
+        <!-- ===== PAGE 1: PORTFOLIO / POST MANAGEMENT ===== -->
+        <div id="portfolio-page" class="page active p-4 space-y-4">
+            <h1 id="portfolio-title" class="text-2xl font-bold">Портфолио</h1>
+            <div id="admin-portfolio-controls" class="hidden space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
                 <h2 class="font-semibold">Добавить новый пост</h2>
-                <input id="new-post-url" type="text" placeholder="URL изображения" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
-                <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                <button id="add-post-btn" class="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg active:bg-indigo-700 disabled:opacity-50">Добавить пост</button>
+                <input id="new-post-url" type="text" placeholder="URL изображения" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]">
+                <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]"></textarea>
+                <button id="add-post-btn" class="w-full p-3 bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold rounded-lg active:scale-95 transition-transform disabled:opacity-50">Добавить пост</button>
             </div>
-            <div id="portfolio-grid" class="space-y-4"></div>
+            <div id="portfolio-grid" class="space-y-5"></div>
         </div>
         
-        <!-- ===== ЭКРАН 2: ЗАПИСЬ / УПРАВЛЕНИЕ УСЛУГАМИ ===== -->
-        <div id="booking-page" class="page p-3 space-y-4">
-            <h1 id="booking-title" class="text-xl font-bold px-1">Запись на услугу</h1>
+        <!-- ===== PAGE 2: BOOKING / SERVICE MANAGEMENT ===== -->
+        <div id="booking-page" class="page p-4 space-y-4">
+            <h1 id="booking-title" class="text-2xl font-bold">Запись на услугу</h1>
             <div id="user-booking-view">
                 <div id="step-1-service"><div id="services-list" class="space-y-2"></div></div>
                 <div id="step-2-datetime" class="hidden">
-                    <h2 class="text-base font-semibold mb-2 px-1">2. Выберите дату и время</h2>
-                    <input type="date" id="date-picker" class="w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
-                    <div id="time-slots" class="grid grid-cols-4 gap-2 mt-3"></div>
-                    <p id="no-slots-message" class="text-center text-gray-500 mt-4 hidden">На выбранную дату нет свободных слотов.</p>
+                    <h2 class="text-lg font-semibold mb-3">2. Выберите дату и время</h2>
+                    <input type="date" id="date-picker" class="w-full p-2.5 rounded-lg bg-[var(--tg-secondary-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]">
+                    <div id="time-slots" class="grid grid-cols-4 gap-2 mt-4"></div>
+                    <p id="no-slots-message" class="text-center text-[var(--tg-hint-color)] mt-4 hidden">На выбранную дату нет свободных слотов.</p>
                 </div>
-                <button id="back-to-services" class="hidden w-full mt-3 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-center font-semibold">Назад к услугам</button>
+                <button id="back-to-services" class="hidden w-full mt-4 p-3 rounded-lg bg-[var(--tg-secondary-bg-color)] text-center font-bold active:scale-95 transition-transform">Назад к услугам</button>
             </div>
             <div id="admin-services-view" class="hidden space-y-4">
-                <div class="space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
+                <div class="space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
                     <h2 class="font-semibold">Добавить новую услугу</h2>
-                    <input id="new-service-name" type="text" placeholder="Название услуги" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <input id="new-service-price" type="text" placeholder="Цена (напр. 1500 ₽)" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <input id="new-service-duration" type="text" placeholder="Длительность (напр. 60 мин)" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <button id="add-service-btn" class="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg disabled:opacity-50">Добавить услугу</button>
+                    <input id="new-service-name" type="text" placeholder="Название услуги" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
+                    <input id="new-service-price" type="text" placeholder="Цена (напр. 1500 ₽)" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
+                    <input id="new-service-duration" type="text" placeholder="Длительность (напр. 60 мин)" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
+                    <button id="add-service-btn" class="w-full p-3 bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold rounded-lg disabled:opacity-50 active:scale-95 transition-transform">Добавить услугу</button>
                 </div>
                 <div>
-                    <h2 class="text-base font-semibold mb-2 px-1">Существующие услуги</h2>
+                    <h2 class="text-lg font-semibold mb-2">Существующие услуги</h2>
                     <div id="admin-services-list" class="space-y-2"></div>
                 </div>
             </div>
         </div>
 
-        <!-- ===== ЭКРАН 3: МОИ ЗАПИСИ / ДАШБОРД ===== -->
-        <div id="history-page" class="page p-3 space-y-3">
-            <h1 id="history-title" class="text-xl font-bold px-1">Мои записи</h1>
-            <div id="admin-dashboard-summary" class="hidden bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm space-y-2">
-                <p class="font-semibold">Предстоящих записей: <span id="upcoming-count" class="text-indigo-500">0</span></p>
-                <input id="dashboard-search" type="text" placeholder="Поиск по имени клиента..." class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none">
+        <!-- ===== PAGE 3: MY APPOINTMENTS / DASHBOARD ===== -->
+        <div id="history-page" class="page p-4 space-y-4">
+            <h1 id="history-title" class="text-2xl font-bold">Мои записи</h1>
+            <div id="admin-dashboard-summary" class="hidden bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl space-y-2">
+                <p class="font-semibold">Предстоящих записей: <span id="upcoming-count" class="text-[var(--tg-link-color)]">0</span></p>
+                <input id="dashboard-search" type="text" placeholder="Поиск по имени клиента..." class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none">
             </div>
             <div id="appointments-list" class="space-y-3"></div>
         </div>
 
-        <!-- ===== ЭКРАН 4: ПРОФИЛЬ / КЛИЕНТЫ ===== -->
-        <div id="profile-page" class="page p-3 space-y-4">
-            <h1 id="profile-title" class="text-xl font-bold px-1">Профиль</h1>
+        <!-- ===== PAGE 4: PROFILE / CLIENTS ===== -->
+        <div id="profile-page" class="page p-4 space-y-4">
+            <h1 id="profile-title" class="text-2xl font-bold">Профиль</h1>
             <div id="user-profile-view">
-                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm flex items-center space-x-3">
-                    <div id="user-photo" class="w-14 h-14 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xl font-bold shrink-0"></div>
+                <div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex items-center space-x-4">
+                    <div id="user-photo" class="w-16 h-16 rounded-full bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] flex items-center justify-center text-2xl font-bold shrink-0"></div>
                     <div>
                         <h2 id="user-name" class="text-lg font-semibold"></h2>
-                        <p id="user-username" class="text-gray-500 dark:text-gray-400 text-xs"></p>
+                        <p id="user-username" class="text-[var(--tg-hint-color)] text-sm"></p>
                     </div>
                 </div>
             </div>
@@ -113,31 +144,34 @@
         </div>
     </div>
 
-    <!-- ===== НИЖНИЙ НАВБАР ===== -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800 flex justify-around">
-        <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg><span id="nav-portfolio" class="text-xs font-medium mt-0.5">Портфолио</span></button>
-        <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span id="nav-booking" class="text-xs font-medium mt-0.5">Запись</span></button>
-        <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span id="nav-history" class="text-xs font-medium mt-0.5">Мои записи</span></button>
-        <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg id="nav-profile-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span id="nav-profile" class="text-xs font-medium mt-0.5">Профиль</span></button>
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[var(--tg-secondary-bg-color)]/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 flex justify-around" style="padding-bottom: env(safe-area-inset-bottom);">
+        <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg><span id="nav-portfolio" class="text-xs font-medium mt-0.5">Портфолио</span></button>
+        <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span id="nav-booking" class="text-xs font-medium mt-0.5">Запись</span></button>
+        <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span id="nav-history" class="text-xs font-medium mt-0.5">Мои записи</span></button>
+        <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg id="nav-profile-icon" class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span id="nav-profile" class="text-xs font-medium mt-0.5">Профиль</span></button>
     </nav>
+    
     <div id="toast"></div>
 
     <!-- Edit Modal -->
     <div id="edit-modal-backdrop" class="modal-backdrop"></div>
-    <div id="edit-modal" class="modal w-11/12 max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 space-y-3">
-        <h2 id="edit-modal-title" class="text-lg font-bold">Редактировать</h2>
-        <div id="edit-modal-content"></div>
-        <div class="flex justify-end space-x-2">
-            <button id="edit-modal-cancel" class="p-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700">Отмена</button>
-            <button id="edit-modal-save" class="p-2 px-4 rounded-lg bg-indigo-600 text-white disabled:opacity-50">Сохранить</button>
+    <div id="edit-modal" class="modal bg-[var(--tg-secondary-bg-color)] rounded-t-2xl p-4">
+        <div class="w-10 h-1.5 bg-gray-300 rounded-full mx-auto mb-4"></div>
+        <h2 id="edit-modal-title" class="text-lg font-bold mb-4">Редактировать</h2>
+        <div id="edit-modal-content" class="space-y-3"></div>
+        <div class="flex gap-2 mt-5">
+            <button id="edit-modal-cancel" class="flex-1 p-3 rounded-lg bg-gray-200 dark:bg-gray-700 font-bold">Отмена</button>
+            <button id="edit-modal-save" class="flex-1 p-3 rounded-lg bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold disabled:opacity-50">Сохранить</button>
         </div>
     </div>
 
     <script type="module">
+        // ===== App State & Constants =====
         const tg = window.Telegram.WebApp;
         const supabase = window.supabase;
         
-        const ADMIN_ID = '5042988950';
+        const ADMIN_ID = '5042988950'; // Replace with your Telegram Admin ID
         const user = tg.initDataUnsafe?.user;
         const userId = user?.id?.toString();
         const isAdmin = userId === ADMIN_ID;
@@ -166,28 +200,46 @@
         // ===== Helper Functions =====
         const showLoader = (container) => container.innerHTML = '<div class="loader"></div>';
         const showError = (container, message) => container.innerHTML = `<p class="text-center text-red-500 p-4">${message}</p>`;
+        
         const showToast = (message) => {
             toast.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         };
-        const openModal = () => { editModal.style.display = 'block'; editModalBackdrop.style.display = 'block'; };
-        const closeModal = () => { editModal.style.display = 'none'; editModalBackdrop.style.display = 'none'; };
+
+        const openModal = () => { 
+            editModal.classList.add('show'); 
+            editModalBackdrop.classList.add('show'); 
+        };
+        const closeModal = () => { 
+            editModal.classList.remove('show'); 
+            editModalBackdrop.classList.remove('show'); 
+        };
+
         const renderSkeletons = (container, count, skeletonHTML) => {
             container.innerHTML = Array(count).fill(skeletonHTML).join('');
         };
+
         const portfolioSkeleton = `
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
-                <div class="w-full h-64 skeleton skeleton-shimmer"></div>
-                <div class="p-3 space-y-2">
+            <div class="bg-[var(--tg-secondary-bg-color)] rounded-xl overflow-hidden">
+                <div class="w-full aspect-square skeleton skeleton-shimmer"></div>
+                <div class="p-4 space-y-2">
                     <div class="h-4 w-full skeleton skeleton-shimmer rounded"></div>
                     <div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div>
                 </div>
             </div>`;
         const serviceSkeleton = `
-            <div class="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm flex justify-between items-center">
-                <div class="space-y-2"><div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div></div>
+            <div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex justify-between items-center">
+                <div class="space-y-2">
+                    <div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div>
+                    <div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div>
+                </div>
                 <div class="h-5 w-12 skeleton skeleton-shimmer rounded"></div>
+            </div>`;
+        const appointmentSkeleton = `
+            <div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl space-y-2">
+                <div class="h-5 w-40 skeleton skeleton-shimmer rounded"></div>
+                <div class="h-4 w-32 skeleton skeleton-shimmer rounded"></div>
             </div>`;
 
         // ===== Navigation =====
@@ -196,8 +248,12 @@
             document.getElementById(pageId).classList.add('active');
             navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
             tg.MainButton.hide();
+            window.scrollTo(0, 0);
         }
-        navItems.forEach(item => item.addEventListener('click', () => switchPage(item.dataset.page)));
+        navItems.forEach(item => item.addEventListener('click', () => {
+            tg.HapticFeedback.impactOccurred('light');
+            switchPage(item.dataset.page);
+        }));
 
         // ===== Profile Management =====
         async function upsertUserProfile() {
@@ -212,54 +268,81 @@
         async function renderUserPortfolio() {
             renderSkeletons(portfolioGrid, 3, portfolioSkeleton);
             try {
-                const { data: portfolio, error: pError } = await supabase.from('portfolio').select('*').order('id');
+                const { data: portfolio, error: pError } = await supabase.from('portfolio').select('*').order('id', { ascending: false });
                 if (pError) throw pError;
+                
                 const { data: userLikes, error: lError } = await supabase.from('likes').select('post_id').eq('user_id', userId);
                 if (lError) throw lError;
+                
                 const likedPostIds = new Set(userLikes.map(like => like.post_id));
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Работ в портфолио пока нет. Администратор скоро добавит новые!</p>'; return; }
+                if (portfolio.length === 0) { 
+                    portfolioGrid.innerHTML = '<p class="text-center text-[var(--tg-hint-color)] py-10">Работ в портфолио пока нет.</p>'; 
+                    return; 
+                }
                 portfolio.forEach(post => {
                     const isLiked = likedPostIds.has(post.id);
                     const postElement = document.createElement('div');
-                    postElement.className = 'bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden';
-                    postElement.innerHTML = `<img src="${post.image_url}" class="w-full h-auto object-cover"><div class="p-3"><p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p><button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-gray-500 ${isLiked ? 'liked' : ''}"><svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg><svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-1.344-.688 15.182 15.182 0 01-1.06-1.017c-.8-1.04-1.59-2.178-2.155-3.37A8.242 8.242 0 013 10.5a8.25 8.25 0 0116.5 0c0 1.258-.25 2.45-.705 3.524-1.121 2.36-2.913 4.2-4.831 5.5z" /></svg><span class="like-count text-xs font-medium">${post.likes}</span></button></div>`;
+                    postElement.className = 'bg-[var(--tg-secondary-bg-color)] rounded-xl shadow-sm overflow-hidden';
+                    postElement.innerHTML = `
+                        <img src="${post.image_url}" class="w-full h-auto object-cover aspect-square" loading="lazy" onerror="this.src='https://placehold.co/600x600/e2e8f0/e2e8f0?text=Error'">
+                        <div class="p-4">
+                            <p class="text-[var(--tg-text-color)] mb-3">${post.description}</p>
+                            <button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-[var(--tg-hint-color)] ${isLiked ? 'liked' : ''}">
+                                <svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                                <svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="like-count text-sm font-medium">${post.likes}</span>
+                            </button>
+                        </div>`;
                     portfolioGrid.appendChild(postElement);
                 });
             } catch (error) { showError(portfolioGrid, 'Не удалось загрузить портфолио.'); console.error(error); }
         }
+
         async function renderUserServices() {
             renderSkeletons(servicesList, 4, serviceSkeleton);
             try {
                 const { data, error } = await supabase.from('services').select('*').order('id');
                 if (error) throw error;
-                servicesData = data;
                 servicesList.innerHTML = '';
-                servicesData.forEach(service => {
+                data.forEach(service => {
                     const serviceEl = document.createElement('div');
-                    serviceEl.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm flex justify-between items-center cursor-pointer';
-                    serviceEl.innerHTML = `<div><h3 class="font-semibold">${service.name}</h3><p class="text-xs text-gray-500">${service.duration}</p></div><span class="font-bold text-indigo-600">${service.price}</span>`;
+                    serviceEl.className = 'bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex justify-between items-center cursor-pointer active:scale-95 transition-transform';
+                    serviceEl.innerHTML = `
+                        <div>
+                            <h3 class="font-semibold text-base">${service.name}</h3>
+                            <p class="text-sm text-[var(--tg-hint-color)]">${service.duration}</p>
+                        </div>
+                        <span class="font-bold text-base text-[var(--tg-link-color)]">${service.price}</span>`;
                     serviceEl.addEventListener('click', () => handleServiceSelect(service));
                     servicesList.appendChild(serviceEl);
                 });
             } catch (error) { showError(servicesList, 'Не удалось загрузить услуги.'); console.error(error); }
         }
+
         async function renderUserAppointments() {
-            showLoader(appointmentsList);
+            renderSkeletons(appointmentsList, 2, appointmentSkeleton);
             try {
-                const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
+                const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId).order('date', { ascending: false }).order('time', { ascending: false });
                 if (error) throw error;
                 appointmentsList.innerHTML = '';
-                if (data.length === 0) { appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">У вас пока нет записей.</p>`; return; }
-                const today = new Date(new Date().toDateString());
-                const upcoming = data.filter(a => new Date(a.date) >= today).sort((a,b) => new Date(a.date) - new Date(b.date));
-                const completed = data.filter(a => new Date(a.date) < today).sort((a,b) => new Date(b.date) - new Date(a.date));
+                if (data.length === 0) { 
+                    appointmentsList.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] mt-8">У вас пока нет записей.</p>`; 
+                    return; 
+                }
+                
+                const today = new Date();
+                today.setHours(0,0,0,0);
+
+                const upcoming = data.filter(a => new Date(a.date) >= today);
+                const completed = data.filter(a => new Date(a.date) < today);
+
                 if (upcoming.length > 0) {
-                    appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 px-1">Предстоящие</h2>`;
-                    upcoming.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, true)));
+                    appointmentsList.innerHTML += `<h2 class="text-lg font-semibold text-[var(--tg-text-color)] px-1">Предстоящие</h2>`;
+                    upcoming.reverse().forEach(app => appointmentsList.appendChild(createAppointmentCard(app, true)));
                 }
                 if (completed.length > 0) {
-                    appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 mt-4 px-1">Прошедшие</h2>`;
+                    appointmentsList.innerHTML += `<h2 class="text-lg font-semibold text-[var(--tg-text-color)] mt-5 px-1">Прошедшие</h2>`;
                     completed.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, false)));
                 }
             } catch (error) { showError(appointmentsList, 'Не удалось загрузить записи.'); console.error(error); }
@@ -272,15 +355,24 @@
                 const { data: portfolio, error } = await supabase.from('portfolio').select('*').order('id', { ascending: false });
                 if (error) throw error;
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Постов пока нет.</p>'; return; }
+                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-[var(--tg-hint-color)]">Постов пока нет.</p>'; return; }
                 portfolio.forEach(post => {
                     const postEl = document.createElement('div');
-                    postEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
-                    postEl.innerHTML = `<div class="flex items-center space-x-2 overflow-hidden"><img src="${post.image_url}" class="w-12 h-12 object-cover rounded-md shrink-0"><p class="text-xs truncate">${post.description}</p></div><div class="flex shrink-0"><button data-id="${post.id}" class="edit-post-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button><button data-id="${post.id}" class="delete-post-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button></div>`;
+                    postEl.className = 'bg-[var(--tg-secondary-bg-color)] p-2 rounded-xl flex items-center justify-between gap-2';
+                    postEl.innerHTML = `
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <img src="${post.image_url}" class="w-12 h-12 object-cover rounded-md shrink-0">
+                            <p class="text-sm truncate">${post.description}</p>
+                        </div>
+                        <div class="flex shrink-0">
+                            <button data-id="${post.id}" class="edit-post-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg></button>
+                            <button data-id="${post.id}" class="delete-post-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                        </div>`;
                     portfolioGrid.appendChild(postEl);
                 });
             } catch (error) { showError(portfolioGrid, 'Ошибка загрузки постов.'); console.error(error); }
         }
+        
         async function renderAdminServices() {
             const listEl = document.getElementById('admin-services-list');
             showLoader(listEl);
@@ -290,12 +382,21 @@
                 listEl.innerHTML = '';
                 data.forEach(service => {
                     const serviceEl = document.createElement('div');
-                    serviceEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
-                    serviceEl.innerHTML = `<div><p class="font-semibold">${service.name}</p><p class="text-xs text-gray-500">${service.price} - ${service.duration}</p></div><div class="flex shrink-0"><button data-id="${service.id}" class="edit-service-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button><button data-id="${service.id}" class="delete-service-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button></div>`;
+                    serviceEl.className = 'bg-[var(--tg-secondary-bg-color)] p-2 rounded-xl flex items-center justify-between';
+                    serviceEl.innerHTML = `
+                        <div>
+                            <p class="font-semibold">${service.name}</p>
+                            <p class="text-xs text-[var(--tg-hint-color)]">${service.price} - ${service.duration}</p>
+                        </div>
+                        <div class="flex shrink-0">
+                            <button data-id="${service.id}" class="edit-service-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg></button>
+                            <button data-id="${service.id}" class="delete-service-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                        </div>`;
                     listEl.appendChild(serviceEl);
                 });
             } catch (error) { showError(listEl, 'Ошибка загрузки услуг.'); console.error(error); }
         }
+
         async function renderAdminDashboard() {
             showLoader(appointmentsList);
             try {
@@ -307,6 +408,7 @@
                 filterAndRenderAppointments();
             } catch (error) { showError(appointmentsList, 'Ошибка загрузки дашборда.'); console.error(error); }
         }
+
         function filterAndRenderAppointments(query = '') {
             const filtered = allAppointments.filter(app => {
                 const profile = app.profiles;
@@ -314,16 +416,23 @@
                 return clientName.includes(query.toLowerCase());
             });
             appointmentsList.innerHTML = '';
-            if (filtered.length === 0) { appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">${query ? 'Записи не найдены.' : 'Предстоящих записей нет.'}</p>`; return; }
+            if (filtered.length === 0) { 
+                appointmentsList.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] mt-8">${query ? 'Записи не найдены.' : 'Предстоящих записей нет.'}</p>`; 
+                return; 
+            }
             filtered.forEach(app => {
                 const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
+                card.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl';
                 const profile = app.profiles;
-                const clientName = profile ? `${profile.first_name || ''} (@${profile.username || '...'})` : '...';
-                card.innerHTML = `<p class="font-bold">${app.service_name}</p><p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p><p class="text-xs text-indigo-500">${clientName}</p>`;
+                const clientName = profile ? `${profile.first_name || 'Клиент'} (@${profile.username || '...'})` : 'Загрузка...';
+                card.innerHTML = `
+                    <p class="font-bold">${app.service_name}</p>
+                    <p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p>
+                    <p class="text-sm text-[var(--tg-link-color)] mt-1">${clientName}</p>`;
                 appointmentsList.appendChild(card);
             });
         }
+
         async function renderAdminClients() {
             const listEl = document.getElementById('clients-list');
             showLoader(listEl);
@@ -331,27 +440,28 @@
                 const { data, error } = await supabase.from('profiles').select('*').neq('id', ADMIN_ID);
                 if (error) throw error;
                 listEl.innerHTML = '';
-                if (data.length === 0) { listEl.innerHTML = `<p class="text-center text-gray-500">Клиентов пока нет.</p>`; return; }
+                if (data.length === 0) { listEl.innerHTML = `<p class="text-center text-[var(--tg-hint-color)]">Клиентов пока нет.</p>`; return; }
                 data.forEach(profile => {
                     const clientEl = document.createElement('div');
-                    clientEl.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm cursor-pointer';
-                    clientEl.innerHTML = `<p class="font-semibold">${profile.first_name || ''} ${profile.last_name || ''}</p><p class="text-xs text-gray-500">@${profile.username || 'no username'}</p>`;
-                    clientEl.addEventListener('click', () => showClientHistory(profile.id));
+                    clientEl.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl cursor-pointer active:scale-95 transition-transform';
+                    clientEl.innerHTML = `
+                        <p class="font-semibold">${profile.first_name || ''} ${profile.last_name || ''}</p>
+                        <p class="text-xs text-[var(--tg-hint-color)]">@${profile.username || 'no username'}</p>`;
+                    clientEl.addEventListener('click', () => showClientHistory(profile));
                     listEl.appendChild(clientEl);
                 });
             } catch (error) { showError(listEl, 'Ошибка загрузки клиентов.'); console.error(error); }
         }
-        async function showClientHistory(clientId) {
+
+        async function showClientHistory(profile) {
             try {
-                const { data, error } = await supabase.from('appointments').select('*').eq('user_id', clientId).order('date', { ascending: false });
+                const { data, error } = await supabase.from('appointments').select('*').eq('user_id', profile.id).order('date', { ascending: false });
                 if (error) throw error;
-                let historyText = 'История записей клиента:\n\n';
+                let historyText = `История записей для ${profile.first_name || '@'+profile.username}:\n\n`;
                 if (data.length === 0) {
                     historyText = 'У этого клиента еще не было записей.';
                 } else {
-                    data.forEach(app => {
-                        historyText += `${new Date(app.date).toLocaleDateString('ru-RU')} - ${app.service_name}\n`;
-                    });
+                    historyText += data.map(app => `• ${new Date(app.date).toLocaleDateString('ru-RU')} - ${app.service_name}`).join('\n');
                 }
                 tg.showAlert(historyText);
             } catch (error) { tg.showAlert('Не удалось загрузить историю клиента.'); console.error(error); }
@@ -360,10 +470,19 @@
         // ===== Common Functions =====
         function createAppointmentCard(appointment, isUpcoming) {
             const card = document.createElement('div');
-            card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
-            card.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-base">${appointment.service_name}</h3><p class="text-gray-500 text-xs">${new Date(appointment.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${appointment.time}</p></div><span class="text-xs font-medium py-1 px-2 rounded-full ${isUpcoming ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-200 text-gray-700'}">${isUpcoming ? 'Предстоит' : 'Завершена'}</span></div>${isUpcoming ? `<button data-id="${appointment.id}" class="cancel-btn w-full text-left text-red-500 font-semibold mt-2 p-2 -m-2 rounded-lg">Отменить запись</button>` : ''}`;
+            card.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl';
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-base">${appointment.service_name}</h3>
+                        <p class="text-[var(--tg-hint-color)] text-sm">${new Date(appointment.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${appointment.time}</p>
+                    </div>
+                    <span class="text-xs font-medium py-1 px-2.5 rounded-full ${isUpcoming ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}">${isUpcoming ? 'Предстоит' : 'Завершена'}</span>
+                </div>
+                ${isUpcoming ? `<button data-id="${appointment.id}" class="cancel-btn w-full text-left text-red-500 font-semibold mt-2 pt-2 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">Отменить запись</button>` : ''}`;
             return card;
         }
+
         function renderProfile() {
             if (user) {
                 document.getElementById('user-name').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() + (isAdmin ? ' (Admin)' : '');
@@ -375,18 +494,21 @@
 
         // ===== Event Listeners =====
         portfolioGrid.addEventListener('click', async (e) => {
-            if (!isAdmin) {
-                const button = e.target.closest('.like-btn');
-                if (!button || !userId) return;
-                const postId = parseInt(button.dataset.id);
-                let isLiked = button.dataset.liked === 'true';
-                const countSpan = button.querySelector('.like-count');
+            const likeButton = e.target.closest('.like-btn');
+            const deleteBtn = e.target.closest('.delete-post-btn');
+            const editBtn = e.target.closest('.edit-post-btn');
+
+            if (likeButton && !isAdmin) {
+                if (!userId) return;
+                const postId = parseInt(likeButton.dataset.id);
+                let isLiked = likeButton.dataset.liked === 'true';
+                const countSpan = likeButton.querySelector('.like-count');
                 let currentLikes = parseInt(countSpan.textContent);
 
                 tg.HapticFeedback.impactOccurred('light');
                 isLiked = !isLiked;
-                button.classList.toggle('liked');
-                button.dataset.liked = isLiked;
+                likeButton.classList.toggle('liked');
+                likeButton.dataset.liked = isLiked;
                 countSpan.textContent = isLiked ? currentLikes + 1 : currentLikes - 1;
 
                 try {
@@ -397,56 +519,55 @@
                         await supabase.from('likes').delete().match({ post_id: postId, user_id: userId });
                         await supabase.rpc('decrement_likes', { post_id_in: postId });
                     }
-                } catch (error) { 
+                } catch (error) {
                     console.error('Like error:', error);
                     // Revert UI on error
-                    button.classList.toggle('liked');
-                    button.dataset.liked = !isLiked;
+                    likeButton.classList.toggle('liked');
+                    likeButton.dataset.liked = !isLiked;
                     countSpan.textContent = currentLikes;
                     showToast('Ошибка сети');
                 }
-            } else {
-                const deleteBtn = e.target.closest('.delete-post-btn');
-                const editBtn = e.target.closest('.edit-post-btn');
-                if (deleteBtn) {
-                    tg.showConfirm('Удалить этот пост?', async (confirmed) => {
-                        if (confirmed) {
-                            try {
-                                const { error } = await supabase.from('portfolio').delete().eq('id', deleteBtn.dataset.id);
-                                if (error) throw error;
-                                showToast('Пост удален');
-                                renderAdminPortfolio();
-                            } catch (error) { tg.showAlert('Не удалось удалить пост.'); console.error(error); }
-                        }
-                    });
-                }
-                if (editBtn) {
-                    const { data } = await supabase.from('portfolio').select('*').eq('id', editBtn.dataset.id).single();
-                    document.getElementById('edit-modal-title').textContent = 'Редактировать пост';
-                    document.getElementById('edit-modal-content').innerHTML = `
-                        <input id="edit-post-url" type="text" value="${data.image_url}" placeholder="URL изображения" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                        <textarea id="edit-post-desc" placeholder="Описание" rows="3" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">${data.description}</textarea>
-                    `;
-                    editModalSaveBtn.onclick = async () => {
-                        const url = document.getElementById('edit-post-url').value;
-                        const desc = document.getElementById('edit-post-desc').value;
-                        editModalSaveBtn.disabled = true;
-                        editModalSaveBtn.textContent = 'Сохранение...';
+            } else if (deleteBtn && isAdmin) {
+                tg.showConfirm('Удалить этот пост?', async (confirmed) => {
+                    if (confirmed) {
                         try {
-                            await supabase.from('portfolio').update({ image_url: url, description: desc }).eq('id', data.id);
-                            closeModal();
-                            showToast('Пост обновлен');
+                            const { error } = await supabase.from('portfolio').delete().eq('id', deleteBtn.dataset.id);
+                            if (error) throw error;
+                            showToast('Пост удален');
                             renderAdminPortfolio();
-                        } catch(e) { tg.showAlert('Ошибка обновления'); }
-                        finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
-                    };
-                    openModal();
-                }
+                        } catch (error) { tg.showAlert('Не удалось удалить пост.'); console.error(error); }
+                    }
+                });
+            } else if (editBtn && isAdmin) {
+                const { data } = await supabase.from('portfolio').select('*').eq('id', editBtn.dataset.id).single();
+                document.getElementById('edit-modal-title').textContent = 'Редактировать пост';
+                document.getElementById('edit-modal-content').innerHTML = `
+                    <input id="edit-post-url" type="text" value="${data.image_url}" placeholder="URL изображения" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
+                    <textarea id="edit-post-desc" placeholder="Описание" rows="3" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">${data.description}</textarea>`;
+                
+                editModalSaveBtn.onclick = async () => {
+                    const url = document.getElementById('edit-post-url').value;
+                    const desc = document.getElementById('edit-post-desc').value;
+                    editModalSaveBtn.disabled = true;
+                    editModalSaveBtn.textContent = 'Сохранение...';
+                    try {
+                        await supabase.from('portfolio').update({ image_url: url, description: desc }).eq('id', data.id);
+                        closeModal();
+                        showToast('Пост обновлен');
+                        renderAdminPortfolio();
+                    } catch (e) { tg.showAlert('Ошибка обновления'); } 
+                    finally { 
+                        editModalSaveBtn.disabled = false; 
+                        editModalSaveBtn.textContent = 'Сохранить'; 
+                    }
+                };
+                openModal();
             }
         });
         
         async function renderTimeSlots() {
             const selectedDate = datePicker.value;
+            timeSlotsContainer.innerHTML = '<div class="loader col-span-4"></div>';
             try {
                 const { data, error } = await supabase.from('appointments').select('time').eq('date', selectedDate);
                 if (error) throw error;
@@ -457,16 +578,23 @@
                     const isBooked = bookedTimes.has(time);
                     if (!isBooked) availableCount++;
                     const slotEl = document.createElement('button');
-                    slotEl.className = `p-2 rounded-lg text-center font-semibold ${isBooked ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-200 dark:bg-gray-800 active:bg-indigo-500'}`;
+                    slotEl.className = `p-2.5 rounded-lg text-center font-semibold transition-colors ${isBooked ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-[var(--tg-secondary-bg-color)] active:bg-[var(--tg-button-color)] active:text-[var(--tg-button-text-color)]'}`;
                     slotEl.textContent = time;
                     slotEl.disabled = isBooked;
                     if (!isBooked) slotEl.addEventListener('click', () => handleTimeSlotSelect(time, slotEl));
                     timeSlotsContainer.appendChild(slotEl);
                 });
                 noSlotsMessage.classList.toggle('hidden', availableCount > 0);
-            } catch (error) { console.error(error); noSlotsMessage.classList.remove('hidden'); noSlotsMessage.textContent = 'Ошибка загрузки слотов.'; }
+            } catch (error) { 
+                console.error(error); 
+                timeSlotsContainer.innerHTML = '';
+                noSlotsMessage.classList.remove('hidden'); 
+                noSlotsMessage.textContent = 'Ошибка загрузки слотов.'; 
+            }
         }
+
         function handleServiceSelect(service) {
+            tg.HapticFeedback.impactOccurred('light');
             selectedService = service;
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
@@ -476,34 +604,44 @@
             datePicker.min = today;
             renderTimeSlots();
         }
+
         function handleTimeSlotSelect(time, el) {
+            tg.HapticFeedback.impactOccurred('light');
             document.querySelectorAll('#time-slots button').forEach(btn => {
-                btn.classList.remove('bg-indigo-600', 'text-white');
-                if(!btn.disabled) btn.classList.add('bg-gray-200', 'dark:bg-gray-800');
+                btn.classList.remove('bg-[var(--tg-button-color)]', 'text-[var(--tg-button-text-color)]');
+                if(!btn.disabled) btn.classList.add('bg-[var(--tg-secondary-bg-color)]');
             });
-            el.classList.add('bg-indigo-600', 'text-white');
+            el.classList.add('bg-[var(--tg-button-color)]', 'text-[var(--tg-button-text-color)]');
             tg.MainButton.setText(`Записаться на ${time}`).show();
             tg.MainButton.onClick(() => confirmBooking(datePicker.value, time));
         }
+
         function confirmBooking(date, time) {
             if (!userId) { tg.showAlert('Не удалось определить пользователя.'); return; }
-            tg.showConfirm(`Подтвердить запись на ${date} в ${time}?`, async (confirmed) => {
+            tg.showConfirm(`Подтвердить запись на ${selectedService.name} (${date} в ${time})?`, async (confirmed) => {
                 if (confirmed) {
+                    tg.MainButton.showProgress();
                     try {
                         const { error } = await supabase.from('appointments').insert({ user_id: userId, service_id: selectedService.id, service_name: selectedService.name, date: date, time: time });
                         if (error) throw error;
-                        tg.showAlert('Вы успешно записаны!', () => { switchPage('history-page'); renderUserAppointments(); });
+                        tg.showAlert('Вы успешно записаны!', () => { 
+                            switchPage('history-page'); 
+                            renderUserAppointments(); 
+                            backBtn.click();
+                        });
                     } catch (error) { tg.showAlert('Ошибка при создании записи.'); console.error(error); }
+                    finally { tg.MainButton.hideProgress(); }
                 }
             });
         }
+
         appointmentsList.addEventListener('click', (e) => {
             const button = e.target.closest('.cancel-btn');
             if (!button) return;
             tg.showConfirm('Отменить эту запись?', async (confirmed) => {
                 if(confirmed) {
                     try {
-                        const card = button.closest('.bg-white');
+                        const card = button.closest('.bg-\\[var\\(--tg-secondary-bg-color\\)\\]');
                         const { error } = await supabase.from('appointments').delete().eq('id', button.dataset.id);
                         if (error) throw error;
                         showToast('Запись отменена');
@@ -514,85 +652,97 @@
                 }
             });
         });
-        backBtn.addEventListener('click', () => { step1.classList.remove('hidden'); step2.classList.add('hidden'); backBtn.classList.add('hidden'); tg.MainButton.hide(); });
+
+        backBtn.addEventListener('click', () => { 
+            step1.classList.remove('hidden'); 
+            step2.classList.add('hidden'); 
+            backBtn.classList.add('hidden'); 
+            tg.MainButton.hide(); 
+        });
         datePicker.addEventListener('change', renderTimeSlots);
 
         // ===== Admin Event Listeners =====
-        document.getElementById('add-post-btn').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const url = document.getElementById('new-post-url');
-            const desc = document.getElementById('new-post-desc');
-            if (!url.value || !desc.value) { tg.showAlert('Заполните все поля'); return; }
-            btn.disabled = true; btn.textContent = 'Добавление...';
-            try {
-                const { error } = await supabase.from('portfolio').insert({ image_url: url.value, description: desc.value });
-                if (error) throw error;
-                url.value = ''; desc.value = '';
-                showToast('Пост добавлен');
-                await renderAdminPortfolio();
-            } catch (error) { tg.showAlert('Ошибка при добавлении поста.'); console.error(error); }
-            finally { btn.disabled = false; btn.textContent = 'Добавить пост'; }
-        });
-        document.getElementById('add-service-btn').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const name = document.getElementById('new-service-name');
-            const price = document.getElementById('new-service-price');
-            const duration = document.getElementById('new-service-duration');
-            if (!name.value || !price.value || !duration.value) { tg.showAlert('Заполните все поля'); return; }
-            btn.disabled = true; btn.textContent = 'Добавление...';
-            try {
-                const { error } = await supabase.from('services').insert({ name: name.value, price: price.value, duration: duration.value });
-                if (error) throw error;
-                name.value = ''; price.value = ''; duration.value = '';
-                showToast('Услуга добавлена');
-                await renderAdminServices();
-            } catch (error) { tg.showAlert('Ошибка при добавлении услуги.'); console.error(error); }
-            finally { btn.disabled = false; btn.textContent = 'Добавить услугу'; }
-        });
-        document.getElementById('admin-services-list').addEventListener('click', async (e) => {
-            const deleteBtn = e.target.closest('.delete-service-btn');
-            const editBtn = e.target.closest('.edit-service-btn');
-            if (deleteBtn) {
-                tg.showConfirm('Удалить эту услугу?', async (confirmed) => {
-                    if (confirmed) {
+        if (isAdmin) {
+            document.getElementById('add-post-btn').addEventListener('click', async (e) => {
+                const btn = e.target;
+                const url = document.getElementById('new-post-url');
+                const desc = document.getElementById('new-post-desc');
+                if (!url.value || !desc.value) { tg.showAlert('Заполните все поля'); return; }
+                btn.disabled = true; btn.textContent = 'Добавление...';
+                try {
+                    const { error } = await supabase.from('portfolio').insert({ image_url: url.value, description: desc.value });
+                    if (error) throw error;
+                    url.value = ''; desc.value = '';
+                    showToast('Пост добавлен');
+                    await renderAdminPortfolio();
+                } catch (error) { tg.showAlert('Ошибка при добавлении поста.'); console.error(error); }
+                finally { btn.disabled = false; btn.textContent = 'Добавить пост'; }
+            });
+
+            document.getElementById('add-service-btn').addEventListener('click', async (e) => {
+                const btn = e.target;
+                const name = document.getElementById('new-service-name');
+                const price = document.getElementById('new-service-price');
+                const duration = document.getElementById('new-service-duration');
+                if (!name.value || !price.value || !duration.value) { tg.showAlert('Заполните все поля'); return; }
+                btn.disabled = true; btn.textContent = 'Добавление...';
+                try {
+                    const { error } = await supabase.from('services').insert({ name: name.value, price: price.value, duration: duration.value });
+                    if (error) throw error;
+                    name.value = ''; price.value = ''; duration.value = '';
+                    showToast('Услуга добавлена');
+                    await renderAdminServices();
+                } catch (error) { tg.showAlert('Ошибка при добавлении услуги.'); console.error(error); }
+                finally { btn.disabled = false; btn.textContent = 'Добавить услугу'; }
+            });
+
+            document.getElementById('admin-services-list').addEventListener('click', async (e) => {
+                const deleteBtn = e.target.closest('.delete-service-btn');
+                const editBtn = e.target.closest('.edit-service-btn');
+                if (deleteBtn) {
+                    tg.showConfirm('Удалить эту услугу?', async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                await supabase.from('services').delete().eq('id', deleteBtn.dataset.id);
+                                showToast('Услуга удалена');
+                                renderAdminServices();
+                            } catch(error) { tg.showAlert('Не удалось удалить услугу.'); }
+                        }
+                    });
+                }
+                if (editBtn) {
+                    const { data } = await supabase.from('services').select('*').eq('id', editBtn.dataset.id).single();
+                    document.getElementById('edit-modal-title').textContent = 'Редактировать услугу';
+                    document.getElementById('edit-modal-content').innerHTML = `
+                        <input id="edit-service-name" type="text" value="${data.name}" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
+                        <input id="edit-service-price" type="text" value="${data.price}" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">
+                        <input id="edit-service-duration" type="text" value="${data.duration}" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">`;
+                    
+                    editModalSaveBtn.onclick = async () => {
+                        const name = document.getElementById('edit-service-name').value;
+                        const price = document.getElementById('edit-service-price').value;
+                        const duration = document.getElementById('edit-service-duration').value;
+                        editModalSaveBtn.disabled = true; editModalSaveBtn.textContent = 'Сохранение...';
                         try {
-                            await supabase.from('services').delete().eq('id', deleteBtn.dataset.id);
-                            showToast('Услуга удалена');
+                            await supabase.from('services').update({ name, price, duration }).eq('id', data.id);
+                            closeModal();
+                            showToast('Услуга обновлена');
                             renderAdminServices();
-                        } catch(error) { tg.showAlert('Не удалось удалить услугу.'); }
-                    }
-                });
-            }
-            if (editBtn) {
-                const { data } = await supabase.from('services').select('*').eq('id', editBtn.dataset.id).single();
-                document.getElementById('edit-modal-title').textContent = 'Редактировать услугу';
-                document.getElementById('edit-modal-content').innerHTML = `
-                    <input id="edit-service-name" type="text" value="${data.name}" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <input id="edit-service-price" type="text" value="${data.price}" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <input id="edit-service-duration" type="text" value="${data.duration}" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                `;
-                editModalSaveBtn.onclick = async () => {
-                    const name = document.getElementById('edit-service-name').value;
-                    const price = document.getElementById('edit-service-price').value;
-                    const duration = document.getElementById('edit-service-duration').value;
-                    editModalSaveBtn.disabled = true; editModalSaveBtn.textContent = 'Сохранение...';
-                    try {
-                        await supabase.from('services').update({ name, price, duration }).eq('id', data.id);
-                        closeModal();
-                        showToast('Услуга обновлена');
-                        renderAdminServices();
-                    } catch(e) { tg.showAlert('Ошибка обновления'); }
-                    finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
-                };
-                openModal();
-            }
-        });
-        document.getElementById('dashboard-search').addEventListener('input', (e) => filterAndRenderAppointments(e.target.value));
+                        } catch(e) { tg.showAlert('Ошибка обновления'); }
+                        finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
+                    };
+                    openModal();
+                }
+            });
+            
+            document.getElementById('dashboard-search').addEventListener('input', (e) => filterAndRenderAppointments(e.target.value));
+        }
+
         editModalBackdrop.addEventListener('click', closeModal);
         document.getElementById('edit-modal-cancel').addEventListener('click', closeModal);
 
         // ===== App Initialization =====
-        async function initializeAdminPanel() {
+        function setupAdminUI() {
             document.getElementById('portfolio-title').textContent = 'Управление постами';
             document.getElementById('booking-title').textContent = 'Управление услугами';
             document.getElementById('history-title').textContent = 'Дашборд записей';
@@ -601,31 +751,36 @@
             document.getElementById('nav-booking').textContent = 'Услуги';
             document.getElementById('nav-history').textContent = 'Дашборд';
             document.getElementById('nav-profile').textContent = 'Клиенты';
-            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-4.663M12 10.5h.008v.008H12V10.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>`;
+            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962a3.75 3.75 0 015.962 0zM12 6.375a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>`;
             document.getElementById('admin-portfolio-controls').classList.remove('hidden');
             document.getElementById('admin-services-view').classList.remove('hidden');
             document.getElementById('user-booking-view').classList.add('hidden');
             document.getElementById('admin-dashboard-summary').classList.remove('hidden');
             document.getElementById('admin-clients-view').classList.remove('hidden');
             document.getElementById('user-profile-view').classList.add('hidden');
-            await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard(), renderAdminClients()]);
         }
-        async function initializeUserPanel() {
-            await Promise.all([renderUserPortfolio(), renderUserServices(), renderUserAppointments()]);
-        }
+
         async function main() {
             tg.ready();
-            const body = document.querySelector('body');
-            if (tg.colorScheme === 'dark') body.classList.add('dark');
-            tg.setHeaderColor(body.classList.contains('dark') ? '#000000' : '#f9fafb');
+            tg.expand();
+            
+            // Set theme variables from Telegram
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
+            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color);
+            document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color);
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color);
             
             renderProfile();
             await upsertUserProfile();
             
             if (isAdmin) {
-                await initializeAdminPanel();
+                setupAdminUI();
+                await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard(), renderAdminClients()]);
             } else {
-                await initializeUserPanel();
+                await Promise.all([renderUserPortfolio(), renderUserServices(), renderUserAppointments()]);
             }
         }
         
