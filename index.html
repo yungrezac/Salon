@@ -31,6 +31,8 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); background-color: #333; color: white; padding: 10px 20px; border-radius: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s, bottom 0.3s; }
         #toast.show { opacity: 1; visibility: visible; bottom: 80px; }
+        .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; display: none; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; display: none; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 font-sans antialiased overflow-x-hidden text-sm">
@@ -40,7 +42,6 @@
         <!-- ===== ЭКРАН 1: ПОРТФОЛИО / УПРАВЛЕНИЕ ПОСТАМИ ===== -->
         <div id="portfolio-page" class="page active p-3 space-y-3">
             <h1 id="portfolio-title" class="text-xl font-bold px-1">Портфолио</h1>
-            <!-- Admin View -->
             <div id="admin-portfolio-controls" class="hidden space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
                 <h2 class="font-semibold">Добавить новый пост</h2>
                 <input id="new-post-url" type="text" placeholder="URL изображения" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
@@ -53,12 +54,8 @@
         <!-- ===== ЭКРАН 2: ЗАПИСЬ / УПРАВЛЕНИЕ УСЛУГАМИ ===== -->
         <div id="booking-page" class="page p-3 space-y-4">
             <h1 id="booking-title" class="text-xl font-bold px-1">Запись на услугу</h1>
-            <!-- User View -->
             <div id="user-booking-view">
-                <div id="step-1-service">
-                    <h2 class="text-base font-semibold mb-2 px-1">1. Выберите услугу</h2>
-                    <div id="services-list" class="space-y-2"></div>
-                </div>
+                <div id="step-1-service"><div id="services-list" class="space-y-2"></div></div>
                 <div id="step-2-datetime" class="hidden">
                     <h2 class="text-base font-semibold mb-2 px-1">2. Выберите дату и время</h2>
                     <input type="date" id="date-picker" class="w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-800 border-none focus:ring-2 focus:ring-indigo-500">
@@ -67,7 +64,6 @@
                 </div>
                 <button id="back-to-services" class="hidden w-full mt-3 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-center font-semibold">Назад к услугам</button>
             </div>
-            <!-- Admin View -->
             <div id="admin-services-view" class="hidden space-y-4">
                 <div class="space-y-3 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
                     <h2 class="font-semibold">Добавить новую услугу</h2>
@@ -86,21 +82,27 @@
         <!-- ===== ЭКРАН 3: МОИ ЗАПИСИ / ДАШБОРД ===== -->
         <div id="history-page" class="page p-3 space-y-3">
             <h1 id="history-title" class="text-xl font-bold px-1">Мои записи</h1>
-            <div id="admin-dashboard-summary" class="hidden bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm">
+            <div id="admin-dashboard-summary" class="hidden bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm space-y-2">
                 <p class="font-semibold">Предстоящих записей: <span id="upcoming-count" class="text-indigo-500">0</span></p>
+                <input id="dashboard-search" type="text" placeholder="Поиск по имени клиента..." class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border-none">
             </div>
             <div id="appointments-list" class="space-y-3"></div>
         </div>
 
-        <!-- ===== ЭКРАН 4: ПРОФИЛЬ ===== -->
+        <!-- ===== ЭКРАН 4: ПРОФИЛЬ / КЛИЕНТЫ ===== -->
         <div id="profile-page" class="page p-3 space-y-4">
-            <h1 class="text-xl font-bold px-1">Профиль</h1>
-            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm flex items-center space-x-3">
-                <div id="user-photo" class="w-14 h-14 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xl font-bold shrink-0"></div>
-                <div>
-                    <h2 id="user-name" class="text-lg font-semibold"></h2>
-                    <p id="user-username" class="text-gray-500 dark:text-gray-400 text-xs"></p>
+            <h1 id="profile-title" class="text-xl font-bold px-1">Профиль</h1>
+            <div id="user-profile-view">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm flex items-center space-x-3">
+                    <div id="user-photo" class="w-14 h-14 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xl font-bold shrink-0"></div>
+                    <div>
+                        <h2 id="user-name" class="text-lg font-semibold"></h2>
+                        <p id="user-username" class="text-gray-500 dark:text-gray-400 text-xs"></p>
+                    </div>
                 </div>
+            </div>
+            <div id="admin-clients-view" class="hidden space-y-3">
+                <div id="clients-list"></div>
             </div>
         </div>
     </div>
@@ -110,9 +112,20 @@
         <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg><span id="nav-portfolio" class="text-xs font-medium mt-0.5">Портфолио</span></button>
         <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span id="nav-booking" class="text-xs font-medium mt-0.5">Запись</span></button>
         <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span id="nav-history" class="text-xs font-medium mt-0.5">Мои записи</span></button>
-        <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span class="text-xs font-medium mt-0.5">Профиль</span></button>
+        <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-gray-500 dark:text-gray-400"><svg id="nav-profile-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span id="nav-profile" class="text-xs font-medium mt-0.5">Профиль</span></button>
     </nav>
     <div id="toast"></div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal-backdrop" class="modal-backdrop"></div>
+    <div id="edit-modal" class="modal w-11/12 max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 space-y-3">
+        <h2 id="edit-modal-title" class="text-lg font-bold">Редактировать</h2>
+        <div id="edit-modal-content"></div>
+        <div class="flex justify-end space-x-2">
+            <button id="edit-modal-cancel" class="p-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700">Отмена</button>
+            <button id="edit-modal-save" class="p-2 px-4 rounded-lg bg-indigo-600 text-white disabled:opacity-50">Сохранить</button>
+        </div>
+    </div>
 
     <script type="module">
         const tg = window.Telegram.WebApp;
@@ -124,8 +137,8 @@
         const isAdmin = userId === ADMIN_ID;
 
         const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
-        let servicesData = [];
         let selectedService = null;
+        let allAppointments = []; // Cache for admin dashboard search
 
         // ===== UI Elements =====
         const pages = document.querySelectorAll('.page');
@@ -140,6 +153,9 @@
         const step2 = document.getElementById('step-2-datetime');
         const backBtn = document.getElementById('back-to-services');
         const toast = document.getElementById('toast');
+        const editModal = document.getElementById('edit-modal');
+        const editModalBackdrop = document.getElementById('edit-modal-backdrop');
+        const editModalSaveBtn = document.getElementById('edit-modal-save');
 
         // ===== Helper Functions =====
         const showLoader = (container) => container.innerHTML = '<div class="loader"></div>';
@@ -149,6 +165,8 @@
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
         };
+        const openModal = () => { editModal.style.display = 'block'; editModalBackdrop.style.display = 'block'; };
+        const closeModal = () => { editModal.style.display = 'none'; editModalBackdrop.style.display = 'none'; };
 
         // ===== Navigation =====
         function switchPage(pageId) {
@@ -163,16 +181,9 @@
         async function upsertUserProfile() {
             if (!user) return;
             try {
-                const { error } = await supabase.from('profiles').upsert({
-                    id: userId,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    username: user.username
-                }, { onConflict: 'id' });
+                const { error } = await supabase.from('profiles').upsert({ id: userId, first_name: user.first_name, last_name: user.last_name, username: user.username }, { onConflict: 'id' });
                 if (error) throw error;
-            } catch (error) {
-                console.error('Error upserting profile:', error);
-            }
+            } catch (error) { console.error('Error upserting profile:', error); }
         }
 
         // ===== User Functions =====
@@ -181,16 +192,11 @@
             try {
                 const { data: portfolio, error: pError } = await supabase.from('portfolio').select('*').order('id');
                 if (pError) throw pError;
-                
                 const { data: userLikes, error: lError } = await supabase.from('likes').select('post_id').eq('user_id', userId);
                 if (lError) throw lError;
-
                 const likedPostIds = new Set(userLikes.map(like => like.post_id));
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) {
-                    portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Работ в портфолио пока нет.</p>';
-                    return;
-                }
+                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Работ в портфолио пока нет.</p>'; return; }
                 portfolio.forEach(post => {
                     const isLiked = likedPostIds.has(post.id);
                     const postElement = document.createElement('div');
@@ -198,10 +204,7 @@
                     postElement.innerHTML = `<img src="${post.image_url}" class="w-full h-auto object-cover"><div class="p-3"><p class="text-gray-700 dark:text-gray-300 mb-3 text-xs">${post.description}</p><button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-gray-500 ${isLiked ? 'liked' : ''}"><svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg><svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-1.344-.688 15.182 15.182 0 01-1.06-1.017c-.8-1.04-1.59-2.178-2.155-3.37A8.242 8.242 0 013 10.5a8.25 8.25 0 0116.5 0c0 1.258-.25 2.45-.705 3.524-1.121 2.36-2.913 4.2-4.831 5.5z" /></svg><span class="like-count text-xs font-medium">${post.likes}</span></button></div>`;
                     portfolioGrid.appendChild(postElement);
                 });
-            } catch (error) {
-                showError(portfolioGrid, 'Не удалось загрузить портфолио.');
-                console.error(error);
-            }
+            } catch (error) { showError(portfolioGrid, 'Не удалось загрузить портфолио.'); console.error(error); }
         }
         async function renderUserServices() {
             showLoader(servicesList);
@@ -217,10 +220,7 @@
                     serviceEl.addEventListener('click', () => handleServiceSelect(service));
                     servicesList.appendChild(serviceEl);
                 });
-            } catch (error) {
-                showError(servicesList, 'Не удалось загрузить услуги.');
-                console.error(error);
-            }
+            } catch (error) { showError(servicesList, 'Не удалось загрузить услуги.'); console.error(error); }
         }
         async function renderUserAppointments() {
             showLoader(appointmentsList);
@@ -228,10 +228,7 @@
                 const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
                 if (error) throw error;
                 appointmentsList.innerHTML = '';
-                if (data.length === 0) {
-                    appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">У вас пока нет записей.</p>`;
-                    return;
-                }
+                if (data.length === 0) { appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">У вас пока нет записей.</p>`; return; }
                 const today = new Date(new Date().toDateString());
                 const upcoming = data.filter(a => new Date(a.date) >= today).sort((a,b) => new Date(a.date) - new Date(b.date));
                 const completed = data.filter(a => new Date(a.date) < today).sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -243,10 +240,7 @@
                     appointmentsList.innerHTML += `<h2 class="text-base font-semibold text-gray-600 mt-4 px-1">Прошедшие</h2>`;
                     completed.forEach(app => appointmentsList.appendChild(createAppointmentCard(app, false)));
                 }
-            } catch (error) {
-                showError(appointmentsList, 'Не удалось загрузить записи.');
-                console.error(error);
-            }
+            } catch (error) { showError(appointmentsList, 'Не удалось загрузить записи.'); console.error(error); }
         }
 
         // ===== Admin Functions =====
@@ -256,20 +250,14 @@
                 const { data: portfolio, error } = await supabase.from('portfolio').select('*').order('id', { ascending: false });
                 if (error) throw error;
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) {
-                    portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Постов пока нет.</p>';
-                    return;
-                }
+                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-gray-500">Постов пока нет.</p>'; return; }
                 portfolio.forEach(post => {
                     const postEl = document.createElement('div');
                     postEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
-                    postEl.innerHTML = `<div class="flex items-center space-x-2 overflow-hidden"><img src="${post.image_url}" class="w-12 h-12 object-cover rounded-md shrink-0"><p class="text-xs truncate">${post.description}</p></div><button data-id="${post.id}" class="delete-post-btn p-2 text-red-500 shrink-0"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>`;
+                    postEl.innerHTML = `<div class="flex items-center space-x-2 overflow-hidden"><img src="${post.image_url}" class="w-12 h-12 object-cover rounded-md shrink-0"><p class="text-xs truncate">${post.description}</p></div><div class="flex shrink-0"><button data-id="${post.id}" class="edit-post-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button><button data-id="${post.id}" class="delete-post-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button></div>`;
                     portfolioGrid.appendChild(postEl);
                 });
-            } catch (error) {
-                showError(portfolioGrid, 'Ошибка загрузки постов.');
-                console.error(error);
-            }
+            } catch (error) { showError(portfolioGrid, 'Ошибка загрузки постов.'); console.error(error); }
         }
         async function renderAdminServices() {
             const listEl = document.getElementById('admin-services-list');
@@ -281,13 +269,10 @@
                 data.forEach(service => {
                     const serviceEl = document.createElement('div');
                     serviceEl.className = 'bg-white dark:bg-gray-900 p-2 rounded-xl shadow-sm flex items-center justify-between';
-                    serviceEl.innerHTML = `<div><p class="font-semibold">${service.name}</p><p class="text-xs text-gray-500">${service.price} - ${service.duration}</p></div><button data-id="${service.id}" class="delete-service-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>`;
+                    serviceEl.innerHTML = `<div><p class="font-semibold">${service.name}</p><p class="text-xs text-gray-500">${service.price} - ${service.duration}</p></div><div class="flex shrink-0"><button data-id="${service.id}" class="edit-service-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button><button data-id="${service.id}" class="delete-service-btn p-2 text-red-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033C6.91 2.75 6 3.664 6 4.834v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button></div>`;
                     listEl.appendChild(serviceEl);
                 });
-            } catch (error) {
-                showError(listEl, 'Ошибка загрузки услуг.');
-                console.error(error);
-            }
+            } catch (error) { showError(listEl, 'Ошибка загрузки услуг.'); console.error(error); }
         }
         async function renderAdminDashboard() {
             showLoader(appointmentsList);
@@ -295,24 +280,59 @@
                 const today = new Date().toISOString().split('T')[0];
                 const { data, error } = await supabase.from('appointments').select(`*, profiles(first_name, username)`).gte('date', today).order('date').order('time');
                 if (error) throw error;
+                allAppointments = data;
                 document.getElementById('upcoming-count').textContent = data.length;
-                appointmentsList.innerHTML = '';
-                if (data.length === 0) {
-                    appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">Предстоящих записей нет.</p>`;
-                    return;
-                }
-                data.forEach(app => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
-                    const profile = app.profiles;
-                    const clientName = profile ? `${profile.first_name || ''} (@${profile.username || '...'})` : '...';
-                    card.innerHTML = `<p class="font-bold">${app.service_name}</p><p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p><p class="text-xs text-indigo-500">${clientName}</p>`;
-                    appointmentsList.appendChild(card);
+                filterAndRenderAppointments();
+            } catch (error) { showError(appointmentsList, 'Ошибка загрузки дашборда.'); console.error(error); }
+        }
+        function filterAndRenderAppointments(query = '') {
+            const filtered = allAppointments.filter(app => {
+                const profile = app.profiles;
+                const clientName = profile ? `${profile.first_name || ''} ${profile.username || ''}`.toLowerCase() : '';
+                return clientName.includes(query.toLowerCase());
+            });
+            appointmentsList.innerHTML = '';
+            if (filtered.length === 0) { appointmentsList.innerHTML = `<p class="text-center text-gray-500 mt-8">${query ? 'Записи не найдены.' : 'Предстоящих записей нет.'}</p>`; return; }
+            filtered.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm';
+                const profile = app.profiles;
+                const clientName = profile ? `${profile.first_name || ''} (@${profile.username || '...'})` : '...';
+                card.innerHTML = `<p class="font-bold">${app.service_name}</p><p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p><p class="text-xs text-indigo-500">${clientName}</p>`;
+                appointmentsList.appendChild(card);
+            });
+        }
+        async function renderAdminClients() {
+            const listEl = document.getElementById('clients-list');
+            showLoader(listEl);
+            try {
+                const { data, error } = await supabase.from('profiles').select('*').neq('id', ADMIN_ID);
+                if (error) throw error;
+                listEl.innerHTML = '';
+                if (data.length === 0) { listEl.innerHTML = `<p class="text-center text-gray-500">Клиентов пока нет.</p>`; return; }
+                data.forEach(profile => {
+                    const clientEl = document.createElement('div');
+                    clientEl.className = 'bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm cursor-pointer';
+                    clientEl.innerHTML = `<p class="font-semibold">${profile.first_name || ''} ${profile.last_name || ''}</p><p class="text-xs text-gray-500">@${profile.username || 'no username'}</p>`;
+                    clientEl.addEventListener('click', () => showClientHistory(profile.id));
+                    listEl.appendChild(clientEl);
                 });
-            } catch (error) {
-                showError(appointmentsList, 'Ошибка загрузки дашборда.');
-                console.error(error);
-            }
+            } catch (error) { showError(listEl, 'Ошибка загрузки клиентов.'); console.error(error); }
+        }
+        async function showClientHistory(clientId) {
+            try {
+                const { data, error } = await supabase.from('appointments').select('*').eq('user_id', clientId).order('date', { ascending: false });
+                if (error) throw error;
+                let historyText = 'История записей клиента:\n\n';
+                if (data.length === 0) {
+                    historyText = 'У этого клиента еще не было записей.';
+                } else {
+                    data.forEach(app => {
+                        historyText += `${new Date(app.date).toLocaleDateString('ru-RU')} - ${app.service_name}\n`;
+                    });
+                }
+                tg.showAlert(historyText);
+            } catch (error) { tg.showAlert('Не удалось загрузить историю клиента.'); console.error(error); }
         }
 
         // ===== Common Functions =====
@@ -333,23 +353,7 @@
 
         // ===== Event Listeners =====
         portfolioGrid.addEventListener('click', async (e) => {
-            if (isAdmin) {
-                const button = e.target.closest('.delete-post-btn');
-                if (!button) return;
-                tg.showConfirm('Удалить этот пост?', async (confirmed) => {
-                    if (confirmed) {
-                        try {
-                            const { error } = await supabase.from('portfolio').delete().eq('id', button.dataset.id);
-                            if (error) throw error;
-                            showToast('Пост удален');
-                            renderAdminPortfolio();
-                        } catch (error) {
-                            tg.showAlert('Не удалось удалить пост.');
-                            console.error(error);
-                        }
-                    }
-                });
-            } else {
+            if (!isAdmin) {
                 const button = e.target.closest('.like-btn');
                 if (!button || !userId) return;
                 const postId = parseInt(button.dataset.id);
@@ -366,8 +370,43 @@
                         await supabase.rpc('increment_likes', { post_id_in: postId });
                     }
                     renderUserPortfolio();
-                } catch (error) {
-                    console.error('Like error:', error);
+                } catch (error) { console.error('Like error:', error); }
+            } else {
+                const deleteBtn = e.target.closest('.delete-post-btn');
+                const editBtn = e.target.closest('.edit-post-btn');
+                if (deleteBtn) {
+                    tg.showConfirm('Удалить этот пост?', async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                const { error } = await supabase.from('portfolio').delete().eq('id', deleteBtn.dataset.id);
+                                if (error) throw error;
+                                showToast('Пост удален');
+                                renderAdminPortfolio();
+                            } catch (error) { tg.showAlert('Не удалось удалить пост.'); console.error(error); }
+                        }
+                    });
+                }
+                if (editBtn) {
+                    const { data } = await supabase.from('portfolio').select('*').eq('id', editBtn.dataset.id).single();
+                    document.getElementById('edit-modal-title').textContent = 'Редактировать пост';
+                    document.getElementById('edit-modal-content').innerHTML = `
+                        <input id="edit-post-url" type="text" value="${data.image_url}" placeholder="URL изображения" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                        <textarea id="edit-post-desc" placeholder="Описание" rows="3" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">${data.description}</textarea>
+                    `;
+                    editModalSaveBtn.onclick = async () => {
+                        const url = document.getElementById('edit-post-url').value;
+                        const desc = document.getElementById('edit-post-desc').value;
+                        editModalSaveBtn.disabled = true;
+                        editModalSaveBtn.textContent = 'Сохранение...';
+                        try {
+                            await supabase.from('portfolio').update({ image_url: url, description: desc }).eq('id', data.id);
+                            closeModal();
+                            showToast('Пост обновлен');
+                            renderAdminPortfolio();
+                        } catch(e) { tg.showAlert('Ошибка обновления'); }
+                        finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
+                    };
+                    openModal();
                 }
             }
         });
@@ -391,11 +430,7 @@
                     timeSlotsContainer.appendChild(slotEl);
                 });
                 noSlotsMessage.classList.toggle('hidden', availableCount > 0);
-            } catch (error) {
-                console.error(error);
-                noSlotsMessage.classList.remove('hidden');
-                noSlotsMessage.textContent = 'Ошибка загрузки слотов.';
-            }
+            } catch (error) { console.error(error); noSlotsMessage.classList.remove('hidden'); noSlotsMessage.textContent = 'Ошибка загрузки слотов.'; }
         }
         function handleServiceSelect(service) {
             selectedService = service;
@@ -423,14 +458,8 @@
                     try {
                         const { error } = await supabase.from('appointments').insert({ user_id: userId, service_id: selectedService.id, service_name: selectedService.name, date: date, time: time });
                         if (error) throw error;
-                        tg.showAlert('Вы успешно записаны!', () => {
-                            switchPage('history-page');
-                            renderUserAppointments();
-                        });
-                    } catch (error) {
-                        tg.showAlert('Ошибка при создании записи.');
-                        console.error(error);
-                    }
+                        tg.showAlert('Вы успешно записаны!', () => { switchPage('history-page'); renderUserAppointments(); });
+                    } catch (error) { tg.showAlert('Ошибка при создании записи.'); console.error(error); }
                 }
             });
         }
@@ -445,19 +474,11 @@
                         showToast('Запись отменена');
                         renderUserAppointments();
                         tg.HapticFeedback.notificationOccurred('success');
-                    } catch (error) {
-                        tg.showAlert('Не удалось отменить запись.');
-                        console.error(error);
-                    }
+                    } catch (error) { tg.showAlert('Не удалось отменить запись.'); console.error(error); }
                 }
             });
         });
-        backBtn.addEventListener('click', () => {
-            step1.classList.remove('hidden');
-            step2.classList.add('hidden');
-            backBtn.classList.add('hidden');
-            tg.MainButton.hide();
-        });
+        backBtn.addEventListener('click', () => { step1.classList.remove('hidden'); step2.classList.add('hidden'); backBtn.classList.add('hidden'); tg.MainButton.hide(); });
         datePicker.addEventListener('change', renderTimeSlots);
 
         // ===== Admin Event Listeners =====
@@ -466,21 +487,15 @@
             const url = document.getElementById('new-post-url');
             const desc = document.getElementById('new-post-desc');
             if (!url.value || !desc.value) { tg.showAlert('Заполните все поля'); return; }
-            btn.disabled = true;
-            btn.textContent = 'Добавление...';
+            btn.disabled = true; btn.textContent = 'Добавление...';
             try {
                 const { error } = await supabase.from('portfolio').insert({ image_url: url.value, description: desc.value });
                 if (error) throw error;
                 url.value = ''; desc.value = '';
                 showToast('Пост добавлен');
                 await renderAdminPortfolio();
-            } catch (error) {
-                tg.showAlert('Ошибка при добавлении поста.');
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Добавить пост';
-            }
+            } catch (error) { tg.showAlert('Ошибка при добавлении поста.'); console.error(error); }
+            finally { btn.disabled = false; btn.textContent = 'Добавить пост'; }
         });
         document.getElementById('add-service-btn').addEventListener('click', async (e) => {
             const btn = e.target;
@@ -488,53 +503,76 @@
             const price = document.getElementById('new-service-price');
             const duration = document.getElementById('new-service-duration');
             if (!name.value || !price.value || !duration.value) { tg.showAlert('Заполните все поля'); return; }
-            btn.disabled = true;
-            btn.textContent = 'Добавление...';
+            btn.disabled = true; btn.textContent = 'Добавление...';
             try {
                 const { error } = await supabase.from('services').insert({ name: name.value, price: price.value, duration: duration.value });
                 if (error) throw error;
                 name.value = ''; price.value = ''; duration.value = '';
                 showToast('Услуга добавлена');
                 await renderAdminServices();
-            } catch (error) {
-                tg.showAlert('Ошибка при добавлении услуги.');
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Добавить услугу';
+            } catch (error) { tg.showAlert('Ошибка при добавлении услуги.'); console.error(error); }
+            finally { btn.disabled = false; btn.textContent = 'Добавить услугу'; }
+        });
+        document.getElementById('admin-services-list').addEventListener('click', async (e) => {
+            const deleteBtn = e.target.closest('.delete-service-btn');
+            const editBtn = e.target.closest('.edit-service-btn');
+            if (deleteBtn) {
+                tg.showConfirm('Удалить эту услугу?', async (confirmed) => {
+                    if (confirmed) {
+                        try {
+                            await supabase.from('services').delete().eq('id', deleteBtn.dataset.id);
+                            showToast('Услуга удалена');
+                            renderAdminServices();
+                        } catch(error) { tg.showAlert('Не удалось удалить услугу.'); }
+                    }
+                });
+            }
+            if (editBtn) {
+                const { data } = await supabase.from('services').select('*').eq('id', editBtn.dataset.id).single();
+                document.getElementById('edit-modal-title').textContent = 'Редактировать услугу';
+                document.getElementById('edit-modal-content').innerHTML = `
+                    <input id="edit-service-name" type="text" value="${data.name}" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <input id="edit-service-price" type="text" value="${data.price}" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <input id="edit-service-duration" type="text" value="${data.duration}" class="w-full p-2 mt-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                `;
+                editModalSaveBtn.onclick = async () => {
+                    const name = document.getElementById('edit-service-name').value;
+                    const price = document.getElementById('edit-service-price').value;
+                    const duration = document.getElementById('edit-service-duration').value;
+                    editModalSaveBtn.disabled = true; editModalSaveBtn.textContent = 'Сохранение...';
+                    try {
+                        await supabase.from('services').update({ name, price, duration }).eq('id', data.id);
+                        closeModal();
+                        showToast('Услуга обновлена');
+                        renderAdminServices();
+                    } catch(e) { tg.showAlert('Ошибка обновления'); }
+                    finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
+                };
+                openModal();
             }
         });
-        document.getElementById('admin-services-list').addEventListener('click', (e) => {
-            const button = e.target.closest('.delete-service-btn');
-            if (!button) return;
-            tg.showConfirm('Удалить эту услугу?', async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        const { error } = await supabase.from('services').delete().eq('id', button.dataset.id);
-                        if (error) throw error;
-                        showToast('Услуга удалена');
-                        renderAdminServices();
-                    } catch(error) {
-                        tg.showAlert('Не удалось удалить услугу.');
-                        console.error(error);
-                    }
-                }
-            });
-        });
+        document.getElementById('dashboard-search').addEventListener('input', (e) => filterAndRenderAppointments(e.target.value));
+        editModalBackdrop.addEventListener('click', closeModal);
+        document.getElementById('edit-modal-cancel').addEventListener('click', closeModal);
 
         // ===== App Initialization =====
         async function initializeAdminPanel() {
             document.getElementById('portfolio-title').textContent = 'Управление постами';
             document.getElementById('booking-title').textContent = 'Управление услугами';
             document.getElementById('history-title').textContent = 'Дашборд записей';
+            document.getElementById('profile-title').textContent = 'Клиенты';
             document.getElementById('nav-portfolio').textContent = 'Посты';
             document.getElementById('nav-booking').textContent = 'Услуги';
             document.getElementById('nav-history').textContent = 'Дашборд';
+            document.getElementById('nav-profile').textContent = 'Клиенты';
+            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-4.663M12 10.5h.008v.008H12V10.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>`;
             document.getElementById('admin-portfolio-controls').classList.remove('hidden');
             document.getElementById('admin-services-view').classList.remove('hidden');
             document.getElementById('user-booking-view').classList.add('hidden');
             document.getElementById('admin-dashboard-summary').classList.remove('hidden');
-            await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard()]);
+            document.getElementById('admin-clients-view').classList.remove('hidden');
+            document.getElementById('user-profile-view').classList.add('hidden');
+            await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard(), renderAdminClients()]);
         }
         async function initializeUserPanel() {
             await Promise.all([renderUserPortfolio(), renderUserServices(), renderUserAppointments()]);
