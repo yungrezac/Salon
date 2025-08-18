@@ -182,7 +182,9 @@
                 </div>
             </div>
             <div id="admin-clients-view" class="hidden space-y-3">
-                <div id="clients-list"></div>
+                <!-- NEW: Client search input -->
+                <input id="client-search" type="text" placeholder="Поиск по имени или @username..." class="w-full p-2.5 rounded-lg bg-[var(--tg-secondary-bg-color)] border-none">
+                <div id="clients-list" class="space-y-2"></div>
             </div>
         </div>
     </div>
@@ -197,15 +199,15 @@
     
     <div id="toast"></div>
 
-    <!-- Edit Modal -->
-    <div id="edit-modal-backdrop" class="modal-backdrop"></div>
-    <div id="edit-modal" class="modal bg-[var(--tg-secondary-bg-color)] rounded-t-2xl p-4">
+    <!-- Generic Modal -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal" class="modal bg-[var(--tg-secondary-bg-color)] rounded-t-2xl p-4">
         <div class="w-10 h-1.5 bg-gray-300 rounded-full mx-auto mb-4"></div>
-        <h2 id="edit-modal-title" class="text-lg font-bold mb-4">Редактировать</h2>
-        <div id="edit-modal-content" class="space-y-3"></div>
-        <div class="flex gap-2 mt-5">
-            <button id="edit-modal-cancel" class="flex-1 p-3 rounded-lg bg-gray-200 dark:bg-gray-700 font-bold">Отмена</button>
-            <button id="edit-modal-save" class="flex-1 p-3 rounded-lg bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold disabled:opacity-50">Сохранить</button>
+        <h2 id="modal-title" class="text-lg font-bold mb-4"></h2>
+        <div id="modal-content" class="space-y-3 max-h-[60vh] overflow-y-auto"></div>
+        <div id="modal-footer" class="flex gap-2 mt-5">
+            <button id="modal-cancel" class="flex-1 p-3 rounded-lg bg-gray-200 dark:bg-gray-700 font-bold">Отмена</button>
+            <button id="modal-save" class="flex-1 p-3 rounded-lg bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold disabled:opacity-50">Сохранить</button>
         </div>
     </div>
 
@@ -222,6 +224,7 @@
         const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
         let selectedService = null;
         let allAppointments = []; // Cache for admin dashboard search
+        let allClients = []; // Cache for admin clients search
 
         // ===== UI Elements =====
         const pages = document.querySelectorAll('.page');
@@ -236,9 +239,14 @@
         const step2 = document.getElementById('step-2-datetime');
         const backBtn = document.getElementById('back-to-services');
         const toast = document.getElementById('toast');
-        const editModal = document.getElementById('edit-modal');
-        const editModalBackdrop = document.getElementById('edit-modal-backdrop');
-        const editModalSaveBtn = document.getElementById('edit-modal-save');
+        const modal = document.getElementById('modal');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalSaveBtn = document.getElementById('modal-save');
+        const modalCancelBtn = document.getElementById('modal-cancel');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalFooter = document.getElementById('modal-footer');
+
 
         // ===== Helper Functions =====
         const showLoader = (container) => container.innerHTML = '<div class="loader"></div>';
@@ -251,12 +259,12 @@
         };
 
         const openModal = () => { 
-            editModal.classList.add('show'); 
-            editModalBackdrop.classList.add('show'); 
+            modal.classList.add('show'); 
+            modalBackdrop.classList.add('show'); 
         };
         const closeModal = () => { 
-            editModal.classList.remove('show'); 
-            editModalBackdrop.classList.remove('show'); 
+            modal.classList.remove('show'); 
+            modalBackdrop.classList.remove('show'); 
         };
 
         const renderSkeletons = (container, count, skeletonHTML) => {
@@ -284,6 +292,16 @@
                 <div class="h-5 w-40 skeleton skeleton-shimmer rounded"></div>
                 <div class="h-4 w-32 skeleton skeleton-shimmer rounded"></div>
             </div>`;
+        // NEW: Client skeleton
+        const clientSkeleton = `
+            <div class="bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full skeleton skeleton-shimmer shrink-0"></div>
+                <div class="flex-grow space-y-2">
+                    <div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div>
+                    <div class="h-3 w-1/2 skeleton skeleton-shimmer rounded"></div>
+                </div>
+            </div>`;
+
 
         // ===== Navigation =====
         function switchPage(pageId) {
@@ -487,39 +505,92 @@
                 appointmentsList.appendChild(card);
             });
         }
-
+        
+        // --- CLIENTS PAGE IMPROVEMENT ---
         async function renderAdminClients() {
             const listEl = document.getElementById('clients-list');
-            showLoader(listEl);
+            renderSkeletons(listEl, 5, clientSkeleton);
             try {
-                const { data, error } = await supabase.from('profiles').select('*').neq('id', ADMIN_ID);
+                // Fetch profiles and their appointment counts/last appointment date
+                const { data, error } = await supabase.rpc('get_clients_with_stats');
                 if (error) throw error;
-                listEl.innerHTML = '';
-                if (data.length === 0) { listEl.innerHTML = `<p class="text-center text-[var(--tg-hint-color)]">Клиентов пока нет.</p>`; return; }
-                data.forEach(profile => {
-                    const clientEl = document.createElement('div');
-                    clientEl.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl cursor-pointer active:scale-95 transition-transform';
-                    clientEl.innerHTML = `
+
+                allClients = data; // Cache for searching
+                filterAndRenderClients(); // Initial render
+            } catch (error) { 
+                showError(listEl, 'Ошибка загрузки клиентов.'); 
+                console.error(error); 
+            }
+        }
+
+        function filterAndRenderClients(query = '') {
+            const listEl = document.getElementById('clients-list');
+            const filtered = allClients.filter(profile => {
+                const searchTerm = query.toLowerCase();
+                const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.toLowerCase();
+                const username = `@${profile.username || ''}`.toLowerCase();
+                return fullName.includes(searchTerm) || username.includes(searchTerm);
+            });
+
+            listEl.innerHTML = '';
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] pt-8">${query ? 'Клиенты не найдены.' : 'Клиентов пока нет.'}</p>`;
+                return;
+            }
+
+            filtered.forEach(profile => {
+                const clientEl = document.createElement('div');
+                clientEl.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl cursor-pointer active:scale-95 transition-transform flex items-center space-x-3';
+                
+                const initials = ((profile.first_name || '')[0] || '') + ((profile.last_name || '')[0] || '');
+                const avatar = `<div class="w-12 h-12 rounded-full bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] flex items-center justify-center text-lg font-bold shrink-0">${initials.toUpperCase() || '👤'}</div>`;
+                
+                const lastAppointment = profile.last_appointment_date 
+                    ? `Последняя запись: ${new Date(profile.last_appointment_date).toLocaleDateString('ru-RU')}`
+                    : 'Записей еще не было';
+
+                clientEl.innerHTML = `
+                    ${avatar}
+                    <div class="flex-grow">
                         <p class="font-semibold">${profile.first_name || ''} ${profile.last_name || ''}</p>
-                        <p class="text-xs text-[var(--tg-hint-color)]">@${profile.username || 'no username'}</p>`;
-                    clientEl.addEventListener('click', () => showClientHistory(profile));
-                    listEl.appendChild(clientEl);
-                });
-            } catch (error) { showError(listEl, 'Ошибка загрузки клиентов.'); console.error(error); }
+                        <p class="text-xs text-[var(--tg-hint-color)]">@${profile.username || 'no username'}</p>
+                        <div class="text-xs text-[var(--tg-text-color)] mt-1 flex items-center gap-2">
+                           <span>Всего записей: <strong>${profile.appointment_count}</strong></span>
+                           <span>•</span>
+                           <span>${lastAppointment}</span>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-[var(--tg-hint-color)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                `;
+                clientEl.addEventListener('click', () => showClientHistory(profile));
+                listEl.appendChild(clientEl);
+            });
         }
 
         async function showClientHistory(profile) {
+            modalTitle.textContent = `История: ${profile.first_name || '@'+profile.username}`;
+            modalFooter.classList.add('hidden'); // Hide save/cancel buttons
+            modalContent.innerHTML = '<div class="loader"></div>';
+            openModal();
+
             try {
                 const { data, error } = await supabase.from('appointments').select('*').eq('user_id', profile.id).order('date', { ascending: false });
                 if (error) throw error;
-                let historyText = `История записей для ${profile.first_name || '@'+profile.username}:\n\n`;
+                
                 if (data.length === 0) {
-                    historyText = 'У этого клиента еще не было записей.';
+                    modalContent.innerHTML = '<p class="text-center text-[var(--tg-hint-color)]">У этого клиента еще не было записей.</p>';
                 } else {
-                    historyText += data.map(app => `• ${new Date(app.date).toLocaleDateString('ru-RU')} - ${app.service_name}`).join('\n');
+                    modalContent.innerHTML = data.map(app => `
+                        <div class="bg-[var(--tg-bg-color)] p-3 rounded-lg">
+                            <p class="font-semibold">${app.service_name}</p>
+                            <p class="text-sm text-[var(--tg-hint-color)]">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long', year: 'numeric'})} в ${app.time}</p>
+                        </div>
+                    `).join('');
                 }
-                tg.showAlert(historyText);
-            } catch (error) { tg.showAlert('Не удалось загрузить историю клиента.'); console.error(error); }
+            } catch (error) { 
+                modalContent.innerHTML = '<p class="text-center text-red-500">Не удалось загрузить историю клиента.</p>';
+                console.error(error); 
+            }
         }
 
         // ===== Common Functions =====
@@ -595,15 +666,16 @@
                 });
             } else if (editBtn && isAdmin) {
                 const { data } = await supabase.from('portfolio').select('*').eq('id', editBtn.dataset.id).single();
-                document.getElementById('edit-modal-title').textContent = 'Редактировать пост';
-                document.getElementById('edit-modal-content').innerHTML = `
+                modalTitle.textContent = 'Редактировать пост';
+                modalContent.innerHTML = `
                     <p class="text-sm text-[var(--tg-hint-color)]">Редактирование изображений пока не поддерживается. Вы можете изменить только описание.</p>
                     <textarea id="edit-post-desc" placeholder="Описание" rows="3" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">${data.description}</textarea>`;
                 
-                editModalSaveBtn.onclick = async () => {
+                modalFooter.classList.remove('hidden');
+                modalSaveBtn.onclick = async () => {
                     const desc = document.getElementById('edit-post-desc').value;
-                    editModalSaveBtn.disabled = true;
-                    editModalSaveBtn.textContent = 'Сохранение...';
+                    modalSaveBtn.disabled = true;
+                    modalSaveBtn.textContent = 'Сохранение...';
                     try {
                         await supabase.from('portfolio').update({ description: desc }).eq('id', data.id);
                         closeModal();
@@ -611,8 +683,8 @@
                         renderAdminPortfolio();
                     } catch (e) { tg.showAlert('Ошибка обновления'); } 
                     finally { 
-                        editModalSaveBtn.disabled = false; 
-                        editModalSaveBtn.textContent = 'Сохранить'; 
+                        modalSaveBtn.disabled = false; 
+                        modalSaveBtn.textContent = 'Сохранить'; 
                     }
                 };
                 openModal();
@@ -773,16 +845,19 @@
                 btn.textContent = 'Загрузка...';
 
                 try {
+                    // *** IMAGE UPLOAD FIX ***
+                    // The bucket name is 'images', not 'image'. This was the main error.
                     const uploadPromises = selectedFiles.map(file => {
                         const filePath = `public/${Date.now()}-${file.name}`;
-                        return supabase.storage.from('image').upload(filePath, file);
+                        return supabase.storage.from('images').upload(filePath, file);
                     });
                     
                     const uploadResults = await Promise.all(uploadPromises);
                     
                     const imageUrls = uploadResults.map((result, index) => {
                         if (result.error) throw new Error(`Ошибка загрузки файла ${selectedFiles[index].name}: ${result.error.message}`);
-                        return supabase.storage.from('image').getPublicUrl(result.data.path).data.publicUrl;
+                        // Correctly get the public URL
+                        return supabase.storage.from('images').getPublicUrl(result.data.path).data.publicUrl;
                     });
 
                     const { error } = await supabase.from('portfolio').insert({ image_urls: imageUrls, description: desc.value });
@@ -795,7 +870,7 @@
                     showToast('Пост успешно добавлен!');
                     await renderAdminPortfolio();
                 } catch (error) { 
-                    tg.showAlert('Ошибка при загрузке или создании поста.'); 
+                    tg.showAlert(`Ошибка при создании поста: ${error.message}`); 
                     console.error(error); 
                 } finally { 
                     btn.disabled = false; 
@@ -836,34 +911,37 @@
                 }
                 if (editBtn) {
                     const { data } = await supabase.from('services').select('*').eq('id', editBtn.dataset.id).single();
-                    document.getElementById('edit-modal-title').textContent = 'Редактировать услугу';
-                    document.getElementById('edit-modal-content').innerHTML = `
+                    modalTitle.textContent = 'Редактировать услугу';
+                    modalContent.innerHTML = `
                         <input id="edit-service-name" type="text" value="${data.name}" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">
                         <input id="edit-service-price" type="text" value="${data.price}" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">
                         <input id="edit-service-duration" type="text" value="${data.duration}" class="w-full p-2.5 mt-2 rounded-lg bg-[var(--tg-bg-color)]">`;
                     
-                    editModalSaveBtn.onclick = async () => {
+                    modalFooter.classList.remove('hidden');
+                    modalSaveBtn.onclick = async () => {
                         const name = document.getElementById('edit-service-name').value;
                         const price = document.getElementById('edit-service-price').value;
                         const duration = document.getElementById('edit-service-duration').value;
-                        editModalSaveBtn.disabled = true; editModalSaveBtn.textContent = 'Сохранение...';
+                        modalSaveBtn.disabled = true; modalSaveBtn.textContent = 'Сохранение...';
                         try {
                             await supabase.from('services').update({ name, price, duration }).eq('id', data.id);
                             closeModal();
                             showToast('Услуга обновлена');
                             renderAdminServices();
                         } catch(e) { tg.showAlert('Ошибка обновления'); }
-                        finally { editModalSaveBtn.disabled = false; editModalSaveBtn.textContent = 'Сохранить'; }
+                        finally { modalSaveBtn.disabled = false; modalSaveBtn.textContent = 'Сохранить'; }
                     };
                     openModal();
                 }
             });
             
             document.getElementById('dashboard-search').addEventListener('input', (e) => filterAndRenderAppointments(e.target.value));
+            // NEW: Client search listener
+            document.getElementById('client-search').addEventListener('input', (e) => filterAndRenderClients(e.target.value));
         }
 
-        editModalBackdrop.addEventListener('click', closeModal);
-        document.getElementById('edit-modal-cancel').addEventListener('click', closeModal);
+        modalBackdrop.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
 
         // ===== App Initialization =====
         function setupAdminUI() {
