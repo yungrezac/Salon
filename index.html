@@ -242,13 +242,13 @@
         const supabase = window.supabase;
         
         const ADMIN_ID = '5042988950'; // ВАЖНО: Замените на ваш Telegram Admin ID
-        // ВАЖНО: Замените URL на тот, который вы получите после развертывания функции
         const SUPABASE_FUNCTION_URL = 'https://ogqufmdhlscmyrdvrzxz.supabase.co/functions/v1'; 
         
         const user = tg.initDataUnsafe?.user;
         const userId = user?.id?.toString();
         const isAdmin = userId === ADMIN_ID;
 
+        // Настройки по умолчанию, хранятся локально
         let settings = {
             work_hours: ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'],
             notifications_enabled: true
@@ -257,7 +257,6 @@
         let state = {
             selectedService: null,
             allAppointments: [],
-            allClients: [],
             currentCalendarDate: new Date(),
             selectedCalendarDate: null,
             currentBookingDate: new Date(),
@@ -315,7 +314,6 @@
         const portfolioSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] rounded-xl overflow-hidden"><div class="w-full aspect-square skeleton skeleton-shimmer"></div><div class="p-4 space-y-2"><div class="h-4 w-full skeleton skeleton-shimmer rounded"></div><div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div></div></div>`;
         const serviceSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex justify-between items-center"><div class="space-y-2"><div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div></div><div class="h-5 w-12 skeleton skeleton-shimmer rounded"></div></div>`;
         const appointmentSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl space-y-2"><div class="h-5 w-40 skeleton skeleton-shimmer rounded"></div><div class="h-4 w-32 skeleton skeleton-shimmer rounded"></div></div>`;
-        const clientSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl flex items-center space-x-3"><div class="w-12 h-12 rounded-full skeleton skeleton-shimmer shrink-0"></div><div class="flex-grow space-y-2"><div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-1/2 skeleton skeleton-shimmer rounded"></div></div></div>`;
 
         async function sendBookingNotification(appointment, client) {
             if (!SUPABASE_FUNCTION_URL || SUPABASE_FUNCTION_URL.includes('YOUR_URL_HERE')) {
@@ -361,7 +359,7 @@
         }));
 
         // =================================================================
-        // ===== Profile & Settings Management =============================
+        // ===== Profile Management ========================================
         // =================================================================
         async function upsertUserProfile() {
             if (!user) return;
@@ -369,18 +367,6 @@
                 const { error } = await supabase.from('profiles').upsert({ id: userId, first_name: user.first_name, last_name: user.last_name, username: user.username }, { onConflict: 'id' });
                 if (error) throw error;
             } catch (error) { console.error('Error upserting profile:', error); }
-        }
-
-        async function fetchSettings() {
-            try {
-                const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
-                if (error) throw error;
-                if (data) {
-                    settings = data;
-                }
-            } catch (error) {
-                console.error('Could not fetch settings, using defaults:', error);
-            }
         }
 
         // =================================================================
@@ -1056,35 +1042,20 @@ END:VCALENDAR`;
                 modalFooter.classList.remove('hidden');
                 openModal();
 
-                modalSaveBtn.onclick = async () => {
+                modalSaveBtn.onclick = () => {
                     const input = document.getElementById('work-hours-input').value;
                     const newHours = input.split(',').map(s => s.trim()).filter(Boolean);
-                    
-                    modalSaveBtn.disabled = true; modalSaveBtn.textContent = 'Сохранение...';
-                    try {
-                        const { error } = await supabase.from('settings').update({ work_hours: newHours }).eq('id', 1);
-                        if (error) throw error;
-                        settings.work_hours = newHours;
-                        closeModal();
-                        showToast('Часы работы обновлены');
-                    } catch (e) { tg.showAlert('Ошибка обновления'); console.error(e); }
-                    finally { modalSaveBtn.disabled = false; modalSaveBtn.textContent = 'Сохранить'; }
+                    settings.work_hours = newHours;
+                    closeModal();
+                    showToast('Часы работы обновлены');
                 };
             });
 
             const notificationsToggle = document.getElementById('notifications-toggle');
-            notificationsToggle.addEventListener('change', async (e) => {
+            notificationsToggle.addEventListener('change', (e) => {
                 const isEnabled = e.target.checked;
-                try {
-                    const { error } = await supabase.from('settings').update({ notifications_enabled: isEnabled }).eq('id', 1);
-                    if (error) throw error;
-                    settings.notifications_enabled = isEnabled;
-                    showToast(`Уведомления ${isEnabled ? 'включены' : 'выключены'}`);
-                } catch (error) {
-                    console.error('Failed to update notification settings:', error);
-                    tg.showAlert('Не удалось изменить настройку.');
-                    e.target.checked = !isEnabled;
-                }
+                settings.notifications_enabled = isEnabled;
+                showToast(`Уведомления ${isEnabled ? 'включены' : 'выключены'}`);
             });
         }
 
@@ -1103,7 +1074,7 @@ END:VCALENDAR`;
             document.getElementById('nav-booking').textContent = 'Услуги';
             document.getElementById('nav-history').textContent = 'Дашборд';
             document.getElementById('nav-profile').textContent = 'Настройки';
-            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.023.203 1.11.745l.082.502c.09.542-.204 1.06-.746 1.226l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.023-.203-1.11-.745l-.082-.502z" /></svg>`;
+            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.023.203 1.11.745l.082.502c.09.542-.204 1.06-.746 1.226l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.023-.203-1.11-.745l-.082-.502z" /></svg>`;
             document.getElementById('admin-portfolio-controls').classList.remove('hidden');
             document.getElementById('admin-services-view').classList.remove('hidden');
             document.getElementById('user-booking-view').classList.add('hidden');
@@ -1132,7 +1103,6 @@ END:VCALENDAR`;
 
             renderProfile();
             await upsertUserProfile();
-            await fetchSettings();
             
             if (isAdmin) {
                 setupAdminUI();
