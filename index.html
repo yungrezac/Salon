@@ -48,10 +48,40 @@
         .nav-item.active { color: var(--tg-button-color); }
         .nav-item.active svg { color: var(--tg-button-color); }
         
-        .like-btn.liked svg.solid { display: block; color: #ef4444; animation: pop 0.3s ease; }
-        .like-btn.liked svg.outline { display: none; }
-        .like-btn svg.solid { display: none; }
-        @keyframes pop { 0% { transform: scale(0.8); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        /* --- Improved Like Button Styles --- */
+        .like-btn .solid,
+        .like-btn .outline {
+            transition: all 0.3s ease;
+        }
+
+        .like-btn .solid {
+            transform: scale(0);
+            opacity: 0;
+            color: #ef4444; /* red-500 */
+        }
+
+        .like-btn.liked .solid {
+            transform: scale(1);
+            opacity: 1;
+            animation: like-bounce 0.4s forwards;
+        }
+
+        .like-btn.liked .outline {
+            transform: scale(1.2);
+            opacity: 0;
+        }
+
+        .like-btn.liked .like-count {
+            color: var(--tg-text-color);
+            font-weight: 600;
+        }
+
+        @keyframes like-bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        /* --- End of Like Button Styles --- */
 
         .loader { border: 4px solid var(--tg-secondary-bg-color); border-top: 4px solid var(--tg-button-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -86,13 +116,13 @@
             <div id="admin-portfolio-controls" class="hidden space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
                 <h2 class="font-semibold">Добавить новый пост</h2>
                 <!-- Image uploader -->
-                <input id="new-post-files" type="file" accept="image/*" class="hidden">
+                <input id="new-post-files" type="file" accept="image/*" class="hidden" multiple>
                 <label for="new-post-files" id="file-upload-label" class="w-full p-3 block text-center bg-[var(--tg-bg-color)] text-[var(--tg-text-color)] font-bold rounded-lg cursor-pointer transition-colors">
-                    Выбрать изображение
+                    Выбрать изображения
                 </label>
                 <!-- Image preview container -->
                 <div id="image-preview-wrapper" class="hidden p-2 bg-[var(--tg-bg-color)] rounded-lg">
-                    <div id="image-preview-container" class="w-24 h-24 mx-auto"></div>
+                    <div id="image-preview-container" class="grid grid-cols-4 gap-2"></div>
                 </div>
                 
                 <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]"></textarea>
@@ -281,7 +311,6 @@
         async function renderUserPortfolio() {
             renderSkeletons(portfolioGrid, 3, portfolioSkeleton);
             try {
-                // IMPORTANT: The 'portfolio' table must have an 'image_urls' column of type jsonb or text[]
                 const { data: portfolio, error: pError } = await supabase.from('portfolio').select('*').order('id', { ascending: false });
                 if (pError) throw pError;
                 
@@ -299,11 +328,11 @@
                     const postElement = document.createElement('div');
                     postElement.className = 'bg-[var(--tg-secondary-bg-color)] rounded-xl shadow-sm overflow-hidden';
 
-                    // Create image gallery
                     const imageGallery = (post.image_urls && post.image_urls.length > 0) 
                         ? post.image_urls.map(url => `<img src="${url}" class="w-full h-auto object-cover aspect-square snap-center shrink-0" loading="lazy" onerror="this.src='https://placehold.co/600x600/e2e8f0/e2e8f0?text=Error'">`).join('')
-                        : `<img src="${post.image_url || 'https://placehold.co/600x600/e2e8f0/e2e8f0?text=No+Image'}" class="w-full h-auto object-cover aspect-square">`; // Fallback for old posts
+                        : `<img src="${post.image_url || 'https://placehold.co/600x600/e2e8f0/e2e8f0?text=No+Image'}" class="w-full h-auto object-cover aspect-square">`;
 
+                    // --- Updated Like Button HTML Structure ---
                     postElement.innerHTML = `
                         <div class="flex overflow-x-auto space-x-2 snap-x snap-mandatory hide-scrollbar">
                             ${imageGallery}
@@ -311,8 +340,10 @@
                         <div class="p-4">
                             <p class="text-[var(--tg-text-color)] mb-3">${post.description}</p>
                             <button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-[var(--tg-hint-color)] ${isLiked ? 'liked' : ''}">
-                                <svg class="w-6 h-6 outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-                                <svg class="w-6 h-6 solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <div class="relative w-6 h-6">
+                                    <svg class="w-6 h-6 outline absolute inset-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                                    <svg class="w-6 h-6 solid absolute inset-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                </div>
                                 <span class="like-count text-sm font-medium">${post.likes}</span>
                             </button>
                         </div>`;
@@ -690,83 +721,76 @@
             const previewContainer = document.getElementById('image-preview-container');
             const previewWrapper = document.getElementById('image-preview-wrapper');
             const fileUploadLabel = document.getElementById('file-upload-label');
-            let selectedFile = null; // Will hold a single File object or null
+            let selectedFiles = [];
 
-            // Renders the single image preview
-            function renderPreview() {
-                previewContainer.innerHTML = ''; // Clear existing preview
-                
-                if (selectedFile) {
+            function renderPreviews() {
+                previewContainer.innerHTML = '';
+                if (selectedFiles.length > 0) {
                     previewWrapper.classList.remove('hidden');
-                    fileUploadLabel.textContent = 'Заменить изображение';
-                    fileUploadLabel.classList.remove('bg-[var(--tg-bg-color)]');
-                    fileUploadLabel.classList.add('bg-gray-200', 'dark:bg-gray-700');
-
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        previewContainer.innerHTML = `
-                            <div class="relative">
-                                <img src="${e.target.result}" class="w-full h-24 object-cover rounded-md">
-                                <button class="remove-img-btn absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold leading-none">&times;</button>
-                            </div>
-                        `;
-                    };
-                    reader.readAsDataURL(selectedFile);
-
+                    fileUploadLabel.textContent = `Выбрано ${selectedFiles.length} фото (можно добавить)`;
+                    selectedFiles.forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const previewEl = document.createElement('div');
+                            previewEl.className = 'relative';
+                            previewEl.innerHTML = `
+                                <img src="${e.target.result}" class="w-full h-20 object-cover rounded-md">
+                                <button data-index="${index}" class="remove-img-btn absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold leading-none">&times;</button>
+                            `;
+                            previewContainer.appendChild(previewEl);
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 } else {
                     previewWrapper.classList.add('hidden');
-                    fileUploadLabel.textContent = 'Выбрать изображение';
-                    fileUploadLabel.classList.add('bg-[var(--tg-bg-color)]');
-                    fileUploadLabel.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+                    fileUploadLabel.textContent = 'Выбрать изображения';
                 }
             }
 
-            // Handles new file selection
             fileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    selectedFile = file;
-                }
-                fileInput.value = ''; // Reset input
-                renderPreview();
+                selectedFiles.push(...event.target.files);
+                fileInput.value = '';
+                renderPreviews();
             });
 
-            // Handles removing the image preview
             previewContainer.addEventListener('click', (e) => {
-                if (e.target.closest('.remove-img-btn')) {
-                    selectedFile = null;
-                    renderPreview();
+                const removeBtn = e.target.closest('.remove-img-btn');
+                if (removeBtn) {
+                    const indexToRemove = parseInt(removeBtn.dataset.index);
+                    selectedFiles.splice(indexToRemove, 1);
+                    renderPreviews();
                 }
             });
 
-            // Handles the final post submission
             document.getElementById('add-post-btn').addEventListener('click', async (e) => {
                 const btn = e.target;
-                const file = selectedFile;
                 const desc = document.getElementById('new-post-desc');
                 
-                if (!file) { tg.showAlert('Выберите изображение.'); return; }
+                if (selectedFiles.length === 0) { tg.showAlert('Выберите хотя бы одно изображение.'); return; }
                 if (!desc.value) { tg.showAlert('Добавьте описание.'); return; }
 
                 btn.disabled = true; 
                 btn.textContent = 'Загрузка...';
 
                 try {
-                    const filePath = `public/${Date.now()}-${file.name}`;
-                    const { error: uploadError } = await supabase.storage.from('image').upload(filePath, file);
-                    if (uploadError) throw uploadError;
+                    const uploadPromises = selectedFiles.map(file => {
+                        const filePath = `public/${Date.now()}-${file.name}`;
+                        return supabase.storage.from('image').upload(filePath, file);
+                    });
                     
-                    const { data } = supabase.storage.from('image').getPublicUrl(filePath);
-                    const imageUrl = data.publicUrl;
+                    const uploadResults = await Promise.all(uploadPromises);
+                    
+                    const imageUrls = uploadResults.map((result, index) => {
+                        if (result.error) throw new Error(`Ошибка загрузки файла ${selectedFiles[index].name}: ${result.error.message}`);
+                        return supabase.storage.from('image').getPublicUrl(result.data.path).data.publicUrl;
+                    });
 
-                    // The 'portfolio' table expects an array for 'image_urls'
-                    const { error } = await supabase.from('portfolio').insert({ image_urls: [imageUrl], description: desc.value });
+                    const { error } = await supabase.from('portfolio').insert({ image_urls: imageUrls, description: desc.value });
                     if (error) throw error;
 
-                    // Reset form
                     desc.value = '';
-                    selectedFile = null;
-                    renderPreview();
+                    selectedFiles = [];
+                    renderPreviews();
 
                     showToast('Пост успешно добавлен!');
                     await renderAdminPortfolio();
