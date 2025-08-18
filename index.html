@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Nail Studio Mini App</title>
+    <title>Nail Studio Pro</title>
     
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -14,7 +14,7 @@
     <!-- Supabase Client -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-        // IMPORTANT: Replace with your actual Supabase URL and Anon Key
+        // Ваши ключи Supabase
         const supabaseUrl = 'https://ogqufmdhlscmyrdvrzxz.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ncXVmbWRobHNjbXlyZHZyenh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MjExMTIsImV4cCI6MjA3MDk5NzExMn0.fqbMtcWWn5tWZZXWyUaLkC_k0nKYYLj3b_zf8SI_C2Y';
         window.supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -49,44 +49,17 @@
         .nav-item.active svg { color: var(--tg-button-color); }
         
         /* --- Improved Like Button Styles --- */
-        .like-btn .solid,
-        .like-btn .outline {
-            transition: all 0.3s ease;
-        }
-
-        .like-btn .solid {
-            transform: scale(0);
-            opacity: 0;
-            color: #ef4444; /* red-500 */
-        }
-
-        .like-btn.liked .solid {
-            transform: scale(1);
-            opacity: 1;
-            animation: like-bounce 0.4s forwards;
-        }
-
-        .like-btn.liked .outline {
-            transform: scale(1.2);
-            opacity: 0;
-        }
-
-        .like-btn.liked .like-count {
-            color: var(--tg-text-color);
-            font-weight: 600;
-        }
-
-        @keyframes like-bounce {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-        /* --- End of Like Button Styles --- */
+        .like-btn .solid, .like-btn .outline { transition: all 0.3s ease; }
+        .like-btn .solid { transform: scale(0); opacity: 0; color: #ef4444; }
+        .like-btn.liked .solid { transform: scale(1); opacity: 1; animation: like-bounce 0.4s forwards; }
+        .like-btn.liked .outline { transform: scale(1.2); opacity: 0; }
+        .like-btn.liked .like-count { color: var(--tg-text-color); font-weight: 600; }
+        @keyframes like-bounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
         .loader { border: 4px solid var(--tg-secondary-bg-color); border-top: 4px solid var(--tg-button-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.7); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; transition: bottom 0.4s ease-in-out; font-weight: 500; }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; transition: bottom 0.4s ease-in-out; font-weight: 500; backdrop-filter: blur(5px); }
         #toast.show { bottom: 80px; }
 
         .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
@@ -101,9 +74,21 @@
         .fade-out { animation: fadeOut 0.3s ease-out forwards; }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(0.95); } }
         
-        /* Hide scrollbar for image gallery */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* NEW: Calendar Styles */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-day { text-align: center; padding: 8px; border-radius: 9999px; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .calendar-day.has-events { font-weight: bold; background-color: rgba(var(--tg-button-color-rgb), 0.1); }
+        .calendar-day.selected { background-color: var(--tg-button-color); color: var(--tg-button-text-color); }
+        .calendar-day.disabled { color: var(--tg-hint-color); cursor: not-allowed; }
+
+        /* NEW: Empty State Styles */
+        .empty-state { text-align: center; padding: 40px 20px; }
+        .empty-state svg { margin: 0 auto 16px; color: var(--tg-hint-color); }
+        .empty-state-title { font-weight: 600; font-size: 1.125rem; }
+        .empty-state-text { color: var(--tg-hint-color); }
     </style>
 </head>
 <body class="text-sm">
@@ -115,16 +100,13 @@
             <h1 id="portfolio-title" class="text-2xl font-bold">Портфолио</h1>
             <div id="admin-portfolio-controls" class="hidden space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
                 <h2 class="font-semibold">Добавить новый пост</h2>
-                <!-- Image uploader -->
                 <input id="new-post-files" type="file" accept="image/*" class="hidden" multiple>
                 <label for="new-post-files" id="file-upload-label" class="w-full p-3 block text-center bg-[var(--tg-bg-color)] text-[var(--tg-text-color)] font-bold rounded-lg cursor-pointer transition-colors">
                     Выбрать изображения
                 </label>
-                <!-- Image preview container -->
                 <div id="image-preview-wrapper" class="hidden p-2 bg-[var(--tg-bg-color)] rounded-lg">
                     <div id="image-preview-container" class="grid grid-cols-4 gap-2"></div>
                 </div>
-                
                 <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]"></textarea>
                 <button id="add-post-btn" class="w-full p-3 bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] font-bold rounded-lg active:scale-95 transition-transform disabled:opacity-50">Добавить пост</button>
             </div>
@@ -162,9 +144,20 @@
         <!-- ===== PAGE 3: MY APPOINTMENTS / DASHBOARD ===== -->
         <div id="history-page" class="page p-4 space-y-4">
             <h1 id="history-title" class="text-2xl font-bold">Мои записи</h1>
-            <div id="admin-dashboard-summary" class="hidden bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl space-y-2">
-                <p class="font-semibold">Предстоящих записей: <span id="upcoming-count" class="text-[var(--tg-link-color)]">0</span></p>
-                <input id="dashboard-search" type="text" placeholder="Поиск по имени клиента..." class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none">
+            <!-- NEW: Admin Dashboard Calendar -->
+            <div id="admin-dashboard-view" class="hidden space-y-4">
+                <div id="calendar-container" class="bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <button id="prev-month" class="p-2 rounded-full active:bg-gray-200">&lt;</button>
+                        <h2 id="month-year" class="font-semibold"></h2>
+                        <button id="next-month" class="p-2 rounded-full active:bg-gray-200">&gt;</button>
+                    </div>
+                    <div class="grid grid-cols-7 text-center text-xs text-[var(--tg-hint-color)] mb-1">
+                        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                </div>
+                <input id="dashboard-search" type="text" placeholder="Поиск по имени клиента..." class="w-full p-2.5 rounded-lg bg-[var(--tg-secondary-bg-color)] border-none">
             </div>
             <div id="appointments-list" class="space-y-3"></div>
         </div>
@@ -182,7 +175,6 @@
                 </div>
             </div>
             <div id="admin-clients-view" class="hidden space-y-3">
-                <!-- NEW: Client search input -->
                 <input id="client-search" type="text" placeholder="Поиск по имени или @username..." class="w-full p-2.5 rounded-lg bg-[var(--tg-secondary-bg-color)] border-none">
                 <div id="clients-list" class="space-y-2"></div>
             </div>
@@ -212,21 +204,29 @@
     </div>
 
     <script type="module">
-        // ===== App State & Constants =====
+        // =================================================================
+        // ===== App State & Constants =====================================
+        // =================================================================
         const tg = window.Telegram.WebApp;
         const supabase = window.supabase;
         
-        const ADMIN_ID = '5042988950'; // Replace with your Telegram Admin ID
+        const ADMIN_ID = '5042988950'; // ВАЖНО: Замените на ваш Telegram Admin ID
         const user = tg.initDataUnsafe?.user;
         const userId = user?.id?.toString();
         const isAdmin = userId === ADMIN_ID;
 
         const timeSlotsData = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
-        let selectedService = null;
-        let allAppointments = []; // Cache for admin dashboard search
-        let allClients = []; // Cache for admin clients search
+        let state = {
+            selectedService: null,
+            allAppointments: [],
+            allClients: [],
+            currentCalendarDate: new Date(),
+            selectedCalendarDate: null,
+        };
 
-        // ===== UI Elements =====
+        // =================================================================
+        // ===== UI Elements ===============================================
+        // =================================================================
         const pages = document.querySelectorAll('.page');
         const navItems = document.querySelectorAll('.nav-item');
         const portfolioGrid = document.getElementById('portfolio-grid');
@@ -247,10 +247,11 @@
         const modalContent = document.getElementById('modal-content');
         const modalFooter = document.getElementById('modal-footer');
 
-
-        // ===== Helper Functions =====
+        // =================================================================
+        // ===== Helper Functions ==========================================
+        // =================================================================
         const showLoader = (container) => container.innerHTML = '<div class="loader"></div>';
-        const showError = (container, message) => container.innerHTML = `<p class="text-center text-red-500 p-4">${message}</p>`;
+        const showError = (container, message) => container.innerHTML = createEmptyState('Ошибка', message, `<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.007H12v-.007z" />`);
         
         const showToast = (message) => {
             toast.textContent = message;
@@ -258,52 +259,29 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         };
 
-        const openModal = () => { 
-            modal.classList.add('show'); 
-            modalBackdrop.classList.add('show'); 
-        };
-        const closeModal = () => { 
-            modal.classList.remove('show'); 
-            modalBackdrop.classList.remove('show'); 
-        };
+        const openModal = () => { modal.classList.add('show'); modalBackdrop.classList.add('show'); };
+        const closeModal = () => { modal.classList.remove('show'); modalBackdrop.classList.remove('show'); };
 
         const renderSkeletons = (container, count, skeletonHTML) => {
             container.innerHTML = Array(count).fill(skeletonHTML).join('');
         };
 
-        const portfolioSkeleton = `
-            <div class="bg-[var(--tg-secondary-bg-color)] rounded-xl overflow-hidden">
-                <div class="w-full aspect-square skeleton skeleton-shimmer"></div>
-                <div class="p-4 space-y-2">
-                    <div class="h-4 w-full skeleton skeleton-shimmer rounded"></div>
-                    <div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div>
-                </div>
-            </div>`;
-        const serviceSkeleton = `
-            <div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex justify-between items-center">
-                <div class="space-y-2">
-                    <div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div>
-                    <div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div>
-                </div>
-                <div class="h-5 w-12 skeleton skeleton-shimmer rounded"></div>
-            </div>`;
-        const appointmentSkeleton = `
-            <div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl space-y-2">
-                <div class="h-5 w-40 skeleton skeleton-shimmer rounded"></div>
-                <div class="h-4 w-32 skeleton skeleton-shimmer rounded"></div>
-            </div>`;
-        // NEW: Client skeleton
-        const clientSkeleton = `
-            <div class="bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-full skeleton skeleton-shimmer shrink-0"></div>
-                <div class="flex-grow space-y-2">
-                    <div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div>
-                    <div class="h-3 w-1/2 skeleton skeleton-shimmer rounded"></div>
-                </div>
+        const createEmptyState = (title, text, svgPath) => `
+            <div class="empty-state">
+                <svg class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">${svgPath}</svg>
+                <h3 class="empty-state-title">${title}</h3>
+                <p class="empty-state-text">${text}</p>
             </div>`;
 
+        // Skeletons...
+        const portfolioSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] rounded-xl overflow-hidden"><div class="w-full aspect-square skeleton skeleton-shimmer"></div><div class="p-4 space-y-2"><div class="h-4 w-full skeleton skeleton-shimmer rounded"></div><div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div></div></div>`;
+        const serviceSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl flex justify-between items-center"><div class="space-y-2"><div class="h-5 w-32 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-16 skeleton skeleton-shimmer rounded"></div></div><div class="h-5 w-12 skeleton skeleton-shimmer rounded"></div></div>`;
+        const appointmentSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-4 rounded-xl space-y-2"><div class="h-5 w-40 skeleton skeleton-shimmer rounded"></div><div class="h-4 w-32 skeleton skeleton-shimmer rounded"></div></div>`;
+        const clientSkeleton = `<div class="bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl flex items-center space-x-3"><div class="w-12 h-12 rounded-full skeleton skeleton-shimmer shrink-0"></div><div class="flex-grow space-y-2"><div class="h-4 w-3/4 skeleton skeleton-shimmer rounded"></div><div class="h-3 w-1/2 skeleton skeleton-shimmer rounded"></div></div></div>`;
 
-        // ===== Navigation =====
+        // =================================================================
+        // ===== Navigation ================================================
+        // =================================================================
         function switchPage(pageId) {
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -316,7 +294,9 @@
             switchPage(item.dataset.page);
         }));
 
-        // ===== Profile Management =====
+        // =================================================================
+        // ===== Profile Management ========================================
+        // =================================================================
         async function upsertUserProfile() {
             if (!user) return;
             try {
@@ -325,7 +305,9 @@
             } catch (error) { console.error('Error upserting profile:', error); }
         }
 
-        // ===== User Functions =====
+        // =================================================================
+        // ===== User Functions ============================================
+        // =================================================================
         async function renderUserPortfolio() {
             renderSkeletons(portfolioGrid, 3, portfolioSkeleton);
             try {
@@ -338,7 +320,7 @@
                 const likedPostIds = new Set(userLikes.map(like => like.post_id));
                 portfolioGrid.innerHTML = '';
                 if (portfolio.length === 0) { 
-                    portfolioGrid.innerHTML = '<p class="text-center text-[var(--tg-hint-color)] py-10">Работ в портфолио пока нет.</p>'; 
+                    portfolioGrid.innerHTML = createEmptyState('Пусто', 'Мастер еще не добавил работы в портфолио.', `<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />`);
                     return; 
                 }
                 portfolio.forEach(post => {
@@ -350,7 +332,6 @@
                         ? post.image_urls.map(url => `<img src="${url}" class="w-full h-auto object-cover aspect-square snap-center shrink-0" loading="lazy" onerror="this.src='https://placehold.co/600x600/e2e8f0/e2e8f0?text=Error'">`).join('')
                         : `<img src="${post.image_url || 'https://placehold.co/600x600/e2e8f0/e2e8f0?text=No+Image'}" class="w-full h-auto object-cover aspect-square">`;
 
-                    // --- Updated Like Button HTML Structure ---
                     postElement.innerHTML = `
                         <div class="flex overflow-x-auto space-x-2 snap-x snap-mandatory hide-scrollbar">
                             ${imageGallery}
@@ -398,7 +379,7 @@
                 if (error) throw error;
                 appointmentsList.innerHTML = '';
                 if (data.length === 0) { 
-                    appointmentsList.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] mt-8">У вас пока нет записей.</p>`; 
+                    appointmentsList.innerHTML = createEmptyState('Нет записей', 'Вы еще не записывались на услуги.', `<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18" />`);
                     return; 
                 }
                 
@@ -419,14 +400,16 @@
             } catch (error) { showError(appointmentsList, 'Не удалось загрузить записи.'); console.error(error); }
         }
 
-        // ===== Admin Functions =====
+        // =================================================================
+        // ===== Admin Functions ===========================================
+        // =================================================================
         async function renderAdminPortfolio() {
             showLoader(portfolioGrid);
             try {
                 const { data: portfolio, error } = await supabase.from('portfolio').select('*').order('id', { ascending: false });
                 if (error) throw error;
                 portfolioGrid.innerHTML = '';
-                if (portfolio.length === 0) { portfolioGrid.innerHTML = '<p class="text-center text-[var(--tg-hint-color)]">Постов пока нет.</p>'; return; }
+                if (portfolio.length === 0) { portfolioGrid.innerHTML = createEmptyState('Нет постов', 'Добавьте первую работу в портфолио.', `<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />`); return; }
                 portfolio.forEach(post => {
                     const postEl = document.createElement('div');
                     postEl.className = 'bg-[var(--tg-secondary-bg-color)] p-2 rounded-xl flex items-center justify-between gap-2';
@@ -435,7 +418,10 @@
                     postEl.innerHTML = `
                         <div class="flex items-center space-x-3 overflow-hidden">
                             <img src="${firstImage}" class="w-12 h-12 object-cover rounded-md shrink-0">
-                            <p class="text-sm truncate">${post.description}</p>
+                            <div class="overflow-hidden">
+                                <p class="text-sm truncate font-semibold">${post.description}</p>
+                                <p class="text-xs text-[var(--tg-hint-color)]">❤️ ${post.likes} лайков</p>
+                            </div>
                         </div>
                         <div class="flex shrink-0">
                             <button data-id="${post.id}" class="edit-post-btn p-2 text-blue-500"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg></button>
@@ -455,7 +441,7 @@
                 listEl.innerHTML = '';
                 data.forEach(service => {
                     const serviceEl = document.createElement('div');
-                    serviceEl.className = 'bg-[var(--tg-secondary-bg-color)] p-2 rounded-xl flex items-center justify-between';
+                    serviceEl.className = 'bg-[var(--tg-bg-color)] p-2 rounded-xl flex items-center justify-between';
                     serviceEl.innerHTML = `
                         <div>
                             <p class="font-semibold">${service.name}</p>
@@ -470,62 +456,104 @@
             } catch (error) { showError(listEl, 'Ошибка загрузки услуг.'); console.error(error); }
         }
 
-        async function renderAdminDashboard() {
+        // --- NEW: Admin Dashboard Calendar ---
+        async function renderAdminCalendar() {
+            const date = state.currentCalendarDate;
+            const month = date.getMonth();
+            const year = date.getFullYear();
+
+            document.getElementById('month-year').textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+            
+            const { data: eventDays, error } = await supabase.rpc('get_dashboard_calendar', { p_month: month + 1, p_year: year });
+            if (error) { console.error("Calendar Error:", error); return; }
+
+            const eventDaysSet = new Set(eventDays.map(e => e.day));
+            const calendarGrid = document.getElementById('calendar-grid');
+            calendarGrid.innerHTML = '';
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Adjust for Monday start
+            const offset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
+            for (let i = 0; i < offset; i++) {
+                calendarGrid.innerHTML += `<div></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.textContent = day;
+                dayEl.className = 'calendar-day';
+                if (eventDaysSet.has(day)) dayEl.classList.add('has-events');
+                if (state.selectedCalendarDate && new Date(year, month, day).toDateString() === state.selectedCalendarDate.toDateString()) {
+                    dayEl.classList.add('selected');
+                }
+                dayEl.addEventListener('click', () => {
+                    state.selectedCalendarDate = new Date(year, month, day);
+                    renderAdminCalendar(); // Re-render to show selection
+                    fetchAndRenderAdminAppointments(); // Fetch appointments for this day
+                });
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+        
+        async function fetchAndRenderAdminAppointments() {
             showLoader(appointmentsList);
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const { data, error } = await supabase.from('appointments').select(`*, profiles(first_name, username)`).gte('date', today).order('date').order('time');
+                let query = supabase.from('appointments').select(`*, profiles(first_name, username)`);
+                if (state.selectedCalendarDate) {
+                    query = query.eq('date', state.selectedCalendarDate.toISOString().split('T')[0]);
+                }
+                query = query.order('date').order('time');
+
+                const { data, error } = await query;
                 if (error) throw error;
-                allAppointments = data;
-                document.getElementById('upcoming-count').textContent = data.length;
+                state.allAppointments = data;
                 filterAndRenderAppointments();
-            } catch (error) { showError(appointmentsList, 'Ошибка загрузки дашборда.'); console.error(error); }
+            } catch (error) { showError(appointmentsList, 'Ошибка загрузки записей.'); console.error(error); }
         }
 
-        function filterAndRenderAppointments(query = '') {
-            const filtered = allAppointments.filter(app => {
+        function filterAndRenderAppointments(searchQuery = '') {
+            const searchInput = document.getElementById('dashboard-search').value.toLowerCase() || searchQuery.toLowerCase();
+            const filtered = state.allAppointments.filter(app => {
                 const profile = app.profiles;
                 const clientName = profile ? `${profile.first_name || ''} ${profile.username || ''}`.toLowerCase() : '';
-                return clientName.includes(query.toLowerCase());
+                return clientName.includes(searchInput);
             });
             appointmentsList.innerHTML = '';
             if (filtered.length === 0) { 
-                appointmentsList.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] mt-8">${query ? 'Записи не найдены.' : 'Предстоящих записей нет.'}</p>`; 
+                const emptyText = state.selectedCalendarDate ? 'На выбранную дату записей нет.' : 'Записей не найдено.';
+                appointmentsList.innerHTML = createEmptyState('Пусто', emptyText, `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />`);
                 return; 
             }
             filtered.forEach(app => {
                 const card = document.createElement('div');
-                card.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl';
+                card.className = 'bg-[var(--tg-bg-color)] p-3 rounded-xl';
                 const profile = app.profiles;
                 const clientName = profile ? `${profile.first_name || 'Клиент'} (@${profile.username || '...'})` : 'Загрузка...';
                 card.innerHTML = `
                     <p class="font-bold">${app.service_name}</p>
                     <p class="text-sm">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long'})} в ${app.time}</p>
-                    <p class="text-sm text-[var(--tg-link-color)] mt-1">${clientName}</p>`;
+                    <p class="text-sm text-[var(--tg-link-color)] mt-1 cursor-pointer" onclick="window.open('https://t.me/${profile?.username}', '_blank')">${clientName}</p>`;
                 appointmentsList.appendChild(card);
             });
         }
         
-        // --- CLIENTS PAGE IMPROVEMENT ---
         async function renderAdminClients() {
             const listEl = document.getElementById('clients-list');
             renderSkeletons(listEl, 5, clientSkeleton);
             try {
-                // Fetch profiles and their appointment counts/last appointment date
                 const { data, error } = await supabase.rpc('get_clients_with_stats');
                 if (error) throw error;
-
-                allClients = data; // Cache for searching
-                filterAndRenderClients(); // Initial render
-            } catch (error) { 
-                showError(listEl, 'Ошибка загрузки клиентов.'); 
-                console.error(error); 
-            }
+                state.allClients = data;
+                filterAndRenderClients();
+            } catch (error) { showError(listEl, 'Ошибка загрузки клиентов.'); console.error(error); }
         }
 
         function filterAndRenderClients(query = '') {
             const listEl = document.getElementById('clients-list');
-            const filtered = allClients.filter(profile => {
+            const filtered = state.allClients.filter(profile => {
                 const searchTerm = query.toLowerCase();
                 const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.toLowerCase();
                 const username = `@${profile.username || ''}`.toLowerCase();
@@ -534,53 +562,72 @@
 
             listEl.innerHTML = '';
             if (filtered.length === 0) {
-                listEl.innerHTML = `<p class="text-center text-[var(--tg-hint-color)] pt-8">${query ? 'Клиенты не найдены.' : 'Клиентов пока нет.'}</p>`;
+                listEl.innerHTML = createEmptyState('Нет клиентов', query ? 'Клиенты не найдены' : 'У вас еще не было клиентов.', `<path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962a3.75 3.75 0 015.962 0zM12 6.375a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />`);
                 return;
             }
 
             filtered.forEach(profile => {
                 const clientEl = document.createElement('div');
                 clientEl.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl cursor-pointer active:scale-95 transition-transform flex items-center space-x-3';
-                
                 const initials = ((profile.first_name || '')[0] || '') + ((profile.last_name || '')[0] || '');
                 const avatar = `<div class="w-12 h-12 rounded-full bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)] flex items-center justify-center text-lg font-bold shrink-0">${initials.toUpperCase() || '👤'}</div>`;
-                
-                const lastAppointment = profile.last_appointment_date 
-                    ? `Последняя запись: ${new Date(profile.last_appointment_date).toLocaleDateString('ru-RU')}`
-                    : 'Записей еще не было';
+                const lastAppointment = profile.last_appointment_date ? `Последняя запись: ${new Date(profile.last_appointment_date).toLocaleDateString('ru-RU')}` : 'Записей еще не было';
 
                 clientEl.innerHTML = `
                     ${avatar}
                     <div class="flex-grow">
                         <p class="font-semibold">${profile.first_name || ''} ${profile.last_name || ''}</p>
                         <p class="text-xs text-[var(--tg-hint-color)]">@${profile.username || 'no username'}</p>
-                        <div class="text-xs text-[var(--tg-text-color)] mt-1 flex items-center gap-2">
-                           <span>Всего записей: <strong>${profile.appointment_count}</strong></span>
-                           <span>•</span>
-                           <span>${lastAppointment}</span>
+                        <div class="text-xs text-[var(--tg-text-color)] mt-1 flex items-center gap-2 flex-wrap">
+                            <span>Записей: <strong>${profile.appointment_count}</strong></span>
+                            <span>•</span>
+                            <span>${lastAppointment}</span>
                         </div>
                     </div>
                     <svg class="w-5 h-5 text-[var(--tg-hint-color)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                 `;
-                clientEl.addEventListener('click', () => showClientHistory(profile));
+                clientEl.addEventListener('click', () => showClientDetails(profile));
                 listEl.appendChild(clientEl);
             });
         }
-
-        async function showClientHistory(profile) {
-            modalTitle.textContent = `История: ${profile.first_name || '@'+profile.username}`;
-            modalFooter.classList.add('hidden'); // Hide save/cancel buttons
-            modalContent.innerHTML = '<div class="loader"></div>';
+        
+        // --- NEW: Client Details Modal with Notes ---
+        async function showClientDetails(profile) {
+            modalTitle.textContent = `${profile.first_name || '@'+profile.username}`;
+            modalFooter.classList.remove('hidden');
+            modalContent.innerHTML = `
+                <h3 class="font-semibold text-base">Заметки о клиенте</h3>
+                <textarea id="client-notes" placeholder="Добавьте заметку (например, предпочтения или аллергии)..." rows="4" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)]">${profile.notes || ''}</textarea>
+                <h3 class="font-semibold text-base mt-4">История записей</h3>
+                <div id="client-history-list"><div class="loader"></div></div>
+            `;
             openModal();
+
+            modalSaveBtn.onclick = async () => {
+                const notes = document.getElementById('client-notes').value;
+                modalSaveBtn.disabled = true;
+                modalSaveBtn.textContent = 'Сохранение...';
+                try {
+                    await supabase.from('profiles').update({ notes: notes }).eq('id', profile.id);
+                    closeModal();
+                    showToast('Заметка сохранена');
+                    // Refresh client data in the background
+                    renderAdminClients();
+                } catch (e) { tg.showAlert('Ошибка сохранения'); } 
+                finally { 
+                    modalSaveBtn.disabled = false; 
+                    modalSaveBtn.textContent = 'Сохранить'; 
+                }
+            };
 
             try {
                 const { data, error } = await supabase.from('appointments').select('*').eq('user_id', profile.id).order('date', { ascending: false });
                 if (error) throw error;
-                
+                const historyList = document.getElementById('client-history-list');
                 if (data.length === 0) {
-                    modalContent.innerHTML = '<p class="text-center text-[var(--tg-hint-color)]">У этого клиента еще не было записей.</p>';
+                    historyList.innerHTML = '<p class="text-center text-sm text-[var(--tg-hint-color)]">У этого клиента еще не было записей.</p>';
                 } else {
-                    modalContent.innerHTML = data.map(app => `
+                    historyList.innerHTML = data.map(app => `
                         <div class="bg-[var(--tg-bg-color)] p-3 rounded-lg">
                             <p class="font-semibold">${app.service_name}</p>
                             <p class="text-sm text-[var(--tg-hint-color)]">${new Date(app.date).toLocaleDateString('ru-RU', {day:'numeric',month:'long', year: 'numeric'})} в ${app.time}</p>
@@ -588,12 +635,14 @@
                     `).join('');
                 }
             } catch (error) { 
-                modalContent.innerHTML = '<p class="text-center text-red-500">Не удалось загрузить историю клиента.</p>';
+                document.getElementById('client-history-list').innerHTML = '<p class="text-center text-red-500">Не удалось загрузить историю клиента.</p>';
                 console.error(error); 
             }
         }
 
-        // ===== Common Functions =====
+        // =================================================================
+        // ===== Common Functions ==========================================
+        // =================================================================
         function createAppointmentCard(appointment, isUpcoming) {
             const card = document.createElement('div');
             card.className = 'bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl';
@@ -605,7 +654,11 @@
                     </div>
                     <span class="text-xs font-medium py-1 px-2.5 rounded-full ${isUpcoming ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}">${isUpcoming ? 'Предстоит' : 'Завершена'}</span>
                 </div>
-                ${isUpcoming ? `<button data-id="${appointment.id}" class="cancel-btn w-full text-left text-red-500 font-semibold mt-2 pt-2 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">Отменить запись</button>` : ''}`;
+                ${isUpcoming ? `
+                <div class="flex gap-2 mt-3 pt-2 border-t border-[var(--tg-bg-color)]">
+                    <button data-id="${appointment.id}" class="cancel-btn flex-1 text-center text-red-500 font-semibold p-2 rounded-lg active:bg-red-100">Отменить</button>
+                    <button data-service="${appointment.service_name}" data-date="${appointment.date}" data-time="${appointment.time}" class="add-to-calendar-btn flex-1 text-center text-[var(--tg-link-color)] font-semibold p-2 rounded-lg active:bg-blue-100">В календарь</button>
+                </div>` : ''}`;
             return card;
         }
 
@@ -618,7 +671,9 @@
             }
         }
 
-        // ===== Event Listeners =====
+        // =================================================================
+        // ===== Event Listeners ===========================================
+        // =================================================================
         portfolioGrid.addEventListener('click', async (e) => {
             const likeButton = e.target.closest('.like-btn');
             const deleteBtn = e.target.closest('.delete-post-btn');
@@ -647,7 +702,6 @@
                     }
                 } catch (error) {
                     console.error('Like error:', error);
-                    // Revert UI on error
                     likeButton.classList.toggle('liked');
                     likeButton.dataset.liked = !isLiked;
                     countSpan.textContent = currentLikes;
@@ -721,7 +775,7 @@
 
         function handleServiceSelect(service) {
             tg.HapticFeedback.impactOccurred('light');
-            selectedService = service;
+            state.selectedService = service;
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
             backBtn.classList.remove('hidden');
@@ -744,11 +798,11 @@
 
         function confirmBooking(date, time) {
             if (!userId) { tg.showAlert('Не удалось определить пользователя.'); return; }
-            tg.showConfirm(`Подтвердить запись на ${selectedService.name} (${date} в ${time})?`, async (confirmed) => {
+            tg.showConfirm(`Подтвердить запись на ${state.selectedService.name} (${date} в ${time})?`, async (confirmed) => {
                 if (confirmed) {
                     tg.MainButton.showProgress();
                     try {
-                        const { error } = await supabase.from('appointments').insert({ user_id: userId, service_id: selectedService.id, service_name: selectedService.name, date: date, time: time });
+                        const { error } = await supabase.from('appointments').insert({ user_id: userId, service_id: state.selectedService.id, service_name: state.selectedService.name, date: date, time: time });
                         if (error) throw error;
                         tg.showAlert('Вы успешно записаны!', () => { 
                             switchPage('history-page'); 
@@ -762,21 +816,52 @@
         }
 
         appointmentsList.addEventListener('click', (e) => {
-            const button = e.target.closest('.cancel-btn');
-            if (!button) return;
-            tg.showConfirm('Отменить эту запись?', async (confirmed) => {
-                if(confirmed) {
-                    try {
-                        const card = button.closest('.bg-\\[var\\(--tg-secondary-bg-color\\)\\]');
-                        const { error } = await supabase.from('appointments').delete().eq('id', button.dataset.id);
-                        if (error) throw error;
-                        showToast('Запись отменена');
-                        card.classList.add('fade-out');
-                        card.addEventListener('animationend', () => renderUserAppointments());
-                        tg.HapticFeedback.notificationOccurred('success');
-                    } catch (error) { tg.showAlert('Не удалось отменить запись.'); console.error(error); }
-                }
-            });
+            const cancelBtn = e.target.closest('.cancel-btn');
+            const calendarBtn = e.target.closest('.add-to-calendar-btn');
+
+            if (cancelBtn) {
+                tg.showConfirm('Отменить эту запись?', async (confirmed) => {
+                    if(confirmed) {
+                        try {
+                            const card = cancelBtn.closest('.bg-\\[var\\(--tg-secondary-bg-color\\)\\]');
+                            const { error } = await supabase.from('appointments').delete().eq('id', cancelBtn.dataset.id);
+                            if (error) throw error;
+                            showToast('Запись отменена');
+                            card.classList.add('fade-out');
+                            card.addEventListener('animationend', () => renderUserAppointments());
+                            tg.HapticFeedback.notificationOccurred('success');
+                        } catch (error) { tg.showAlert('Не удалось отменить запись.'); console.error(error); }
+                    }
+                });
+            }
+
+            if (calendarBtn) {
+                const { service, date, time } = calendarBtn.dataset;
+                const [year, month, day] = date.split('-');
+                const [hours, minutes] = time.split(':');
+                const startDate = new Date(year, month - 1, day, hours, minutes);
+                const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Assuming 1 hour duration
+                
+                const formatDt = (dt) => dt.toISOString().replace(/[-:.]/g, '');
+                
+                const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${formatDt(startDate)}
+DTEND:${formatDt(endDate)}
+SUMMARY:Маникюр: ${service}
+DESCRIPTION:Запись на услугу ${service}
+LOCATION:Nail Studio
+END:VEVENT
+END:VCALENDAR`;
+                
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'appointment.ics';
+                link.click();
+                showToast('Файл календаря скачан');
+            }
         });
 
         backBtn.addEventListener('click', () => { 
@@ -845,8 +930,6 @@
                 btn.textContent = 'Загрузка...';
 
                 try {
-                    // *** IMAGE UPLOAD FIX ***
-                    // The bucket name is 'images', not 'image'. This was the main error.
                     const uploadPromises = selectedFiles.map(file => {
                         const filePath = `public/${Date.now()}-${file.name}`;
                         return supabase.storage.from('images').upload(filePath, file);
@@ -856,7 +939,6 @@
                     
                     const imageUrls = uploadResults.map((result, index) => {
                         if (result.error) throw new Error(`Ошибка загрузки файла ${selectedFiles[index].name}: ${result.error.message}`);
-                        // Correctly get the public URL
                         return supabase.storage.from('images').getPublicUrl(result.data.path).data.publicUrl;
                     });
 
@@ -936,14 +1018,17 @@
             });
             
             document.getElementById('dashboard-search').addEventListener('input', (e) => filterAndRenderAppointments(e.target.value));
-            // NEW: Client search listener
             document.getElementById('client-search').addEventListener('input', (e) => filterAndRenderClients(e.target.value));
+            document.getElementById('prev-month').addEventListener('click', () => { state.currentCalendarDate.setMonth(state.currentCalendarDate.getMonth() - 1); renderAdminCalendar(); });
+            document.getElementById('next-month').addEventListener('click', () => { state.currentCalendarDate.setMonth(state.currentCalendarDate.getMonth() + 1); renderAdminCalendar(); });
         }
 
         modalBackdrop.addEventListener('click', closeModal);
         modalCancelBtn.addEventListener('click', closeModal);
 
-        // ===== App Initialization =====
+        // =================================================================
+        // ===== App Initialization ========================================
+        // =================================================================
         function setupAdminUI() {
             document.getElementById('portfolio-title').textContent = 'Управление постами';
             document.getElementById('booking-title').textContent = 'Управление услугами';
@@ -957,7 +1042,7 @@
             document.getElementById('admin-portfolio-controls').classList.remove('hidden');
             document.getElementById('admin-services-view').classList.remove('hidden');
             document.getElementById('user-booking-view').classList.add('hidden');
-            document.getElementById('admin-dashboard-summary').classList.remove('hidden');
+            document.getElementById('admin-dashboard-view').classList.remove('hidden');
             document.getElementById('admin-clients-view').classList.remove('hidden');
             document.getElementById('user-profile-view').classList.add('hidden');
         }
@@ -974,13 +1059,19 @@
             document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
             document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
             document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color);
-            
+            // NEW: Convert button color to RGB for transparent backgrounds
+            const btnColor = tg.themeParams.button_color || '#2481cc';
+            const r = parseInt(btnColor.slice(1, 3), 16);
+            const g = parseInt(btnColor.slice(3, 5), 16);
+            const b = parseInt(btnColor.slice(5, 7), 16);
+            document.documentElement.style.setProperty('--tg-button-color-rgb', `${r}, ${g}, ${b}`);
+
             renderProfile();
             await upsertUserProfile();
             
             if (isAdmin) {
                 setupAdminUI();
-                await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminDashboard(), renderAdminClients()]);
+                await Promise.all([renderAdminPortfolio(), renderAdminServices(), renderAdminCalendar(), fetchAndRenderAdminAppointments(), renderAdminClients()]);
             } else {
                 await Promise.all([renderUserPortfolio(), renderUserServices(), renderUserAppointments()]);
             }
