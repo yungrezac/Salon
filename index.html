@@ -86,13 +86,13 @@
             <div id="admin-portfolio-controls" class="hidden space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
                 <h2 class="font-semibold">Добавить новый пост</h2>
                 <!-- Image uploader -->
-                <input id="new-post-files" type="file" multiple accept="image/*" class="hidden">
+                <input id="new-post-files" type="file" accept="image/*" class="hidden">
                 <label for="new-post-files" id="file-upload-label" class="w-full p-3 block text-center bg-[var(--tg-bg-color)] text-[var(--tg-text-color)] font-bold rounded-lg cursor-pointer transition-colors">
-                    Выбрать изображения (до 10)
+                    Выбрать изображение
                 </label>
                 <!-- Image preview container -->
                 <div id="image-preview-wrapper" class="hidden p-2 bg-[var(--tg-bg-color)] rounded-lg">
-                    <div id="image-preview-container" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                    <div id="image-preview-container" class="w-24 h-24 mx-auto"></div>
                 </div>
                 
                 <textarea id="new-post-desc" placeholder="Описание" rows="2" class="w-full p-2.5 rounded-lg bg-[var(--tg-bg-color)] border-none focus:ring-2 focus:ring-[var(--tg-button-color)]"></textarea>
@@ -690,99 +690,88 @@
             const previewContainer = document.getElementById('image-preview-container');
             const previewWrapper = document.getElementById('image-preview-wrapper');
             const fileUploadLabel = document.getElementById('file-upload-label');
-            let selectedFiles = []; // Array to store and manage File objects
+            let selectedFile = null; // Will hold a single File object or null
 
-            // Renders image previews and updates UI state
-            function renderPreviews() {
-                previewContainer.innerHTML = ''; // Clear existing previews
+            // Renders the single image preview
+            function renderPreview() {
+                previewContainer.innerHTML = ''; // Clear existing preview
                 
-                if (selectedFiles.length > 0) {
+                if (selectedFile) {
                     previewWrapper.classList.remove('hidden');
-                    fileUploadLabel.textContent = `Выбрано ${selectedFiles.length} из 10. Нажмите, чтобы добавить еще.`;
+                    fileUploadLabel.textContent = 'Заменить изображение';
                     fileUploadLabel.classList.remove('bg-[var(--tg-bg-color)]');
                     fileUploadLabel.classList.add('bg-gray-200', 'dark:bg-gray-700');
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewContainer.innerHTML = `
+                            <div class="relative">
+                                <img src="${e.target.result}" class="w-full h-24 object-cover rounded-md">
+                                <button class="remove-img-btn absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold leading-none">&times;</button>
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(selectedFile);
+
                 } else {
                     previewWrapper.classList.add('hidden');
-                    fileUploadLabel.textContent = 'Выбрать изображения (до 10)';
+                    fileUploadLabel.textContent = 'Выбрать изображение';
                     fileUploadLabel.classList.add('bg-[var(--tg-bg-color)]');
                     fileUploadLabel.classList.remove('bg-gray-200', 'dark:bg-gray-700');
                 }
-
-                selectedFiles.forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const previewElement = document.createElement('div');
-                        previewElement.className = 'relative';
-                        previewElement.innerHTML = `
-                            <img src="${e.target.result}" class="w-full h-24 object-cover rounded-md">
-                            <button data-index="${index}" class="remove-img-btn absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold leading-none">&times;</button>
-                        `;
-                        previewContainer.appendChild(previewElement);
-                    };
-                    reader.readAsDataURL(file);
-                });
             }
 
             // Handles new file selection
             fileInput.addEventListener('change', (event) => {
-                const newFiles = Array.from(event.target.files);
-                if (selectedFiles.length + newFiles.length > 10) {
-                    tg.showAlert('Можно загрузить не более 10 изображений.');
-                    return;
+                const file = event.target.files[0];
+                if (file) {
+                    selectedFile = file;
                 }
-                selectedFiles.push(...newFiles);
-                fileInput.value = ''; // Reset input to allow selecting the same file again after removing it
-                renderPreviews();
+                fileInput.value = ''; // Reset input
+                renderPreview();
             });
 
-            // Handles removing a specific image preview
+            // Handles removing the image preview
             previewContainer.addEventListener('click', (e) => {
-                const removeBtn = e.target.closest('.remove-img-btn');
-                if (removeBtn) {
-                    const indexToRemove = parseInt(removeBtn.dataset.index);
-                    selectedFiles.splice(indexToRemove, 1);
-                    renderPreviews();
+                if (e.target.closest('.remove-img-btn')) {
+                    selectedFile = null;
+                    renderPreview();
                 }
             });
 
             // Handles the final post submission
             document.getElementById('add-post-btn').addEventListener('click', async (e) => {
                 const btn = e.target;
-                const files = selectedFiles;
+                const file = selectedFile;
                 const desc = document.getElementById('new-post-desc');
                 
-                if (files.length === 0) { tg.showAlert('Выберите хотя бы одно изображение.'); return; }
+                if (!file) { tg.showAlert('Выберите изображение.'); return; }
                 if (!desc.value) { tg.showAlert('Добавьте описание.'); return; }
 
                 btn.disabled = true; 
-                btn.textContent = `Загрузка (0/${files.length})...`;
+                btn.textContent = 'Загрузка...';
 
                 try {
-                    const uploadPromises = files.map(async (file, index) => {
-                        const filePath = `public/${Date.now()}-${file.name}`;
-                        const { error: uploadError } = await supabase.storage.from('image').upload(filePath, file);
-                        if (uploadError) throw uploadError;
-                        
-                        const { data } = supabase.storage.from('image').getPublicUrl(filePath);
-                        btn.textContent = `Загрузка (${index + 1}/${files.length})...`;
-                        return data.publicUrl;
-                    });
+                    const filePath = `public/${Date.now()}-${file.name}`;
+                    const { error: uploadError } = await supabase.storage.from('image').upload(filePath, file);
+                    if (uploadError) throw uploadError;
+                    
+                    const { data } = supabase.storage.from('image').getPublicUrl(filePath);
+                    const imageUrl = data.publicUrl;
 
-                    const imageUrls = await Promise.all(uploadPromises);
-
-                    // IMPORTANT: The 'portfolio' table must have an 'image_urls' column of type jsonb or text[]
-                    const { error } = await supabase.from('portfolio').insert({ image_urls: imageUrls, description: desc.value });
+                    // The 'portfolio' table expects an array for 'image_urls'
+                    const { error } = await supabase.from('portfolio').insert({ image_urls: [imageUrl], description: desc.value });
                     if (error) throw error;
 
                     // Reset form
                     desc.value = '';
-                    selectedFiles = [];
-                    renderPreviews();
+                    selectedFile = null;
+                    renderPreview();
 
                     showToast('Пост успешно добавлен!');
                     await renderAdminPortfolio();
                 } catch (error) { 
-                    tg.showAlert('Ошибка при загрузке изображений или создании поста.'); 
+                    tg.showAlert('Ошибка при загрузке или создании поста.'); 
                     console.error(error); 
                 } finally { 
                     btn.disabled = false; 
