@@ -148,7 +148,8 @@
                     <div id="time-slots" class="grid grid-cols-4 gap-2 mt-4"></div>
                     <p id="no-slots-message" class="text-center text-[var(--tg-hint-color)] mt-4 hidden">На выбранную дату нет свободных слотов.</p>
                 </div>
-                <button id="back-to-services" class="hidden w-full mt-4 p-3 rounded-lg bg-[var(--tg-secondary-bg-color)] text-center font-bold active:scale-95 transition-transform">Назад к услугам</button>
+                 <!-- This button is now hidden and only used for its logic -->
+                <button id="back-to-services" class="hidden"></button>
             </div>
             <div id="admin-services-view" class="hidden space-y-4">
                 <div class="space-y-3 bg-[var(--tg-secondary-bg-color)] p-3 rounded-xl">
@@ -221,12 +222,17 @@
     </div>
 
     <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-[var(--tg-secondary-bg-color)] border-t border-gray-200 dark:border-gray-800 flex justify-around" style="padding-bottom: env(safe-area-inset-bottom);">
+    <nav id="main-nav" class="fixed bottom-0 left-0 right-0 bg-[var(--tg-secondary-bg-color)] border-t border-gray-200 dark:border-gray-800 flex justify-around" style="padding-bottom: env(safe-area-inset-bottom);">
         <button data-page="portfolio-page" class="nav-item active flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg><span id="nav-portfolio" class="text-xs font-medium mt-0.5">Портфолио</span></button>
         <button data-page="booking-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 15.75h.008v.008H12v-.008z" /></svg><span id="nav-booking" class="text-xs font-medium mt-0.5">Запись</span></button>
         <button data-page="history-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span id="nav-history" class="text-xs font-medium mt-0.5">Мои записи</span></button>
         <button data-page="profile-page" class="nav-item flex-1 flex flex-col items-center justify-center p-2 text-[var(--tg-hint-color)] transition-colors"><svg id="nav-profile-icon" class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span id="nav-profile" class="text-xs font-medium mt-0.5">Профиль</span></button>
     </nav>
+
+    <!-- NEW: Bottom Action Bar for Booking Flow -->
+    <div id="bottom-action-bar" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-secondary-bg-color)] border-t border-gray-200 dark:border-gray-800" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+        <button id="action-btn" class="w-full p-3 rounded-lg text-center font-bold text-base transition-all active:scale-95"></button>
+    </div>
     
     <div id="toast"></div>
 
@@ -249,7 +255,7 @@
         const tg = window.Telegram.WebApp;
         const supabase = window.supabase;
         
-        const ADMIN_ID = '5042988950'; // ВАЖНО: Замените на ваш Telegram Admin ID
+        const ADMIN_ID = '504298895'; // ВАЖНО: Замените на ваш Telegram Admin ID
         const SUPABASE_FUNCTION_URL = 'https://ogqufmdhlscmyrdvrzxz.supabase.co/functions/v1/send-notification'; 
         
         const user = tg.initDataUnsafe?.user;
@@ -292,6 +298,10 @@
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
         const modalFooter = document.getElementById('modal-footer');
+        // NEW UI Elements
+        const mainNav = document.getElementById('main-nav');
+        const bottomActionBar = document.getElementById('bottom-action-bar');
+        const actionBtn = document.getElementById('action-btn');
 
         // =================================================================
         // ===== Helper Functions ==========================================
@@ -404,13 +414,14 @@
                         ? post.image_urls.map(url => `<img src="${url}" class="w-full h-auto object-cover aspect-square snap-center shrink-0" loading="lazy" onerror="this.src='https://placehold.co/600x600/e2e8f0/e2e8f0?text=Error'">`).join('')
                         : `<img src="${post.image_url || 'https://placehold.co/600x600/e2e8f0/e2e8f0?text=No+Image'}" class="w-full h-auto object-cover aspect-square">`;
 
+                    // MODIFIED: Added bg-transparent, border-0, and p-0 to the like button to remove the square
                     postElement.innerHTML = `
                         <div class="flex overflow-x-auto space-x-2 snap-x snap-mandatory hide-scrollbar">
                             ${imageGallery}
                         </div>
                         <div class="p-4">
                             <p class="text-[var(--tg-text-color)] mb-3">${post.description}</p>
-                            <button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-[var(--tg-hint-color)] ${isLiked ? 'liked' : ''}">
+                            <button data-id="${post.id}" data-liked="${isLiked}" class="like-btn flex items-center space-x-1.5 text-[var(--tg-hint-color)] p-0 border-0 bg-transparent focus:outline-none ${isLiked ? 'liked' : ''}">
                                 <div class="relative w-6 h-6">
                                     <svg class="w-6 h-6 outline absolute inset-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
                                     <svg class="w-6 h-6 solid absolute inset-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -619,7 +630,7 @@
                 }
 
                 dayEl.addEventListener('click', () => {
-                    onDayClick(currentDate);
+                    onDayClick(dayEl, currentDate);
                 });
                 calendarGrid.appendChild(dayEl);
             }
@@ -644,7 +655,7 @@
 
             const eventDaysSet = new Set(eventDays.map(e => e.day));
             
-            renderCalendar('calendar-grid', date, state.selectedCalendarDate, eventDaysSet, async (clickedDate) => {
+            renderCalendar('calendar-grid', date, state.selectedCalendarDate, eventDaysSet, (dayEl, clickedDate) => {
                 if(isAdmin) {
                     // Admin can block/unblock days
                     const dateString = clickedDate.toISOString().split('T')[0];
@@ -665,7 +676,7 @@
                     });
                 } else {
                     // User selection logic
-                    if (!clickedDate.classList.contains('disabled')) {
+                    if (!dayEl.classList.contains('disabled')) {
                         state.selectedCalendarDate = clickedDate;
                         renderAdminDashboardCalendar();
                         fetchAndRenderAdminAppointments();
@@ -846,8 +857,8 @@
             const date = state.currentBookingDate;
             document.getElementById('booking-month-year').textContent = date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
 
-            renderCalendar('booking-calendar-grid', date, state.selectedBookingDate, null, (clickedDate) => {
-                if (!clickedDate.classList.contains('disabled')) {
+            renderCalendar('booking-calendar-grid', date, state.selectedBookingDate, null, (dayEl, clickedDate) => {
+                if (!dayEl.classList.contains('disabled')) {
                     state.selectedBookingDate = clickedDate;
                     renderBookingCalendar();
                     renderTimeSlots();
@@ -882,17 +893,42 @@
                 noSlotsMessage.textContent = 'Ошибка загрузки слотов.'; 
             }
         }
+        
+        // NEW: Function to handle returning to the service list
+        function goBackToServices() {
+            step1.classList.remove('hidden');
+            step2.classList.add('hidden');
+            tg.MainButton.hide();
 
+            mainNav.classList.remove('hidden');
+            bottomActionBar.classList.add('hidden');
+
+            state.selectedService = null;
+            // Visually deselect time slot
+            document.querySelectorAll('#time-slots button.bg-\\[var\\(--tg-button-color\\)\\]').forEach(btn => {
+                btn.classList.remove('bg-[var(--tg-button-color)]', 'text-[var(--tg-button-text-color)]');
+                if (!btn.disabled) btn.classList.add('bg-[var(--tg-secondary-bg-color)]');
+            });
+        }
+
+        // MODIFIED: Logic for selecting a service
         function handleServiceSelect(service) {
             tg.HapticFeedback.impactOccurred('light');
             state.selectedService = service;
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
-            backBtn.classList.remove('hidden');
+            
+            mainNav.classList.add('hidden');
+            bottomActionBar.classList.remove('hidden');
+            actionBtn.textContent = 'Назад к услугам';
+            actionBtn.className = 'w-full p-3 rounded-lg text-center font-bold text-base transition-all active:scale-95 bg-gray-300 dark:bg-gray-700 text-[var(--tg-text-color)]';
+            actionBtn.onclick = goBackToServices;
+
             renderBookingCalendar();
             renderTimeSlots();
         }
 
+        // MODIFIED: Logic for selecting a time slot
         function handleTimeSlotSelect(time, el) {
             tg.HapticFeedback.impactOccurred('light');
             document.querySelectorAll('#time-slots button').forEach(btn => {
@@ -900,15 +936,19 @@
                 if(!btn.disabled) btn.classList.add('bg-[var(--tg-secondary-bg-color)]');
             });
             el.classList.add('bg-[var(--tg-button-color)]', 'text-[var(--tg-button-text-color)]');
-            tg.MainButton.setText(`Записаться на ${time}`).show();
-            tg.MainButton.onClick(() => confirmBooking(state.selectedBookingDate.toISOString().split('T')[0], time));
+            
+            actionBtn.textContent = `Записаться`;
+            actionBtn.className = 'w-full p-3 rounded-lg text-center font-bold text-base transition-all active:scale-95 bg-[var(--tg-button-color)] text-[var(--tg-button-text-color)]';
+            actionBtn.onclick = () => confirmBooking(state.selectedBookingDate.toISOString().split('T')[0], time);
         }
-
+        
+        // MODIFIED: Booking confirmation logic
         function confirmBooking(date, time) {
             if (!userId) { tg.showAlert('Не удалось определить пользователя.'); return; }
             tg.showConfirm(`Подтвердить запись на ${state.selectedService.name} (${new Date(date).toLocaleDateString('ru-RU')} в ${time})?`, async (confirmed) => {
                 if (confirmed) {
-                    tg.MainButton.showProgress();
+                    actionBtn.disabled = true;
+                    actionBtn.textContent = 'Запись...';
                     try {
                         const { data: newAppointment, error } = await supabase.from('appointments').insert({ 
                             user_id: userId, 
@@ -931,13 +971,13 @@
                         tg.showAlert('Вы успешно записаны!', () => { 
                             switchPage('history-page'); 
                             renderUserAppointments(); 
-                            backBtn.click();
+                            goBackToServices();
                         });
                     } catch (error) { 
                         tg.showAlert('Ошибка при создании записи. Возможно, это время уже занято.'); 
                         console.error(error); 
                     } finally { 
-                        tg.MainButton.hideProgress(); 
+                        actionBtn.disabled = false;
                     }
                 }
             });
@@ -1005,12 +1045,7 @@ END:VCALENDAR`;
             }
         });
 
-        backBtn.addEventListener('click', () => { 
-            step1.classList.remove('hidden'); 
-            step2.classList.add('hidden'); 
-            backBtn.classList.add('hidden'); 
-            tg.MainButton.hide(); 
-        });
+        backBtn.addEventListener('click', goBackToServices);
         
         document.getElementById('booking-prev-month').addEventListener('click', () => { state.currentBookingDate.setMonth(state.currentBookingDate.getMonth() - 1); renderBookingCalendar(); });
         document.getElementById('booking-next-month').addEventListener('click', () => { state.currentBookingDate.setMonth(state.currentBookingDate.getMonth() + 1); renderBookingCalendar(); });
@@ -1289,7 +1324,7 @@ END:VCALENDAR`;
             document.getElementById('nav-booking').textContent = 'Услуги';
             document.getElementById('nav-history').textContent = 'Дашборд';
             document.getElementById('nav-profile').textContent = 'Настройки';
-            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.023.203 1.11.745l.082.502c.09.542-.204 1.06-.746 1.226l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.023-.203-1.11-.745l-.082-.502z" /></svg>`;
+            document.getElementById('nav-profile-icon').innerHTML = `<svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.158.024 1.448.519l.434.748c.29.495.9.743 1.448.519l.558-.223c.55-.22 1.023.203 1.11.745l.082.502c.09.542-.204 1.06-.746 1.226l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-1.023-.203-1.11-.745l-.082-.502a.992.992 0 00-1.11-1.226l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55.22-.9.743-1.448.519l-.434-.748a.992.992 0 00-1.448.519l-.558.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.158.024-1.448.519l-.434.748c-.29.495-.9.743-1.448.519l-.558-.223c-.55-.22-1.023-.203-1.11-.745l-.082-.502z" /></svg>`;
             document.getElementById('admin-portfolio-controls').classList.remove('hidden');
             document.getElementById('admin-services-view').classList.remove('hidden');
             document.getElementById('user-booking-view').classList.add('hidden');
